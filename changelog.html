@@ -16,6 +16,33 @@
         <main class="tutorial-content">
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
+             <div class="tip-box">
+                <strong>V1.1.1 (2026/4/11) - 立绘指令系统全面增强</strong><br>
+                <strong>1. 中英文混合指令支持</strong><br>
+                - 所有立绘修饰词支持中英文别名，可在同一指令中自由混合使用<br>
+                - 示例：<code>[中 front lh01]</code>, <code>[left down 前 lh02]</code><br>
+                - 详见 illustration.md 第2章<br>
+                <br>
+                <strong>2. 精确坐标控制系统</strong><br>
+                - 新增基于百分比的精确坐标控制：<code>x:</code>（水平）和 <code>y:</code>（垂直）<br>
+                - X轴以屏幕中心为0%，Y轴以屏幕底部为0%<br>
+                - 精确坐标优先于文字指令：<code>[x:10% 左 lh01]</code> 使用 x:10%，忽略“左”<br>
+                - 示例：<code>[x:10% y:-5% lh01]</code>, <code>[瞬 x:-20% y:15% lh02]</code><br>
+                - 详见 illustration.md 第3章<br>
+                <br>
+                <strong>3. 简化立绘指令</strong><br>
+                - 支持仅包含角色ID的简化写法，自动应用默认值（居中、底部对齐）<br>
+                - 示例：<code>[lh01]</code> 等同于 <code>[中 lh01]</code><br>
+                - 详见 illustration.md 第1章基本语法<br>
+                <br>
+                <strong>4. 向上偏移关键词</strong><br>
+                - 新增垂直位置的向上偏移指令，与向下偏移对应<br>
+                - 向上：<code>上/up</code> (25%), <code>中上/upm</code> (50%), <code>上上/upu/top</code> (65%)<br>
+                - 向下：<code>下/down</code> (-25%), <code>中下/downm</code> (-50%), <code>下下/downd/bottom</code> (-65%)<br>
+                - 示例：<code>[中 上 lh01]</code>, <code>[middle upm front lh02]</code><br>
+                - 详见 illustration.md 第5章
+            </div>
+
             <div class="tip-box">
                 <strong>V1.1.0 (2026/4/11) - 立绘指令系统增强</strong><br>
                 - 新增了详细的人物立绘差分控制指令，支持更丰富的位置、层级和动画效果<br>
