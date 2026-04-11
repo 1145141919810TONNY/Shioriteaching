@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>场景模板代码 - Shiori 引擎</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .code-wrapper {
+            position: relative;
+            margin-top: 20px;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #FFD700;
+            color: #2c3e50;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        .copy-btn:hover {
+            background-color: #ffcc00;
+            transform: scale(1.05);
+        }
+        pre.code-block {
+            white-space: pre-wrap;       /* 允许自动换行 */
+            word-wrap: break-word;       /* 长单词换行 */
+            user-select: text;           /* 确保文本可选 */
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>场景模板源代码 (scene0.html)</h1>
+            <p>复制此代码作为您新场景的起点</p>
+        </header>
+
+        <main class="tutorial-content">
+            <a href="../index.html" style="text-decoration: none; color: #3498db;">&larr; 返回教学主页</a>
+
+            <div class="tip-box">
+                <strong>使用说明：</strong>您可以点击下方的“一键复制”按钮获取完整代码，保存为新的 .html 文件（例如 scene_new.html）并开始您的创作。<br>
+                <strong>注意：</strong>引擎默认将 <code>scenes/scene1.html</code> 识别为游戏开始的第一个场景。如果您希望使用其他文件名作为起始页，请前往 <code>index.html</code> 修改对应的跳转链接。
+            </div>
+
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode()">一键复制</button>
+                <pre class="code-block" id="source-code"><!DOCTYPE html>
+&lt;html lang=&quot;zh-CN&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;场景模板&lt;/title&gt;
+    &lt;link rel=&quot;icon&quot; type=&quot;image/png&quot; href=&quot;../icon/icon-32.png&quot;&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;../style.css&quot;&gt;
+    &lt;!-- 引入资源集中配置文件 --&gt;
+    &lt;script src=&quot;../bgm_config.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;../cg_config.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;../bg_config.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;../illustration.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;../modules/progress_api.js&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- 背景容器 --&gt;
+    &lt;div id=&quot;background-container&quot;&gt;&lt;/div&gt;
+    
+    &lt;!-- 角色立绘容器 --&gt;
+    &lt;div id=&quot;character-container&quot;&gt;&lt;/div&gt;
+    
+    &lt;!-- 文本框区域 --&gt;
+    &lt;div id=&quot;text-box-container&quot;&gt;
+        &lt;div id=&quot;name-box&quot;&gt;[姓名]&lt;/div&gt;
+        &lt;div id=&quot;text-box&quot;&gt;[文本]&lt;/div&gt;
+    &lt;/div&gt;
+    
+    &lt;!-- 选项容器 --&gt;
+    &lt;div id=&quot;options-container&quot;&gt;&lt;/div&gt;
+    
+    &lt;!-- 全屏文本模式 --&gt;
+    &lt;div id=&quot;novel-mode-container&quot;&gt;
+        &lt;div id=&quot;novel-text-box&quot;&gt;[全屏文本]&lt;/div&gt;
+    &lt;/div&gt;
+    
+    &lt;!-- 音频播放器 --&gt;
+    &lt;audio id=&quot;bgm-player&quot; loop&gt;&lt;/audio&gt;
+    &lt;audio id=&quot;se-player&quot;&gt;&lt;/audio&gt;
+    &lt;audio id=&quot;voice-player&quot;&gt;&lt;/audio&gt;
+    
+    &lt;!-- 视频播放器 --&gt;
+    &lt;div id=&quot;video-player&quot; style=&quot;display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:100; background-color:black;&quot;&gt;
+        &lt;video id=&quot;main-video&quot; style=&quot;width:100%; height:100%; object-fit:contain;&quot; controls&gt;
+            您的浏览器不支持视频播放。
+        &lt;/video&gt;
+    &lt;/div&gt;
+    
+    &lt;!-- 上下文菜单遮罩层 --&gt;
+    &lt;div id=&quot;context-menu-backdrop&quot; class=&quot;context-menu-backdrop&quot;&gt;&lt;/div&gt;
+    
+    &lt;!-- 上下文菜单 --&gt;
+    &lt;div id=&quot;context-menu&quot; class=&quot;context-menu&quot;&gt;
+        &lt;ul&gt;
+            &lt;li onclick=&quot;window.location.href='../saves.html'&quot;&gt;进度管理&lt;/li&gt;
+            &lt;li onclick=&quot;window.location.href='../index.html'&quot;&gt;返回标题页面&lt;/li&gt;
+        &lt;/ul&gt;
+    &lt;/div&gt;
+    
+    &lt;!-- 引擎脚本 --&gt;
+    &lt;script src=&quot;../engine.js&quot;&gt;&lt;/script&gt;
+    &lt;script&gt;
+        // 场景模板数据
+        const sceneData = {
+            background: BG_CONFIG_SUB,  // 使用背景图片集中配置（子目录路径）
+            bgm: BGM_CONFIG_SUB,  // 使用 BGM 集中配置（子目录路径）
+            audio: {
+                // 音效和语音定义示例
+                // 'sfx1': '../assets/audio/sound_effect1.wav',
+                // 'voice1': '../assets/audio/voice1.mp3'
+            },
+            story: [
+                // --- 第一节：完整属性展示与说明 ---
+                { 
+                    text: &quot;这是第一句对白，展示了所有可用的基础属性。&quot;, 
+                    speaker: &quot;角色A&quot;,   // [可选] 说话人姓名，若不显示名字请删除此项
+                    background: &quot;背景_示例&quot;,  // [可选] 背景图 ID，引用自 bg_config.js；设为 null 则不改变当前背景
+                    bgm: &quot;bgm_示例&quot;,         // [可选] BGM ID，引用自 bgm_config.js；设为 null 则不改变当前 BGM
+                    audio: &quot;音效_示例&quot;,      // [可选] 音效或语音 ID，引用自 sceneData.audio；设为 null 则不播放
+                    chars: &quot;[中 角色_示例]&quot;,  // [可选] 立绘指令，支持位置、缩放等控制（详见 illustration.md）
+                    command: &quot;[pov 视角示例]&quot;,// [可选] 引擎指令，如 [pov], [wait], [fadeout] 等
+                    action: null             // [可选] 动作对象，用于分支选项、场景跳转等
+                },
+
+                // --- 第二节：立绘控制演示 ---
+                {
+                    text: &quot;现在展示如何切换不同的角色立绘。&quot;,
+                    speaker: &quot;系统&quot;, 
+                    chars: &quot;[左 角色B],[右 角色C]&quot; // 同时显示两个角色在不同位置
+                },
+                {
+                    text: &quot;使用‘消失’指令可以移除指定的立绘。&quot;,
+                    speaker: &quot;系统&quot;,
+                    chars: &quot;[消失 角色B]&quot;
+                },
+
+                // --- 第三节：指令与文本分段 ---
+                {
+                    text: &quot;这是一段长文本，[s]点击鼠标后会显示这一段。&quot;,
+                    speaker: &quot;角色A&quot;
+                },
+                {
+                    text: &quot;&quot;,
+                    command: &quot;[wait]&quot; // 暂停剧情，等待玩家点击后继续
+                },
+
+                /*这是直接跳转下一个页面
+                { 
+                    text: &quot;她生气地离开了...（这是一个坏结局）&quot;, 
+                    speaker: &quot;旁白&quot;, 
+                    background: &quot;badend1&quot;,
+                    audio: null,
+                    action: {
+                        type: &quot;nextScene&quot;,
+                        target: &quot;../index.html&quot;
+                    }
+                }
+                    */
+                   /*这是选项跳转
+                { 
+                    text: &quot;请在下面添加您的剧情内容&quot;, 
+                    speaker: &quot;系统&quot;, 
+                    background: null,
+                    bgm: null,
+                    audio: null,
+                    action: {
+                        type: &quot;choice&quot;,
+                        choices: [
+                            { text: &quot;前往场景1&quot;, target: &quot;scene1.html&quot; },
+                            { text: &quot;返回主菜单&quot;, target: &quot;../index.html&quot; }
+                        ]
+                    }
+                }
+                    */
+            ]
+        };
+        
+        // 初始化游戏
+        document.addEventListener('DOMContentLoaded', () =&gt; {
+            gameEngine.init(sceneData);
+        });
+        
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2026 Shiori Engine | <a href="../index.html">返回首页</a> | <a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">GitHub 仓库</a></p>
+        </footer>
+    </div>
+
+    <script>
+        function copyCode() {
+            const codeText = document.getElementById('source-code').innerText;
+            navigator.clipboard.writeText(codeText).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.innerText;
+                btn.innerText = '已复制！';
+                btn.style.backgroundColor = '#2ecc71';
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.backgroundColor = '#FFD700';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动选择文本复制。');
+            });
+        }
+    </script>
+</body>
+</html>

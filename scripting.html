@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脚本语法教程 - Shiori 引擎</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>脚本语法与指令规范</h1>
+            <p>掌握 sceneData 结构与 Command 字段的核心用法</p>
+        </header>
+
+        <main class="tutorial-content">
+            <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
+
+            <h2>1. 场景数据结构 (sceneData)</h2>
+            <p>每个场景文件包含一个 `sceneData` 对象，定义了背景、音频和故事脚本。</p>
+            <div class="code-block">
+<pre><span class="code-keyword">const</span> sceneData = {
+    <span class="code-property">background</span>: BG_CONFIG_SUB,
+    <span class="code-property">bgm</span>: BGM_CONFIG_SUB,
+    <span class="code-property">story</span>: [
+        {
+            <span class="code-property">text</span>: <span class="code-string">"对话文本内容"</span>,
+            <span class="code-property">speaker</span>: <span class="code-string">"说话者姓名"</span>,
+            <span class="code-property">background</span>: <span class="code-string">"bg_001_00_00"</span>,
+            <span class="code-property">command</span>: <span class="code-string">"[pov 主角]"</span>
+        }
+    ]
+};</pre>
+            </div>
+
+            <h2>2. Command 字段使用规范</h2>
+            <div class="warning-box">
+                <strong>黄金法则：</strong> 一行只做一件事。要么显示文本，要么执行命令，不要混用。
+            </div>
+
+            <h3>[错误] 错误用法：命令与文本混用</h3>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">"这段文字会被跳过"</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[fadeout time=1000]"</span>
+}</pre>
+            </div>
+
+            <h3>[正确] 正确用法：独立成行</h3>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">"即将开始转场..."</span>,
+    <span class="code-property">speaker</span>: <span class="code-string">"旁白"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[fadeout time=1000]"</span>
+}</pre>
+            </div>
+
+            <h2>3. 常用指令速查</h2>
+            <table>
+                <thead>
+                    <tr><th>指令</th><th>功能说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>[pov 角色名]</code></td><td>在右上角显示当前叙事视角</td></tr>
+                    <tr><td><code>[pov stop]</code></td><td>隐藏视角指示器</td></tr>
+                    <tr><td><code>[wait]</code></td><td>暂停剧情，等待用户点击</td></tr>
+                    <tr><td><code>[fadeout time=1000]</code></td><td>屏幕淡出效果</td></tr>
+                    <tr><td><code>[novel]</code></td><td>开启全屏小说模式</td></tr>
+                    <tr><td><code>[normal]</code></td><td>关闭全屏小说模式</td></tr>
+                </tbody>
+            </table>
+
+            <h2>4. 文本格式标签</h2>
+            <ul>
+                <li><code>\n</code>：换行符，用于在同一段落内换行。</li>
+                <li><code>[s]</code>：分段符，点击鼠标后显示下一段文本。</li>
+            </ul>
+            <div class="code-block">
+<pre><span class="code-property">text</span>: <span class="code-string">"第一段文字[s]第二段文字\n第三行文字"</span></pre>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2026 Shiori Engine | <a href="index.html">返回首页</a> | <a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">GitHub 仓库</a></p>
+        </footer>
+    </div>
+</body>
+</html>

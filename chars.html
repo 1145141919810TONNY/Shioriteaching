@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立绘控制教程 - Shiori 引擎</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>立绘 (Character) 控制指南</h1>
+            <p>精确控制角色的位置、层级、大小和动画效果</p>
+        </header>
+
+        <main class="tutorial-content">
+            <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
+
+            <h2>1. 基本语法结构</h2>
+            <p>立绘指令采用方括号包裹的形式：<code>[修饰词 角色ID]</code>。如果需要同时控制多个立绘，可以使用逗号分隔。</p>
+            <div class="code-block">
+<span class="code-comment">// 显示 ID 为 lh01 的立绘，位置居中</span>
+chars: <span class="code-string">"[中 lh01]"</span>
+
+<span class="code-comment">// 同时显示两个立绘</span>
+chars: <span class="code-string">"[左 lh01],[右 lh02]"</span>
+            </div>
+
+            <h2>2. 水平位置控制</h2>
+            <table>
+                <thead>
+                    <tr><th>关键词</th><th>屏幕百分比 (Left)</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>左左</td><td>15%</td><td>最左侧</td></tr>
+                    <tr><td>左</td><td>25%</td><td>偏左侧</td></tr>
+                    <tr><td>左右</td><td>35%</td><td>微偏左</td></tr>
+                    <tr><td>中</td><td>50%</td><td>屏幕正中央（默认值）</td></tr>
+                    <tr><td>右左</td><td>65%</td><td>微偏右</td></tr>
+                    <tr><td>右</td><td>75%</td><td>偏右侧</td></tr>
+                    <tr><td>右右</td><td>85%</td><td>最右侧</td></tr>
+                </tbody>
+            </table>
+
+            <h2>3. 垂直位置与层级</h2>
+            <p>通过关键词控制立绘的垂直偏移（Bottom）和堆叠顺序（zIndex）。</p>
+            <ul>
+                <li><strong>垂直：</strong> <code>下</code> (-25%), <code>中下</code> (-50%), <code>下下</code> (-65%)</li>
+                <li><strong>层级：</strong> <code>前</code> (zIndex 11), <code>后</code> (zIndex 9)</li>
+            </ul>
+
+            <h2>4. 缩放比例</h2>
+            <p>使用带有 <code>%</code> 符号的数字调整大小。正值放大，负值缩小。</p>
+            <div class="code-block">
+chars: <span class="code-string">"[中 15% lh01]"</span> <span class="code-comment">// 放大到 115%</span>
+chars: <span class="code-string">"[中 -20% lh01]"</span> <span class="code-comment">// 缩小到 80%</span>
+            </div>
+
+            <h2>5. 动画控制</h2>
+            <div class="tip-box">
+                <strong>提示：</strong> 默认情况下，立绘变化会带有 0.5 秒的平滑过渡动画。若出现卡顿，可使用 <code>瞬</code> 指令禁用动画。
+            </div>
+            <div class="code-block">
+chars: <span class="code-string">"[瞬 左 lh01]"</span> <span class="code-comment">// 瞬间移动，无动画</span>
+            </div>
+
+            <h2>6. 组合指令示例</h2>
+            <p>您可以将多个修饰词组合在一个指令中，顺序不影响解析结果。</p>
+            <div class="code-block">
+<span class="code-comment">// 完整组合：瞬移 + 位置 + 缩放 + 层级</span>
+chars: <span class="code-string">"[瞬 中 下下 20% 前 lh01]"</span>
+            </div>
+
+            <h2>7. 清除立绘</h2>
+            <div class="code-block">
+chars: <span class="code-string">"[消失 lh01]"</span>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2026 Shiori Engine | <a href="index.html">返回首页</a> | <a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">GitHub 仓库</a></p>
+        </footer>
+    </div>
+</body>
+</html>
