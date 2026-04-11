@@ -16,64 +16,234 @@
         <main class="tutorial-content">
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
-            <h2>1. 基本语法结构</h2>
-            <p>立绘指令采用方括号包裹的形式：<code>[修饰词 角色ID]</code>。如果需要同时控制多个立绘，可以使用逗号分隔。</p>
-            <div class="code-block">
-<span class="code-comment">// 显示 ID 为 lh01 的立绘，位置居中</span>
-chars: <span class="code-string">"[中 lh01]"</span>
-
-<span class="code-comment">// 同时显示两个立绘</span>
-chars: <span class="code-string">"[左 lh01],[右 lh02]"</span>
+            <div class="tip-box">
+                <strong>V1.1.1 更新：</strong>立绘指令系统全面增强！新增中英文混合支持、精确坐标控制、简化指令和向上偏移关键词。
             </div>
 
-            <h2>2. 水平位置控制</h2>
+            <h2>1. 基本语法结构</h2>
+            <p>立绘指令采用方括号包裹的形式：<code>[修饰词 角色ID]</code>。多个修饰词用空格分隔，多立绘用逗号分隔。</p>
+            <div class="code-block">
+<pre>chars: <span class="code-string">"[中 lh01]"</span> <span class="code-comment">// 基础用法</span>
+
+chars: <span class="code-string">"[lh01]"</span> <span class="code-comment">// 简化写法（V1.1.1 新增）- 等同于 [中 lh01]</span>
+
+chars: <span class="code-string">"[左 lh01],[右 lh02]"</span> <span class="code-comment">// 同时显示两个立绘</span></pre>
+            </div>
+
+            <h2>2. 中英文别名支持</h2>
+            <p>所有修饰词均支持中英文别名，可在同一指令中自由混合使用。</p>
+            <div class="code-block">
+<pre><span class="code-comment">// 纯中文</span>
+chars: <span class="code-string">"[左 下 前 lh01]"</span>
+
+<span class="code-comment">// 纯英文</span>
+chars: <span class="code-string">"[left down front lh01]"</span>
+
+<span class="code-comment">// 中英文混合</span>
+chars: <span class="code-string">"[中 front lh01]"</span>
+chars: <span class="code-string">"[left 下 lh02]"</span></pre>
+            </div>
+
+            <h2>3. 水平位置控制</h2>
             <table>
                 <thead>
-                    <tr><th>关键词</th><th>屏幕百分比 (Left)</th><th>说明</th></tr>
+                    <tr><th>中文</th><th>英文</th><th>屏幕百分比 (Left)</th><th>说明</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>左左</td><td>15%</td><td>最左侧</td></tr>
-                    <tr><td>左</td><td>25%</td><td>偏左侧</td></tr>
-                    <tr><td>左右</td><td>35%</td><td>微偏左</td></tr>
-                    <tr><td>中</td><td>50%</td><td>屏幕正中央（默认值）</td></tr>
-                    <tr><td>右左</td><td>65%</td><td>微偏右</td></tr>
-                    <tr><td>右</td><td>75%</td><td>偏右侧</td></tr>
-                    <tr><td>右右</td><td>85%</td><td>最右侧</td></tr>
+                    <tr><td>左左</td><td>leftl</td><td>15%</td><td>最左侧</td></tr>
+                    <tr><td>左</td><td>left</td><td>25%</td><td>偏左侧</td></tr>
+                    <tr><td>左右</td><td>leftr</td><td>35%</td><td>微偏左</td></tr>
+                    <tr><td>中</td><td>middle / center</td><td>50%</td><td>屏幕正中央（默认值）</td></tr>
+                    <tr><td>右左</td><td>rightl</td><td>65%</td><td>微偏右</td></tr>
+                    <tr><td>右</td><td>right</td><td>75%</td><td>偏右侧</td></tr>
+                    <tr><td>右右</td><td>rightr</td><td>85%</td><td>最右侧</td></tr>
                 </tbody>
             </table>
 
-            <h2>3. 垂直位置与层级</h2>
-            <p>通过关键词控制立绘的垂直偏移（Bottom）和堆叠顺序（zIndex）。</p>
-            <ul>
-                <li><strong>垂直：</strong> <code>下</code> (-25%), <code>中下</code> (-50%), <code>下下</code> (-65%)</li>
-                <li><strong>层级：</strong> <code>前</code> (zIndex 11), <code>后</code> (zIndex 9)</li>
-            </ul>
+            <h2>4. 垂直位置控制</h2>
+            <p>通过关键词控制立绘的垂直偏移（Bottom）。不指定时默认为 0（底部对齐）。</p>
+            
+            <h3>4.1 向下偏移</h3>
+            <table>
+                <thead>
+                    <tr><th>中文</th><th>英文</th><th>偏移量 (Bottom)</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>下</td><td>down</td><td>-25%</td><td>向下轻微偏移</td></tr>
+                    <tr><td>中下</td><td>downm</td><td>-50%</td><td>向下中等偏移</td></tr>
+                    <tr><td>下下</td><td>downd / bottom</td><td>-65%</td><td>向下大幅偏移</td></tr>
+                </tbody>
+            </table>
 
-            <h2>4. 缩放比例</h2>
-            <p>使用带有 <code>%</code> 符号的数字调整大小。正值放大，负值缩小。</p>
+            <h3>4.2 向上偏移（V1.1.1 新增）</h3>
+            <table>
+                <thead>
+                    <tr><th>中文</th><th>英文</th><th>偏移量 (Bottom)</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>上</td><td>up</td><td>25%</td><td>向上轻微偏移</td></tr>
+                    <tr><td>中上</td><td>upm</td><td>50%</td><td>向上中等偏移</td></tr>
+                    <tr><td>上上</td><td>upu / top</td><td>65%</td><td>向上大幅偏移</td></tr>
+                </tbody>
+            </table>
+
             <div class="code-block">
-chars: <span class="code-string">"[中 15% lh01]"</span> <span class="code-comment">// 放大到 115%</span>
-chars: <span class="code-string">"[中 -20% lh01]"</span> <span class="code-comment">// 缩小到 80%</span>
+<pre><span class="code-comment">// 向下偏移</span>
+chars: <span class="code-string">"[中 下 lh01]"</span>        <span class="code-comment">// bottom: -25%</span>
+chars: <span class="code-string">"[middle downm lh01]"</span> <span class="code-comment">// bottom: -50%</span>
+
+<span class="code-comment">// 向上偏移</span>
+chars: <span class="code-string">"[中 上 lh01]"</span>        <span class="code-comment">// bottom: 25%</span>
+chars: <span class="code-string">"[中 up lh01]"</span>        <span class="code-comment">// bottom: 25%（英文）</span>
+chars: <span class="code-string">"[中 中上 lh01]"</span>      <span class="code-comment">// bottom: 50%</span>
+chars: <span class="code-string">"[中 top lh01]"</span>       <span class="code-comment">// bottom: 65%（英文别名）</span></pre>
             </div>
 
-            <h2>5. 动画控制</h2>
+            <h2>5. 精确坐标控制（V1.1.1 新增）</h2>
+            <p>使用 <code>x:</code> 和 <code>y:</code> 前缀指定精确百分比坐标。</p>
+            <ul>
+                <li><strong>X轴：</strong>以屏幕中心为 0%，负值向左，正值向右</li>
+                <li><strong>Y轴：</strong>以屏幕底部为 0%，负值向下，正值向上</li>
+                <li><strong>优先级：</strong>精确坐标 > 文字指令</li>
+            </ul>
+            <div class="code-block">
+<pre><span class="code-comment">// 基础用法</span>
+chars: <span class="code-string">"[x:10% y:-5% lh01]"</span>    <span class="code-comment">// 向右10%，向下5%</span>
+chars: <span class="code-string">"[x:-20% y:15% lh02]"</span>   <span class="code-comment">// 向左20%，向上15%</span>
+
+<span class="code-comment">// 仅指定一个轴</span>
+chars: <span class="code-string">"[x:30% lh01]"</span>         <span class="code-comment">// X轴精确，Y轴默认</span>
+chars: <span class="code-string">"[y:10% lh01]"</span>         <span class="code-comment">// Y轴精确，X轴居中</span>
+
+<span class="code-comment">// 与其他修饰词组合</span>
+chars: <span class="code-string">"[x:15% y:-10% front 10% lh01]"</span>  <span class="code-comment">// 精确坐标 + 层级 + 缩放</span>
+chars: <span class="code-string">"[瞬 x:-25% y:20% lh01]"</span>         <span class="code-comment">// 瞬移 + 精确坐标</span>
+
+<span class="code-comment">// 精确坐标优先于文字指令</span>
+chars: <span class="code-string">"[x:10% 左 lh01]"</span>  <span class="code-comment">// 使用 x:10%，忽略“左”</span></pre>
+            </div>
+
+            <h2>6. 层级控制</h2>
+            <p>调整立绘的堆叠顺序（zIndex）。基础层级为 10。</p>
+            <table>
+                <thead>
+                    <tr><th>中文</th><th>英文</th><th>zIndex 值</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>前</td><td>front</td><td>11</td><td>顶层（覆盖在其他立绘之上）</td></tr>
+                    <tr><td>后</td><td>back</td><td>9</td><td>底层（被其他立绘遮挡）</td></tr>
+                </tbody>
+            </table>
+            <div class="code-block">
+<pre><span class="code-comment">// lh01 在前，lh02 在后</span>
+chars: <span class="code-string">"[中 前 lh01],[中 后 lh02]"</span></pre>
+            </div>
+
+            <h2>7. 缩放比例</h2>
+            <p>使用带有 <code>%</code> 符号的数字调整大小。计算规则：最终缩放 = 1 + (数值 / 100)。</p>
+            <ul>
+                <li><strong>正值：</strong>放大。例如 <code>10%</code> 表示放大到 110%</li>
+                <li><strong>负值：</strong>缩小。例如 <code>-20%</code> 表示缩小到 80%</li>
+                <li><strong>零值：</strong><code>0%</code> 表示保持 100% 原始大小</li>
+            </ul>
+            <div class="code-block">
+<pre>chars: <span class="code-string">"[中 15% lh01]"</span>  <span class="code-comment">// 放大到 115%</span>
+chars: <span class="code-string">"[中 -20% lh01]"</span> <span class="code-comment">// 缩小到 80%</span>
+chars: <span class="code-string">"[中 0% lh01]"</span>   <span class="code-comment">// 保持 100%</span></pre>
+            </div>
+
+            <h2>8. 动画控制</h2>
             <div class="tip-box">
                 <strong>提示：</strong> 默认情况下，立绘变化会带有 0.5 秒的平滑过渡动画。若出现卡顿，可使用 <code>瞬</code> 指令禁用动画。
             </div>
+            <table>
+                <thead>
+                    <tr><th>中文</th><th>英文</th><th>效果</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>瞬</td><td>moment / instant</td><td>禁用过渡动画，立绘立即切换</td></tr>
+                </tbody>
+            </table>
             <div class="code-block">
-chars: <span class="code-string">"[瞬 左 lh01]"</span> <span class="code-comment">// 瞬间移动，无动画</span>
+<pre>chars: <span class="code-string">"[瞬 左 lh01]"</span>       <span class="code-comment">// 瞬间移动，无动画</span>
+chars: <span class="code-string">"[instant right lh01]"</span> <span class="code-comment">// 英文写法</span></pre>
             </div>
 
-            <h2>6. 组合指令示例</h2>
-            <p>您可以将多个修饰词组合在一个指令中，顺序不影响解析结果。</p>
+            <h2>9. 互斥处理规则</h2>
+            <p>对于<strong>同一类型</strong>的属性，如果出现了多个同类型关键词，<strong>默认执行第一个</strong>，忽略后续的同类关键词。</p>
             <div class="code-block">
-<span class="code-comment">// 完整组合：瞬移 + 位置 + 缩放 + 层级</span>
+<pre><span class="code-comment">// 只取第一个水平位置 "左"，忽略后面的 "right"</span>
+chars: <span class="code-string">"[左 right lh01]"</span>  <span class="code-comment">// 结果：left = 25%</span>
+
+<span class="code-comment">// 只取第一个垂直位置 "下"，忽略后面的 "downm"</span>
+chars: <span class="code-string">"[下 downm lh01]"</span>  <span class="code-comment">// 结果：bottom = -25%</span>
+
+<span class="code-comment">// 复杂冲突：每类取第一个</span>
+chars: <span class="code-string">"[left right 下 downm front back 10% lh01]"</span>
+<span class="code-comment">// 结果：left=25%(取left), bottom=-25%(取下), zIndex=11(取front), scale=110%</span></pre>
+            </div>
+            <p><strong>注意：</strong>不同类型的关键词<strong>不冲突</strong>，可以同时生效。</p>
+
+            <h2>10. 组合指令示例</h2>
+            <p>您可以将多个修饰词组合在一个指令中，<strong>顺序不影响解析结果</strong>。</p>
+            <div class="code-block">
+<pre><span class="code-comment">// 水平 + 垂直</span>
+chars: <span class="code-string">"[左 下 lh01]"</span>
+
+<span class="code-comment">// 三属性组合：水平 + 垂直 + 缩放</span>
+chars: <span class="code-string">"[左 下 10% lh01]"</span>
+
+<span class="code-comment">// 四属性组合：水平 + 垂直 + 层级 + 缩放</span>
+chars: <span class="code-string">"[右 中下 前 -15% lh01]"</span>
+
+<span class="code-comment">// 完整组合：包含瞬移</span>
 chars: <span class="code-string">"[瞬 中 下下 20% 前 lh01]"</span>
+
+<span class="code-comment">// 中英文混合组合</span>
+chars: <span class="code-string">"[left down front 10% lh01]"</span>
+chars: <span class="code-string">"[中 front 15% lh02]"</span>
+chars: <span class="code-string">"[instant right downm -10% lh03]"</span>
+
+<span class="code-comment">// 精确坐标组合</span>
+chars: <span class="code-string">"[x:10% y:-5% lh01]"</span>
+chars: <span class="code-string">"[x:-15% y:10% front 10% lh02]"</span>
+chars: <span class="code-string">"[瞬 x:20% y:-10% lh03]"</span></pre>
             </div>
 
-            <h2>7. 清除立绘</h2>
+            <h2>11. 清除立绘</h2>
+            <p>使用 <code>消失</code> 指令移除指定立绘。</p>
+            <table>
+                <thead>
+                    <tr><th>中文</th><th>英文</th><th>效果</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>消失</td><td>hide / remove</td><td>移除指定立绘</td></tr>
+                </tbody>
+            </table>
             <div class="code-block">
+<pre><span class="code-comment">// 移除单个立绘</span>
 chars: <span class="code-string">"[消失 lh01]"</span>
+chars: <span class="code-string">"[hide lh01]"</span>
+chars: <span class="code-string">"[remove lh01]"</span>
+
+<span class="code-comment">// 同时移除多个立绘</span>
+chars: <span class="code-string">"[消失 lh01],[消失 lh02]"</span></pre>
+            </div>
+
+            <h2>12. 测试指南</h2>
+            <div class="tip-box">
+                <strong>立绘功能测试：</strong><br>
+                本引擎提供了完整的立绘测试场景，位于 <code>scenes\1.html</code>。<br><br>
+                <strong>使用方法：</strong><br>
+                1. 在浏览器中打开 <code>scenes\1.html</code><br>
+                2. 逐个点击推进，观察每个测试的效果<br><br>
+                <strong>测试内容：</strong><br>
+                - 涵盖所有水平/垂直位置指令（包括向上偏移）<br>
+                - 包含精确坐标控制系统<br>
+                - 包含层级、缩放、动画等修饰词<br>
+                - 支持中英文混合指令测试<br>
+                - 包含冲突场景测试<br><br>
+                <strong>默认资源：</strong> <code>lh1</code>、<code>lh2</code>、<code>lh5</code>
             </div>
         </main>
 
