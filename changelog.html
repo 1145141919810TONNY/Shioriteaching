@@ -16,6 +16,22 @@
         <main class="tutorial-content">
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
+            <div class="tip-box">
+                <strong>V1.1.3 (2026/4/12) - 连续动作指令</strong><br>
+                <strong>1. 连续动作序列支持</strong><br>
+                - 新增使用逗号 <code>,</code> 分隔的多状态帧指令，实现立绘的顺序动画与中断跳转<br>
+                - 示例：<code>[左,中,右 lh01]</code>（依次经过左侧、中间、右侧）<br>
+                <br>
+                <strong>2. 统一化状态帧与属性继承</strong><br>
+                - 每个片段均为完整的立绘指令，支持属性继承（未指定的属性保持上一帧状态）<br>
+                - 示例：<code>[左 前,右 lh01]</code>（Step 1 只指定了“右”，因此继承了 Step 0 的“前”层级）<br>
+                <br>
+                <strong>3. 片段内瞬移</strong><br>
+                - 支持在片段内使用 <code>瞬</code>/<code>instant</code> 实现无过渡动画的状态切换，并保证标准停留时长<br>
+                - 示例：<code>[左,右 上 后 瞬,中 lh01]</code>（依次经过左侧、瞬间移动到右侧上方底层、平滑回到中间）
+            </div>
+
+
              <div class="tip-box">
                 <strong>V1.1.2 (2026/4/11) - 立绘动作指令系统</strong><br>
                 <strong>1. 完整动作指令支持</strong><br>
