@@ -17,6 +17,10 @@
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
             <div class="tip-box">
+                <strong>V1.1.2 更新：</strong>新增立绘动作指令系统（后退、前进、吓一跳、发抖等）和批量清除功能（[消失 all]）。
+            </div>
+
+            <div class="tip-box">
                 <strong>V1.1.1 更新：</strong>立绘指令系统全面增强！新增中英文混合支持、精确坐标控制、简化指令和向上偏移关键词。
             </div>
 
@@ -169,7 +173,69 @@ chars: <span class="code-string">"[中 0% lh01]"</span>   <span class="code-comm
 chars: <span class="code-string">"[instant right lh01]"</span> <span class="code-comment">// 英文写法</span></pre>
             </div>
 
-            <h2>9. 互斥处理规则</h2>
+            <h2>9. 动作指令（V1.1.2 新增）</h2>
+            <p>动作指令为立绘提供丰富的动态效果。<strong>使用动作指令时，<code>瞬</code>/<code>instant</code> 会被自动忽略</strong>。</p>
+            
+            <h3>9.1 动作指令列表</h3>
+            <table>
+                <thead>
+                    <tr><th>中文</th><th>英文</th><th>效果说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>后退</td><td>back</td><td>Y轴向上+10%，缩放-10%，层级强制变为"后"（zIndex=9）</td></tr>
+                    <tr><td>前进</td><td>forward</td><td>Y轴向下-10%，缩放+10%（上限2.0），层级强制变为"前"（zIndex=11）</td></tr>
+                    <tr><td>吓一跳</td><td>scare</td><td>先放大7%再缩小7%，重复2次，总时长约1秒</td></tr>
+                    <tr><td>发抖</td><td>shake</td><td>X轴左右偏移±2%，重复3次，总时长约480ms</td></tr>
+                    <tr><td>持续发抖</td><td>cshake</td><td>持续左右抖动，需手动停止</td></tr>
+                    <tr><td>结束发抖</td><td>sshake</td><td>停止持续发抖，恢复原位</td></tr>
+                </tbody>
+            </table>
+
+            <h3>9.2 动作指令示例</h3>
+            <div class="code-block">
+<pre><span class="code-comment">// 后退效果</span>
+chars: <span class="code-string">"[中 back lh01]"</span>        <span class="code-comment">// Y轴向上+10%，缩小10%，层级变后</span>
+chars: <span class="code-string">"[中 后退 lh01]"</span>        <span class="code-comment">// 中文等价</span>
+
+<span class="code-comment">// 前进效果</span>
+chars: <span class="code-string">"[中 forward lh01]"</span>     <span class="code-comment">// Y轴向下-10%，放大10%，层级变前</span>
+chars: <span class="code-string">"[中 前进 lh01]"</span>        <span class="code-comment">// 中文等价</span>
+
+<span class="code-comment">// 吓一跳</span>
+chars: <span class="code-string">"[中 scare lh01]"</span>       <span class="code-comment">// 放大7%再缩小7%，重复2次</span>
+chars: <span class="code-string">"[中 吓一跳 lh01]"</span>      <span class="code-comment">// 中文等价</span>
+
+<span class="code-comment">// 发抖</span>
+chars: <span class="code-string">"[中 shake lh01]"</span>       <span class="code-comment">// 左右抖动3次</span>
+chars: <span class="code-string">"[中 发抖 lh01]"</span>        <span class="code-comment">// 中文等价</span>
+
+<span class="code-comment">// 持续发抖与停止</span>
+chars: <span class="code-string">"[中 cshake lh01]"</span>      <span class="code-comment">// 开始持续发抖</span>
+chars: <span class="code-string">"[sshake lh01]"</span>         <span class="code-comment">// 停止发抖</span>
+chars: <span class="code-string">"[中 持续发抖 lh01]"</span>    <span class="code-comment">// 中文开始</span>
+chars: <span class="code-string">"[结束发抖 lh01]"</span>       <span class="code-comment">// 中文停止</span></pre>
+            </div>
+
+            <h3>9.3 动作指令优先级规则</h3>
+            <ul>
+                <li><strong>屏蔽瞬移</strong>：<code>[瞬 back lh01]</code> 中 '瞬' 被忽略，后退动画正常播放</li>
+                <li><strong>多动作取第一个</strong>：<code>[后退 吓一跳 lh01]</code> 只执行'后退'，忽略'吓一跳'</li>
+                <li><strong>与其他修饰词组合</strong>：<code>[左 back lh01]</code>（左侧位置 + 后退效果）</li>
+            </ul>
+
+            <h3>9.4 后退 vs 前进对比</h3>
+            <table>
+                <thead>
+                    <tr><th>属性</th><th>后退 (back)</th><th>前进 (forward)</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Y轴</td><td>+10% (向上)</td><td>-10% (向下)</td></tr>
+                    <tr><td>缩放</td><td>-0.1 (缩小)</td><td>+0.1 (放大)</td></tr>
+                    <tr><td>层级</td><td>强制变后 (9)</td><td>强制变前 (11)</td></tr>
+                </tbody>
+            </table>
+
+            <h2>10. 互斥处理规则</h2>
             <p>对于<strong>同一类型</strong>的属性，如果出现了多个同类型关键词，<strong>默认执行第一个</strong>，忽略后续的同类关键词。</p>
             <div class="code-block">
 <pre><span class="code-comment">// 只取第一个水平位置 "左"，忽略后面的 "right"</span>
@@ -184,7 +250,7 @@ chars: <span class="code-string">"[left right 下 downm front back 10% lh01]"</s
             </div>
             <p><strong>注意：</strong>不同类型的关键词<strong>不冲突</strong>，可以同时生效。</p>
 
-            <h2>10. 组合指令示例</h2>
+            <h2>11. 组合指令示例</h2>
             <p>您可以将多个修饰词组合在一个指令中，<strong>顺序不影响解析结果</strong>。</p>
             <div class="code-block">
 <pre><span class="code-comment">// 水平 + 垂直</span>
@@ -210,8 +276,10 @@ chars: <span class="code-string">"[x:-15% y:10% front 10% lh02]"</span>
 chars: <span class="code-string">"[瞬 x:20% y:-10% lh03]"</span></pre>
             </div>
 
-            <h2>11. 清除立绘</h2>
-            <p>使用 <code>消失</code> 指令移除指定立绘。</p>
+            <h2>12. 清除立绘</h2>
+            <p>使用 <code>消失</code> 指令移除指定立绘或全部立绘。</p>
+            
+            <h3>12.1 单个立绘清除</h3>
             <table>
                 <thead>
                     <tr><th>中文</th><th>英文</th><th>效果</th></tr>
@@ -230,7 +298,29 @@ chars: <span class="code-string">"[remove lh01]"</span>
 chars: <span class="code-string">"[消失 lh01],[消失 lh02]"</span></pre>
             </div>
 
-            <h2>12. 测试指南</h2>
+            <h3>12.2 批量清除所有立绘（V1.1.2 新增）</h3>
+            <p>一键清除屏幕上所有活跃立绘，包括自动停止所有动画状态（如持续发抖）。</p>
+            <div class="code-block">
+<pre><span class="code-comment">// 中文指令</span>
+chars: <span class="code-string">"[消失 全部]"</span>
+
+<span class="code-comment">// 英文指令 (hide)</span>
+chars: <span class="code-string">"[hide all]"</span>
+
+<span class="code-comment">// 英文指令 (remove)</span>
+chars: <span class="code-string">"[remove all]"</span>
+
+<span class="code-comment">// 实际应用场景：场景切换前清除所有立绘</span>
+chars: <span class="code-string">"[消失 all]"</span></pre>
+            </div>
+            <div class="tip-box">
+                <strong>注意事项：</strong><br>
+                - 会自动清理所有动画状态（如 <code>cshake</code> 持续发抖的定时器）<br>
+                - 空状态时调用不会报错<br>
+                - 完全兼容原有的单立绘清除功能
+            </div>
+
+            <h2>13. 测试指南</h2>
             <div class="tip-box">
                 <strong>立绘功能测试：</strong><br>
                 本引擎提供了完整的立绘测试场景，位于 <code>scenes\1.html</code>。<br><br>
@@ -242,7 +332,9 @@ chars: <span class="code-string">"[消失 lh01],[消失 lh02]"</span></pre>
                 - 包含精确坐标控制系统<br>
                 - 包含层级、缩放、动画等修饰词<br>
                 - 支持中英文混合指令测试<br>
-                - 包含冲突场景测试<br><br>
+                - 包含冲突场景测试<br>
+                - <strong>V1.1.2 新增：</strong>动作指令系统测试（后退、前进、吓一跳、发抖等）<br>
+                - <strong>V1.1.2 新增：</strong>批量清除功能测试（[消失 all]）<br><br>
                 <strong>默认资源：</strong> <code>lh1</code>、<code>lh2</code>、<code>lh5</code>
             </div>
         </main>
