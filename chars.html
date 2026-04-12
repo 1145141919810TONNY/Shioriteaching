@@ -182,7 +182,7 @@ chars: <span class="code-string">"[instant right lh01]"</span> <span class="code
                     <tr><th>中文</th><th>英文</th><th>效果说明</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>后退</td><td>back</td><td>Y轴向上+10%，缩放-10%，层级强制变为"后"（zIndex=9）</td></tr>
+                    <tr><td>后退</td><td>retreat</td><td>Y轴向上+10%，缩放-10%，层级强制变为"后"（zIndex=9）</td></tr>
                     <tr><td>前进</td><td>forward</td><td>Y轴向下-10%，缩放+10%（上限2.0），层级强制变为"前"（zIndex=11）</td></tr>
                     <tr><td>吓一跳</td><td>scare</td><td>先放大7%再缩小7%，重复2次，总时长约1秒</td></tr>
                     <tr><td>发抖</td><td>shake</td><td>X轴左右偏移±2%，重复3次，总时长约480ms</td></tr>
@@ -194,7 +194,7 @@ chars: <span class="code-string">"[instant right lh01]"</span> <span class="code
             <h3>9.2 动作指令示例</h3>
             <div class="code-block">
 <pre><span class="code-comment">// 后退效果</span>
-chars: <span class="code-string">"[中 back lh01]"</span>        <span class="code-comment">// Y轴向上+10%，缩小10%，层级变后</span>
+chars: <span class="code-string">"[中 retreat lh01]"</span>        <span class="code-comment">// Y轴向上+10%，缩小10%，层级变后</span>
 chars: <span class="code-string">"[中 后退 lh01]"</span>        <span class="code-comment">// 中文等价</span>
 
 <span class="code-comment">// 前进效果</span>
@@ -218,15 +218,15 @@ chars: <span class="code-string">"[结束发抖 lh01]"</span>       <span class=
 
             <h3>9.3 动作指令优先级规则</h3>
             <ul>
-                <li><strong>屏蔽瞬移</strong>：<code>[瞬 back lh01]</code> 中 '瞬' 被忽略，后退动画正常播放</li>
+                <li><strong>屏蔽瞬移</strong>：<code>[瞬 retreat lh01]</code> 中 '瞬' 被忽略，后退动画正常播放</li>
                 <li><strong>多动作取第一个</strong>：<code>[后退 吓一跳 lh01]</code> 只执行'后退'，忽略'吓一跳'</li>
-                <li><strong>与其他修饰词组合</strong>：<code>[左 back lh01]</code>（左侧位置 + 后退效果）</li>
+                <li><strong>与其他修饰词组合</strong>：<code>[左 retreat lh01]</code>（左侧位置 + 后退效果）</li>
             </ul>
 
             <h3>9.4 后退 vs 前进对比</h3>
             <table>
                 <thead>
-                    <tr><th>属性</th><th>后退 (back)</th><th>前进 (forward)</th></tr>
+                    <tr><th>属性</th><th>后退 (retreat)</th><th>前进 (forward)</th></tr>
                 </thead>
                 <tbody>
                     <tr><td>Y轴</td><td>+10% (向上)</td><td>-10% (向下)</td></tr>
