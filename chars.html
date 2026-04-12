@@ -17,6 +17,10 @@
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
             <div class="tip-box">
+                <strong>V1.1.3 更新：</strong>新增连续动作指令支持（使用逗号 `,` 分隔），实现立绘的顺序动画与中断跳转。
+            </div>
+
+            <div class="tip-box">
                 <strong>V1.1.2 更新：</strong>新增立绘动作指令系统（后退、前进、吓一跳、发抖等）和批量清除功能（[消失 all]）。
             </div>
 
@@ -31,7 +35,9 @@
 
 chars: <span class="code-string">"[lh01]"</span> <span class="code-comment">// 简化写法（V1.1.1 新增）- 等同于 [中 lh01]</span>
 
-chars: <span class="code-string">"[左 lh01],[右 lh02]"</span> <span class="code-comment">// 同时显示两个立绘</span></pre>
+chars: <span class="code-string">"[左 lh01],[右 lh02]"</span> <span class="code-comment">// 同时显示两个立绘</span>
+
+chars: <span class="code-string">"[左,中,右 lh01]"</span> <span class="code-comment">// 连续动作：依次经过左、中、右（V1.1.3 新增）</span></pre>
             </div>
 
             <h2>2. 中英文别名支持</h2>
@@ -235,7 +241,75 @@ chars: <span class="code-string">"[结束发抖 lh01]"</span>       <span class=
                 </tbody>
             </table>
 
-            <h2>10. 互斥处理规则</h2>
+            <h2>10. 连续动作指令（V1.1.3 新增）</h2>
+            <p>允许在一个指令中定义一系列按顺序执行的状态变化，使用逗号 <code>,</code> 作为分隔符。</p>
+            
+            <h3>10.1 基础语法与统一化状态帧</h3>
+            <div class="tip-box">
+                <strong>核心理念：</strong><br>
+                每个逗号分隔的片段都是一个<strong>完整的、独立的立绘状态帧</strong>。片段内部依然使用空格分隔不同属性。
+            </div>
+            <div class="code-block">
+<pre><span class="code-comment">// 基础连续移动</span>
+chars: <span class="code-string">"[左,中,右 lh01]"</span>
+
+<span class="code-comment">// 多属性组合：每个片段内部使用空格分隔不同属性</span>
+chars: <span class="code-string">"[左 下,中 上,右 中下 lh01]"</span></pre>
+            </div>
+
+            <h3>10.2 属性继承与覆盖</h3>
+            <p>引擎在处理每一帧时，会基于立绘的当前状态应用该帧指定的所有修饰词。<strong>未在该帧中指定的属性将保持上一帧的状态</strong>。</p>
+            <div class="code-block">
+<pre><span class="code-comment">// 示例解析：[左 下,右 上 后 瞬,中 y:+10% 10% lh01]</span>
+<span class="code-comment">// Step 0: "左 下" -> 移动到左侧并向下偏移。</span>
+<span class="code-comment">// Step 1: "右 上 后 瞬" -> 瞬间移动到右侧、向上偏移并置于底层。</span>
+<span class="code-comment">// Step 2: "中 y:+10% 10%" -> 平滑移动到居中，Y轴+10%，缩放110%（层级保持“后”）。</span>
+chars: <span class="code-string">"[左 下,右 上 后 瞬,中 y:+10% 10% lh01]"</span></pre>
+            </div>
+
+            <h3>10.3 动画与瞬移</h3>
+            <p>默认情况下，每个片段之间的切换会保留平滑过渡动画（0.5s）。可以通过以下方式实现局部瞬间切换：</p>
+            <div class="tip-box">
+                <strong>作用逻辑：</strong><br>
+                1. <strong>独立标记</strong>：<code>[左,瞬,右 lh01]</code>。从“左”到“右”是瞬移。<br>
+                2. <strong>片段内标记</strong>：<code>[左,右 上 后 瞬,中 lh01]</code>。立绘会<strong>瞬间</strong>移动到“右侧、上方、底层”，并在此状态停留约 0.5 秒，然后再平滑移动到“中间”。<br>
+                3. <strong>核心原则</strong>：<code>瞬</code> 仅禁用 CSS 过渡动画，<strong>不跳过</strong>该状态的展示时间。
+            </div>
+            <div class="code-block">
+<pre><span class="code-comment">// 混合瞬移：左->瞬间右->平滑中->瞬间左左</span>
+chars: <span class="code-string">"[左,瞬,右,中,瞬,左左 lh01]"</span>
+
+<span class="code-comment">// 片段内瞬移：瞬间切换到右侧上方底层</span>
+chars: <span class="code-string">"[左,右 上 后 瞬,中 lh01]"</span>
+
+<span class="code-comment">// 精确坐标混合</span>
+chars: <span class="code-string">"[x:10%,左,x:-10% lh01]"</span></pre>
+            </div>
+
+            <h3>10.3 中断处理</h3>
+            <p>如果用户在连续动画执行过程中点击鼠标（推进剧情），引擎会立即停止当前未完成的中间动画，并将立绘直接跳转到指令序列中<strong>最后一个片段</strong>所定义的状态。</p>
+
+            <h3>10.4 复杂组合与属性继承</h3>
+            <p>连续动作指令支持与层级、缩放、动作指令等所有修饰词的组合。<strong>每个逗号分隔的片段都是一个完整的立绘状态描述</strong>。</p>
+            <div class="tip-box">
+                <strong>语法说明：</strong><br>
+                1. <strong>完整状态帧</strong>：每个片段内部使用空格分隔不同属性（如 <code>"左 前"</code>）。<br>
+                2. <strong>属性继承</strong>：如果某一步骤只指定了部分属性，未指定的属性将保持上一步的状态。
+            </div>
+            <div class="code-block">
+<pre><span class="code-comment">// 多属性同时变化</span>
+chars: <span class="code-string">"[左 下,中 上,右 中下 lh01]"</span>
+
+<span class="code-comment">// 属性继承示例：Step 1 只改变了位置，层级和缩放保持 Step 0 的状态</span>
+chars: <span class="code-string">"[左 前 10%,右 lh01]"</span> 
+<span class="code-comment">// Step 0: 左侧 + 顶层 + 放大10%</span>
+<span class="code-comment">// Step 1: 右侧 + 顶层(继承) + 放大10%(继承)</span>
+
+<span class="code-comment">// 带动作指令</span>
+chars: <span class="code-string">"[中 retreat,中 forward lh01]"</span></pre>
+            </div>
+
+            <h2>11. 互斥处理规则</h2>
             <p>对于<strong>同一类型</strong>的属性，如果出现了多个同类型关键词，<strong>默认执行第一个</strong>，忽略后续的同类关键词。</p>
             <div class="code-block">
 <pre><span class="code-comment">// 只取第一个水平位置 "左"，忽略后面的 "right"</span>
@@ -250,7 +324,7 @@ chars: <span class="code-string">"[left right 下 downm front back 10% lh01]"</s
             </div>
             <p><strong>注意：</strong>不同类型的关键词<strong>不冲突</strong>，可以同时生效。</p>
 
-            <h2>11. 组合指令示例</h2>
+            <h2>12. 组合指令示例</h2>
             <p>您可以将多个修饰词组合在一个指令中，<strong>顺序不影响解析结果</strong>。</p>
             <div class="code-block">
 <pre><span class="code-comment">// 水平 + 垂直</span>
@@ -276,7 +350,7 @@ chars: <span class="code-string">"[x:-15% y:10% front 10% lh02]"</span>
 chars: <span class="code-string">"[瞬 x:20% y:-10% lh03]"</span></pre>
             </div>
 
-            <h2>12. 清除立绘</h2>
+            <h2>13. 清除立绘</h2>
             <p>使用 <code>消失</code> 指令移除指定立绘或全部立绘。</p>
             
             <h3>12.1 单个立绘清除</h3>
@@ -320,7 +394,7 @@ chars: <span class="code-string">"[消失 all]"</span></pre>
                 - 完全兼容原有的单立绘清除功能
             </div>
 
-            <h2>13. 测试指南</h2>
+            <h2>14. 测试指南</h2>
             <div class="tip-box">
                 <strong>立绘功能测试：</strong><br>
                 本引擎提供了完整的立绘测试场景，位于 <code>scenes\1.html</code>。<br><br>
@@ -334,7 +408,8 @@ chars: <span class="code-string">"[消失 all]"</span></pre>
                 - 支持中英文混合指令测试<br>
                 - 包含冲突场景测试<br>
                 - <strong>V1.1.2 新增：</strong>动作指令系统测试（后退、前进、吓一跳、发抖等）<br>
-                - <strong>V1.1.2 新增：</strong>批量清除功能测试（[消失 all]）<br><br>
+                - <strong>V1.1.2 新增：</strong>批量清除功能测试（[消失 all]）<br>
+                - <strong>V1.1.3 新增：</strong>连续动作指令测试（逗号分隔序列、属性继承、片段内瞬移）<br><br>
                 <strong>默认资源：</strong> <code>lh1</code>、<code>lh2</code>、<code>lh5</code>
             </div>
         </main>
