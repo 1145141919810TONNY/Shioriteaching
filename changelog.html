@@ -20,20 +20,20 @@
                 <strong>V1.1.2 (2026/4/11) - 立绘动作指令系统</strong><br>
                 <strong>1. 完整动作指令支持</strong><br>
                 - 新增6种立绘动作指令，支持中英文别名<br>
-                - <strong>后退/back</strong>：Y轴向上+10%，缩放-10%，层级强制变为"后"（zIndex=9）<br>
+                - <strong>后退/retreat</strong>：Y轴向上+10%，缩放-10%，层级强制变为"后"（zIndex=9）<br>
                 - <strong>前进/forward</strong>：Y轴向下-10%，缩放+10%（上限2.0），层级强制变为"前"（zIndex=11）<br>
                 - <strong>吓一跳/scare</strong>：先放大7%再缩小7%，重复2次，总时长约1秒<br>
                 - <strong>发抖/shake</strong>：X轴左右偏移±2%，重复3次，总时长约480ms<br>
                 - <strong>持续发抖/cshake</strong>：持续左右抖动，需手动停止<br>
                 - <strong>结束发抖/sshake</strong>：停止持续发抖，恢复原位<br>
-                - 示例：<code>[中 back lh01]</code>, <code>[中 forward lh01]</code>, <code>[中 scare lh01]</code><br>
+                - 示例：<code>[中 retreat lh01]</code>, <code>[中 forward lh01]</code>, <code>[中 scare lh01]</code><br>
                 - 详见 illustration.md 第11章<br>
                 <br>
                 <strong>2. 动作指令优先级规则</strong><br>
                 - <strong>屏蔽瞬移</strong>：使用动作指令时，<code>瞬</code>/<code>instant</code> 会被自动忽略，确保动画正常播放<br>
                 - <strong>多动作取第一个</strong>：同时指定多个动作时，只执行第一个，忽略后续动作<br>
                 - <strong>与其他修饰词组合</strong>：动作可与位置、缩放、层级等修饰词自由组合<br>
-                - 示例：<code>[瞬 back lh01]</code>（'瞬'被忽略，后退动画正常播放）<br>
+                - 示例：<code>[瞬 retreat lh01]</code>（'瞬'被忽略，后退动画正常播放）<br>
                 <br>
                 <strong>3. 批量清除所有立绘</strong><br>
                 - 新增 <code>[消失 all]</code> 和 <code>[消失 全部]</code> 指令，一键清除屏幕上所有立绘<br>
@@ -43,7 +43,7 @@
                 - 示例：<code>[消失 全部]</code>, <code>[hide all]</code>, <code>[remove all]</code><br>
                 - 详见 illustration.md 第10.2节
             </div>
-
+            
              <div class="tip-box">
                 <strong>V1.1.1 (2026/4/11) - 立绘指令系统全面增强</strong><br>
                 <strong>1. 中英文混合指令支持</strong><br>
