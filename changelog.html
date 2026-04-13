@@ -17,6 +17,20 @@
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
             <div class="tip-box">
+                <strong>V1.1.4 (2026/4/13) - 渐入渐出与背景转场</strong><br>
+                <strong>1. 立绘渐入与渐出指令</strong><br>
+                - 新增 `[渐入]` / `[fadeIn]` 和 `[渐出]` / `[fadeOut]` 指令，支持立绘以平滑的淡入淡出效果出现或消失<br>
+                - 替代了原本生硬的瞬间刷新，使画面过渡更加自然<br>
+                - <strong>注意</strong>：使用 `[渐出]` 时建议保持指令纯净（如 `[渐出 lh1]`），避免添加位置修饰词导致先闪动再消失<br>
+                - 详见 illustration.md 第8章及 chars.html 教程<br>
+                <br>
+                <strong>2. 背景转场系统</strong><br>
+                - 新增多种背景切换动画，包括淡入淡出（Fade）、滑动（Slide）及扫描（Scan）效果<br>
+                - 支持中英文指令，例如：<code>trans bg_01</code>、<code>左滑 bg_02</code>、<code>scanR bg_03</code><br>
+                - 详细用法请参考本项目官方GitHub仓库内 background.md 文档或本教学网页内的教程
+            </div>
+
+            <div class="tip-box">
                 <strong>V1.1.3 (2026/4/12) - 连续动作指令</strong><br>
                 <strong>1. 连续动作序列支持</strong><br>
                 - 新增使用逗号 <code>,</code> 分隔的多状态帧指令，实现立绘的顺序动画与中断跳转<br>
