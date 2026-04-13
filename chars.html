@@ -17,6 +17,14 @@
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
             <div class="tip-box">
+                <strong>V1.1.5 更新：</strong>新增角色名称标识符功能，支持基于角色的自动替换与状态继承。
+            </div>
+
+            <div class="tip-box">
+                <strong>V1.1.4 更新：</strong>新增立绘指令 `[渐入]` / `[fadeIn]` 和 `[渐出]` / `[fadeOut]`，支持平滑的淡入淡出效果。
+            </div>
+
+            <div class="tip-box">
                 <strong>V1.1.3 更新：</strong>新增连续动作指令支持（使用逗号 `,` 分隔），实现立绘的顺序动画与中断跳转。
             </div>
 
@@ -30,6 +38,34 @@
 
             <h2>1. 基本语法结构</h2>
             <p>立绘指令采用方括号包裹的形式：<code>[修饰词 角色ID]</code>。多个修饰词用空格分隔，多立绘用逗号分隔。</p>
+            
+            <h3>1.1 角色名称标识符 (V1.1.5 新增)</h3>
+            <p>为了实现基于角色的自动替换与属性继承，你可以在指令开头添加一个自定义的“角色名称标识符”。</p>
+            <ul>
+                <li><strong>严格语法</strong>：标识符必须紧挨着左方括号 <code>[</code>，格式为 <code>[标识符 修饰词 资源ID]</code>。</li>
+                <li><strong>互斥显示</strong>：如果屏幕上已存在同名标识符，新指令会自动替换旧立绘。</li>
+                <li><strong>属性继承</strong>：若新指令未指定位置或缩放，新立绘将自动继承旧立绘当前的屏幕状态。</li>
+            </ul>
+            <div class="code-block">
+<pre><span class="code-comment">// 基础显示：在左侧显示“角色A”</span>
+chars: <span class="code-string">"[角色A 左 lh1]"</span>
+
+<span class="code-comment">// 属性继承：替换为 lh4，但自动保持在“左侧”位置</span>
+chars: <span class="code-string">"[角色A lh4]"</span>
+
+<span class="code-comment">// 显式覆盖：移动到右侧并放大 10%</span>
+chars: <span class="code-string">"[角色A 右 10% lh3]"</span>
+
+<span class="code-comment">// 多角色并存：不同标识符互不干扰，可同时显示</span>
+chars: <span class="code-string">"[角色A 左 lh1],[角色B 右 lh2]"</span>
+
+<span class="code-comment">// 连续动作：标识符支持逗号分隔的状态序列</span>
+chars: <span class="code-string">"[角色A 左,中,右 lh1]"</span>
+
+<span class="code-comment">// 通过名称消失：精准移除指定标识符对应的立绘</span>
+chars: <span class="code-string">"[消失 角色A]"</span></pre>
+            </div>
+
             <div class="code-block">
 <pre>chars: <span class="code-string">"[中 lh01]"</span> <span class="code-comment">// 基础用法</span>
 
