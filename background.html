@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>背景转场教程 - Shiori 引擎</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>背景 (Background) 转场指南</h1>
+            <p>实现平滑的场景切换、滑动与扫描效果</p>
+        </header>
+
+        <main class="tutorial-content">
+            <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
+
+            <div class="tip-box">
+                <strong>功能说明：</strong> 通过在 <code>background</code> 字段中添加关键词，您可以轻松实现多种电影级的场景切换效果。
+            </div>
+
+            <h2>1. 基础语法结构</h2>
+            <p>背景指令位于剧情行的 <code>background</code> 属性中。</p>
+            <ul>
+                <li><strong>直接切换：</strong> <code>background: "bg_id"</code>（无动画，瞬间切换）</li>
+                <li><strong>带动画切换：</strong> 在背景 ID 前添加转场关键词和空格，例如 <code>"fade bg_001"</code>。</li>
+                <li><strong>自动清理：</strong> 转场过程中会自动隐藏所有活跃立绘，确保画面整洁。</li>
+            </ul>
+
+            <h2>2. 淡入淡出 (Fade)</h2>
+            <p>最经典的转场方式，画面逐渐变黑并切换到新场景。</p>
+            <table>
+                <thead>
+                    <tr><th>中文</th><th>英文</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>转场</td><td>trans / fade</td><td>标准淡入淡出效果</td></tr>
+                </tbody>
+            </table>
+            <div class="code-block">
+<pre><span class="code-comment">// 使用英文关键词</span>
+{ background: <span class="code-string">"fade bg_001_00_00"</span> }
+
+<span class="code-comment">// 使用中文关键词</span>
+{ background: <span class="code-string">"转场 bg_001_00_00"</span> }</pre>
+            </div>
+
+            <h2>3. 滑动转场 (Slide)</h2>
+            <p>模拟镜头平移的效果，旧背景向一侧移出，新背景从另一侧滑入。</p>
+            <table>
+                <thead>
+                    <tr><th>中文</th><th>英文</th><th>效果描述</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>左滑</td><td>slideL</td><td>新背景从左侧滑入，旧背景向右侧移出</td></tr>
+                    <tr><td>右滑</td><td>slideR</td><td>新背景从右侧滑入，旧背景向左侧移出</td></tr>
+                </tbody>
+            </table>
+            <div class="code-block">
+<pre><span class="code-comment">// 左滑进入</span>
+{ background: <span class="code-string">"slideL bg_002_00_00"</span> }
+{ background: <span class="code-string">"左滑 bg_002_00_00"</span> }
+
+<span class="code-comment">// 右滑进入</span>
+{ background: <span class="code-string">"slideR bg_003_00_00"</span> }
+{ background: <span class="code-string">"右滑 bg_003_00_00"</span> }</pre>
+            </div>
+
+            <h2>4. 扫描转场 (Scan)</h2>
+            <p>一种更具视觉冲击力的覆盖效果，新背景像扫描线一样逐步覆盖旧背景。</p>
+            <table>
+                <thead>
+                    <tr><th>中文</th><th>英文</th><th>效果描述</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>左转场</td><td>scanL</td><td>从左向右扫描覆盖</td></tr>
+                    <tr><td>右转场</td><td>scanR</td><td>从右向左扫描覆盖</td></tr>
+                </tbody>
+            </table>
+            <div class="code-block">
+<pre><span class="code-comment">// 从左向右扫描</span>
+{ background: <span class="code-string">"scanL bg_004_00_00"</span> }
+{ background: <span class="code-string">"左转场 bg_004_00_00"</span> }
+
+<span class="code-comment">// 从右向左扫描</span>
+{ background: <span class="code-string">"scanR bg_005_00_00"</span> }
+{ background: <span class="code-string">"右转场 bg_005_00_00"</span> }</pre>
+            </div>
+
+            <h2>5. 组合使用示例</h2>
+            <p>在实际剧本中，转场通常伴随着文本和立绘的变化。</p>
+            <div class="code-block">
+<pre>story: [
+    { 
+        text: <span class="code-string">"故事发生在繁华的都市..."</span>, 
+        speaker: <span class="code-string">"旁白"</span>,
+        background: <span class="code-string">"bg_city_day"</span>
+    },
+    { 
+        text: <span class="code-string">"随着夜幕降临，城市换上了另一副面孔。"</span>, 
+        speaker: <span class="code-string">"旁白"</span>,
+        <span class="code-comment">// 执行淡入淡出转场到夜景</span>
+        background: <span class="code-string">"trans bg_city_night"</span> 
+    },
+    { 
+        text: <span class="code-string">"突然，一阵风吹过。"</span>, 
+        speaker: <span class="code-string">"主角"</span>,
+        <span class="code-comment">// 执行左滑转场到街道场景</span>
+        background: <span class="code-string">"slideL bg_street"</span>
+    },
+    { 
+        text: <span class="code-string">"我们来到了一个陌生的地方。"</span>, 
+        speaker: <span class="code-string">"配角"</span>,
+        <span class="code-comment">// 执行扫描转场</span>
+        background: <span class="code-string">"scanR bg_unknown"</span>
+    }
+]</pre>
+            </div>
+
+            <h2>6. 注意事项</h2>
+            <div class="tip-box">
+                <strong>重要提示：</strong><br>
+                1. <strong>自动清理：</strong> 所有转场指令在执行时都会自动调用 <code>[消失 all]</code>。<br>
+                2. <strong>持续时间：</strong> 目前转场动画默认持续时间为 1 秒（1000ms）。<br>
+                3. <strong>资源预加载：</strong> 建议在 <code>sceneData.background</code> 中预先定义好所有背景图片的路径。<br>
+                4. <strong>中英文兼容：</strong> 所有转场关键词均支持中英文别名，可根据个人习惯混用。
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2026 Shiori Engine | <a href="index.html">返回首页</a> | <a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">GitHub 仓库</a></p>
+        </footer>
+    </div>
+</body>
+</html>
