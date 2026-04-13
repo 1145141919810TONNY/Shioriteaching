@@ -17,6 +17,17 @@
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
             <div class="tip-box">
+                <strong>V1.1.5 (2026/4/14) - 角色名称标识符</strong><br>
+                <strong>1. 角色名称标识符 (Role Name Identifier)</strong><br>
+                - 新增立绘指令中的“角色名称标识符”功能，支持基于角色的自动替换与状态继承<br>
+                - <strong>语法格式</strong>：<code>[标识符 修饰词 资源ID]</code>，标识符必须紧挨着左方括号 <code>[</code><br>
+                - <strong>互斥显示</strong>：当使用相同标识符时，新立绘会自动替换旧立绘，保持屏幕整洁<br>
+                - <strong>属性继承</strong>：若新指令未指定位置或缩放，新立绘将自动继承旧立绘的当前状态<br>
+                - <strong>示例</strong>：<code>[角色A 左 lh3]</code>, <code>[角色A lh4]</code>, <code>[消失 角色A]</code><br>
+                - 详见 illustration.md 第1.1章或本教学网页内的教程
+            </div>
+
+            <div class="tip-box">
                 <strong>V1.1.4 (2026/4/13) - 渐入渐出与背景转场</strong><br>
                 <strong>1. 立绘渐入与渐出指令</strong><br>
                 - 新增 `[渐入]` / `[fadeIn]` 和 `[渐出]` / `[fadeOut]` 指令，支持立绘以平滑的淡入淡出效果出现或消失<br>
