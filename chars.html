@@ -19,7 +19,7 @@
             <h2>1. 基本语法结构</h2>
             <p>立绘指令采用方括号包裹的形式：<code>[修饰词 角色ID]</code>。多个修饰词用空格分隔，多立绘用逗号分隔。</p>
             
-            <h3>1.1 角色名称标识符 (V1.1.5 新增)</h3>
+            <h3>1.1 角色名称标识符</h3>
             <p>为了实现基于角色的自动替换与属性继承，你可以在指令开头添加一个自定义的“角色名称标识符”。</p>
             <ul>
                 <li><strong>严格语法</strong>：标识符必须紧挨着左方括号 <code>[</code>，格式为 <code>[标识符 修饰词 资源ID]</code>。</li>
@@ -200,7 +200,7 @@ chars: <span class="code-string">"[左 fadeIn lh02]"</span>       <span class="c
 chars: <span class="code-string">"[渐出 lh01]"</span>            <span class="code-comment">// 正确用法：直接渐出</span>
 chars: <span class="code-string">"[fadeOut lh02]"</span>         <span class="code-comment">// 英文写法</span>
 
-<span class="code-comment">// ⚠️ 注意：不要在渐出时添加位置指令，否则会先闪到目标位置再消失</span>
+<span class="code-comment">// 注意：不要在渐出时添加位置指令，否则会先闪到目标位置再消失</span>
 chars: <span class="code-string">"[左 渐出 lh01]"</span>         <span class="code-comment">// 不推荐：会先移动到左侧再渐出</span>
 
 <span class="code-comment">// 批量渐出所有立绘</span>
