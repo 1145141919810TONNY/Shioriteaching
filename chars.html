@@ -16,26 +16,6 @@
         <main class="tutorial-content">
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
-            <div class="tip-box">
-                <strong>V1.1.5 更新：</strong>新增角色名称标识符功能，支持基于角色的自动替换与状态继承。
-            </div>
-
-            <div class="tip-box">
-                <strong>V1.1.4 更新：</strong>新增立绘指令 `[渐入]` / `[fadeIn]` 和 `[渐出]` / `[fadeOut]`，支持平滑的淡入淡出效果。
-            </div>
-
-            <div class="tip-box">
-                <strong>V1.1.3 更新：</strong>新增连续动作指令支持（使用逗号 `,` 分隔），实现立绘的顺序动画与中断跳转。
-            </div>
-
-            <div class="tip-box">
-                <strong>V1.1.2 更新：</strong>新增立绘动作指令系统（后退、前进、吓一跳、发抖等）和批量清除功能（[消失 all]）。
-            </div>
-
-            <div class="tip-box">
-                <strong>V1.1.1 更新：</strong>立绘指令系统全面增强！新增中英文混合支持、精确坐标控制、简化指令和向上偏移关键词。
-            </div>
-
             <h2>1. 基本语法结构</h2>
             <p>立绘指令采用方括号包裹的形式：<code>[修饰词 角色ID]</code>。多个修饰词用空格分隔，多立绘用逗号分隔。</p>
             
@@ -69,11 +49,11 @@ chars: <span class="code-string">"[消失 角色A]"</span></pre>
             <div class="code-block">
 <pre>chars: <span class="code-string">"[中 lh01]"</span> <span class="code-comment">// 基础用法</span>
 
-chars: <span class="code-string">"[lh01]"</span> <span class="code-comment">// 简化写法（V1.1.1 新增）- 等同于 [中 lh01]</span>
+chars: <span class="code-string">"[lh01]"</span> <span class="code-comment">// 简化写法 - 等同于 [中 lh01]</span>
 
 chars: <span class="code-string">"[左 lh01],[右 lh02]"</span> <span class="code-comment">// 同时显示两个立绘</span>
 
-chars: <span class="code-string">"[左,中,右 lh01]"</span> <span class="code-comment">// 连续动作：依次经过左、中、右（V1.1.3 新增）</span></pre>
+chars: <span class="code-string">"[左,中,右 lh01]"</span> <span class="code-comment">// 连续动作：依次经过左、中、右</span></pre>
             </div>
 
             <h2>2. 中英文别名支持</h2>
@@ -121,7 +101,7 @@ chars: <span class="code-string">"[left 下 lh02]"</span></pre>
                 </tbody>
             </table>
 
-            <h3>4.2 向上偏移（V1.1.1 新增）</h3>
+            <h3>4.2 向上偏移</h3>
             <table>
                 <thead>
                     <tr><th>中文</th><th>英文</th><th>偏移量 (Bottom)</th><th>说明</th></tr>
@@ -145,7 +125,7 @@ chars: <span class="code-string">"[中 中上 lh01]"</span>      <span class="co
 chars: <span class="code-string">"[中 top lh01]"</span>       <span class="code-comment">// bottom: 65%（英文别名）</span></pre>
             </div>
 
-            <h2>5. 精确坐标控制（V1.1.1 新增）</h2>
+            <h2>5. 精确坐标控制</h2>
             <p>使用 <code>x:</code> 和 <code>y:</code> 前缀指定精确百分比坐标。</p>
             <ul>
                 <li><strong>X轴：</strong>以屏幕中心为 0%，负值向左，正值向右</li>
@@ -198,7 +178,7 @@ chars: <span class="code-string">"[中 -20% lh01]"</span> <span class="code-comm
 chars: <span class="code-string">"[中 0% lh01]"</span>   <span class="code-comment">// 保持 100%</span></pre>
             </div>
 
-            <h2>8. 渐入与渐出（V1.1.4 新增）</h2>
+            <h2>8. 渐入与渐出</h2>
             <p>通过渐入/渐出指令，可以让立绘以平滑的淡入淡出效果出现或消失。</p>
             
             <table>
@@ -252,7 +232,7 @@ chars: <span class="code-string">"[fadeOut 全部]"</span>         <span class="
 chars: <span class="code-string">"[instant right lh01]"</span> <span class="code-comment">// 英文写法</span></pre>
             </div>
 
-            <h2>10. 动作指令（V1.1.2 新增）</h2>
+            <h2>10. 动作指令</h2>
             <p>动作指令为立绘提供丰富的动态效果。<strong>使用动作指令时，<code>瞬</code>/<code>instant</code> 会被自动忽略</strong>。</p>
             
             <h3>10.1 动作指令列表</h3>
@@ -267,6 +247,7 @@ chars: <span class="code-string">"[instant right lh01]"</span> <span class="code
                     <tr><td>发抖</td><td>shake</td><td>X轴左右偏移±2%，重复3次，总时长约480ms</td></tr>
                     <tr><td>持续发抖</td><td>cshake</td><td>持续左右抖动，需手动停止</td></tr>
                     <tr><td>结束发抖</td><td>sshake</td><td>停止持续发抖，恢复原位</td></tr>
+                    <tr><td>点头</td><td>nod</td><td>执行一次"上移2% → 下移4% → 回归原位"序列，总时长约450ms</td></tr>
                 </tbody>
             </table>
 
@@ -292,7 +273,11 @@ chars: <span class="code-string">"[中 发抖 lh01]"</span>        <span class="
 chars: <span class="code-string">"[中 cshake lh01]"</span>      <span class="code-comment">// 开始持续发抖</span>
 chars: <span class="code-string">"[sshake lh01]"</span>         <span class="code-comment">// 停止发抖</span>
 chars: <span class="code-string">"[中 持续发抖 lh01]"</span>    <span class="code-comment">// 中文开始</span>
-chars: <span class="code-string">"[结束发抖 lh01]"</span>       <span class="code-comment">// 中文停止</span></pre>
+chars: <span class="code-string">"[结束发抖 lh01]"</span>       <span class="code-comment">// 中文停止</span>
+
+<span class="code-comment">// 点头效果</span>
+chars: <span class="code-string">"[中 nod lh01]"</span>           <span class="code-comment">// 执行一次点头动画</span>
+chars: <span class="code-string">"[中 点头 lh01]"</span>          <span class="code-comment">// 中文等价</span></pre>
             </div>
 
             <h3>10.3 动作指令优先级规则</h3>
@@ -314,7 +299,7 @@ chars: <span class="code-string">"[结束发抖 lh01]"</span>       <span class=
                 </tbody>
             </table>
 
-            <h2>11. 连续动作指令（V1.1.3 新增）</h2>
+            <h2>11. 连续动作指令</h2>
             <p>允许在一个指令中定义一系列按顺序执行的状态变化，使用逗号 <code>,</code> 作为分隔符。</p>
             
             <h3>11.1 基础语法与统一化状态帧</h3>
@@ -445,7 +430,7 @@ chars: <span class="code-string">"[remove lh01]"</span>
 chars: <span class="code-string">"[消失 lh01],[消失 lh02]"</span></pre>
             </div>
 
-            <h3>14.2 批量清除所有立绘（V1.1.2 新增）</h3>
+            <h3>14.2 批量清除所有立绘</h3>
             <p>一键清除屏幕上所有活跃立绘，包括自动停止所有动画状态（如持续发抖）。</p>
             <div class="code-block">
 <pre><span class="code-comment">// 中文指令</span>
@@ -480,9 +465,6 @@ chars: <span class="code-string">"[消失 all]"</span></pre>
                 - 包含层级、缩放、动画等修饰词<br>
                 - 支持中英文混合指令测试<br>
                 - 包含冲突场景测试<br>
-                - <strong>V1.1.2 新增：</strong>动作指令系统测试（后退、前进、吓一跳、发抖等）<br>
-                - <strong>V1.1.2 新增：</strong>批量清除功能测试（[消失 all]）<br>
-                - <strong>V1.1.3 新增：</strong>连续动作指令测试（逗号分隔序列、属性继承、片段内瞬移）<br><br>
                 <strong>默认资源：</strong> <code>lh1</code>、<code>lh2</code>、<code>lh5</code>
             </div>
         </main>
