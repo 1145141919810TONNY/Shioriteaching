@@ -109,11 +109,13 @@
     &lt;!-- 上下文菜单 --&gt;
     &lt;div id=&quot;context-menu&quot; class=&quot;context-menu&quot;&gt;
         &lt;ul&gt;
-            &lt;li onclick=&quot;window.location.href='../saves.html'&quot;&gt;进度管理&lt;/li&gt;
+            &lt;li onclick=&quot;QuickSaveManager.quickSave()&quot;&gt;保存存档 (F5)&lt;/li&gt;
+            &lt;li onclick=&quot;QuickSaveManager.openArchivePage()&quot;&gt;存档页面&lt;/li&gt;
+            &lt;li onclick=&quot;gameEngine.saveStateSnapshot(); window.location.href='../saves.html'&quot;&gt;进度管理&lt;/li&gt;
             &lt;li onclick=&quot;window.location.href='../index.html'&quot;&gt;返回标题页面&lt;/li&gt;
-        &lt;/ul&gt;
-        &lt;div style=&quot;margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255, 215, 0, 0.3); color: rgba(255, 215, 0, 0.6); font-size: 12px; line-height: 1.8; text-align: center;&quot;&gt;
+        &lt;/ul&gt;        &lt;div style=&quot;margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255, 215, 0, 0.3); color: rgba(255, 215, 0, 0.6); font-size: 12px; line-height: 1.8; text-align: center;&quot;&gt;
             &lt;div&gt;F1 - 调试面板&lt;/div&gt;
+            &lt;div&gt;F5 - 快速保存&lt;/div&gt;
             &lt;div&gt;Ctrl - 快进模式&lt;/div&gt;
             &lt;div&gt;+ / ↑ 增加音量 | - / ↓ 减少音量&lt;/div&gt;
         &lt;/div&gt;
@@ -169,9 +171,9 @@
 
                 /*这是直接跳转下一个页面
                 { 
-                    text: &quot;她生气地离开了...（这是一个坏结局）&quot;, 
+                    text: &quot;选项内容&quot;, 
                     speaker: &quot;旁白&quot;, 
-                    background: &quot;badend1&quot;,
+                    background: &quot;bg1&quot;,
                     audio: null,
                     action: {
                         type: &quot;nextScene&quot;,
@@ -200,7 +202,12 @@
         
         // 初始化游戏
         document.addEventListener('DOMContentLoaded', () =&gt; {
-            gameEngine.init(sceneData);
+            // 检查URL中是否包含startLine参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const startLine = parseInt(urlParams.get('startLine')) || 0;
+            
+            // 使用起始行号初始化引擎
+            gameEngine.init(sceneData, startLine);
         });
         
     &lt;/script&gt;
