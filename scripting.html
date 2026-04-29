@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>脚本语法与指令规范</h1>
+            <h1>基础脚本语法与指令规范</h1>
             <p>掌握 sceneData 结构与 Command 字段的核心用法</p>
         </header>
 
@@ -58,7 +58,78 @@
 }</pre>
             </div>
 
-            <h2>3. 常用指令速查</h2>
+            <h3>多指令并行支持</h3>
+            <p>可以在单个 <code>command</code> 属性中使用英文逗号 <code>,</code> 分隔多个指令，引擎会按顺序依次执行：</p>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[normal],[pov 主角],[lock]"</span> <span class="code-comment">// 切换模式、显示POV、锁定点击</span>
+}</pre>
+            </div>
+            <p>这种方式可以大幅减少代码行数，提高编写效率。多个指令会在同一帧内按顺序执行，适合不需要间隔的连续操作。</p>
+
+            <h3>command 与 action 共存</h3>
+            <p>可以在同一个剧情对象中同时使用 <code>command</code> 和 <code>action</code> 属性，引擎会先执行 <code>command</code> 指定的指令，再执行 <code>action</code> 指定的动作：</p>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[msgoff]"</span>, <span class="code-comment">// 先隐藏文本框</span>
+    <span class="code-property">action</span>: { <span class="code-comment">// 然后显示选项菜单</span>
+        <span class="code-property">type</span>: <span class="code-string">"choice"</span>,
+        <span class="code-property">choices</span>: [
+            { <span class="code-property">text</span>: <span class="code-string">"选项1"</span>, <span class="code-property">target</span>: <span class="code-string">"scene2.html"</span> },
+            { <span class="code-property">text</span>: <span class="code-string">"选项2"</span>, <span class="code-property">target</span>: <span class="code-string">"scene3.html"</span> }
+        ]
+    }
+}</pre>
+            </div>
+            <p>这种写法简化了代码结构，常用于在显示选项前执行一些预处理指令（如隐藏文本框、切换模式、锁定点击等）。</p>
+
+            <h2>3. Action 动作对象</h2>
+            <p><code>action</code> 属性用于执行特殊动作，如场景跳转、显示选项等。</p>
+
+            <h3>直接跳转到下一个页面</h3>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">action</span>: {
+        <span class="code-property">type</span>: <span class="code-string">"nextScene"</span>,
+        <span class="code-property">target</span>: <span class="code-string">"scene2.html"</span> <span class="code-comment">// 输入需要跳转的网页名称</span>
+    }
+}</pre>
+            </div>
+
+            <h3>通过选项跳转到对应页面</h3>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">action</span>: {
+        <span class="code-property">type</span>: <span class="code-string">"choice"</span>,
+        <span class="code-property">choices</span>: [
+            { <span class="code-property">text</span>: <span class="code-string">"前往场景1"</span>, <span class="code-property">target</span>: <span class="code-string">"scene1.html"</span> },
+            { <span class="code-property">text</span>: <span class="code-string">"返回主菜单"</span>, <span class="code-property">target</span>: <span class="code-string">"../index.html"</span> }
+        ]
+    }
+}</pre>
+            </div>
+
+            <h3>保持选项页面整洁</h3>
+            <p>在显示选项前，可以配合 <code>command</code> 属性隐藏文本框，使选项界面更加整洁：</p>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[msgoff]"</span>, <span class="code-comment">// 隐藏文本框</span>
+    <span class="code-property">action</span>: {
+        <span class="code-property">type</span>: <span class="code-string">"choice"</span>,
+        <span class="code-property">choices</span>: [
+            { <span class="code-property">text</span>: <span class="code-string">"前往场景1"</span>, <span class="code-property">target</span>: <span class="code-string">"scene1.html"</span> },
+            { <span class="code-property">text</span>: <span class="code-string">"返回主菜单"</span>, <span class="code-property">target</span>: <span class="code-string">"../index.html"</span> }
+        ]
+    }
+}</pre>
+            </div>
+
+            <h2>4. 常用指令速查</h2>
             <table>
                 <thead>
                     <tr><th>指令</th><th>功能说明</th></tr>
@@ -70,10 +141,12 @@
                     <tr><td><code>[fadeout time=1000]</code></td><td>屏幕淡出效果</td></tr>
                     <tr><td><code>[novel]</code></td><td>开启全屏小说模式</td></tr>
                     <tr><td><code>[normal]</code></td><td>关闭全屏小说模式</td></tr>
+                    <tr><td><code>[lock]、[阻止]</code></td><td>锁定鼠标点击，屏蔽非快进模式的点击（按住 Ctrl 仍可快进）</td></tr>
+                    <tr><td><code>[free]、[解锁]</code></td><td>解除鼠标点击锁定，恢复正常点击交互</td></tr>
                 </tbody>
             </table>
 
-            <h2>4. 文本格式标签</h2>
+            <h2>5. 文本格式标签</h2>
             <ul>
                 <li><code>\n</code>：换行符，用于在同一段落内换行。</li>
                 <li><code>[s]</code>：分段符，点击鼠标后显示下一段文本。</li>
