@@ -17,6 +17,103 @@
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
             <div class="tip-box">
+                <strong>V1.2.4 (2026/4/29) - 指令系统增强与转场优化</strong><br>
+                <strong>1. 鼠标点击锁定/解锁指令</strong><br>
+                - 新增 [阻止] / [lock] 指令：锁定鼠标点击，屏蔽所有非快进模式的点击事件（按住 Ctrl 键仍可快进）<br>
+                - 新增 [解锁] / [free] 指令：解除鼠标点击锁定，恢复正常点击交互<br>
+                - 使用场景：在播放重要动画、视频或显示选项时防止用户误触跳过剧情<br>
+                - 示例：<code>{ text: "", command: "[阻止]" }</code>, <code>{ text: "", command: "[解锁]" }</code><br>
+                <br>
+                <strong>2. 转场期间点击竞态问题修复</strong><br>
+                - 问题描述：在使用背景转场效果时，快速点击可能导致立绘无法正常显示或剧情被意外跳过<br>
+                - 优化方案：引擎会在检测到转场指令时立即启动输入屏蔽机制，确保画面渲染的完整性和剧情流程的稳定性<br>
+                - 注意事项：当转场指令前存在纯命令行的剧情块时，输入屏蔽可能存在几十毫秒的延迟窗口。建议在关键转场场景前使用 [阻止] 指令提前锁定点击<br>
+                - 灵活控制：可配合使用 [阻止] / [解锁] 指令进行精确控制<br>
+                - 示例：
+                <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[normal],[pov 主角],[lock]"</span> <span class="code-comment">// 切换模式、显示POV、锁定点击</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">background</span>: <span class="code-string">"转场 bg1"</span>, <span class="code-comment">// 执行背景转场</span>
+    <span class="code-property">bgm</span>: <span class="code-string">"bgm wait bgm13"</span> <span class="code-comment">// 淡出旧BGM并播放新BGM</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[free]"</span> <span class="code-comment">// 转场完成后解锁点击</span>
+}</pre>
+                </div>
+                <br>
+                <strong>3. 指令系统优化</strong><br>
+                - <strong>command 与 action 共存支持</strong>：现在可以在同一个剧情对象中同时使用 command 和 action 属性，引擎会按顺序执行两者<br>
+                - 优势：简化代码结构，提高可读性，减少冗余的剧情对象定义<br>
+                - 执行顺序：先执行 command 指定的指令，再执行 action 指定的动作<br>
+                - 兼容性说明：旧的写法仍然完全支持，已有的项目代码无需修改<br>
+                - 示例对比：
+                <div class="code-block">
+<pre><span class="code-comment">// 之前的写法（需要拆分为两个剧情对象）：</span>
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[msgoff]"</span>
+},
+{ 
+    <span class="code-property">text</span>: <span class="code-string">""</span>, 
+    <span class="code-property">action</span>: {
+        <span class="code-property">type</span>: <span class="code-string">"choice"</span>,
+        <span class="code-property">choices</span>: [
+            { <span class="code-property">text</span>: <span class="code-string">"选项1"</span>, <span class="code-property">target</span>: <span class="code-string">"scene2.html"</span> },
+            { <span class="code-property">text</span>: <span class="code-string">"选项2"</span>, <span class="code-property">target</span>: <span class="code-string">"scene3.html"</span> }
+        ]
+    }
+}
+
+<span class="code-comment">// 现在的写法（合并为一个剧情对象）：</span>
+{ 
+    <span class="code-property">text</span>: <span class="code-string">""</span>, 
+    <span class="code-property">command</span>: <span class="code-string">"[msgoff]"</span>,
+    <span class="code-property">action</span>: {
+        <span class="code-property">type</span>: <span class="code-string">"choice"</span>,
+        <span class="code-property">choices</span>: [
+            { <span class="code-property">text</span>: <span class="code-string">"选项1"</span>, <span class="code-property">target</span>: <span class="code-string">"scene2.html"</span> },
+            { <span class="code-property">text</span>: <span class="code-string">"选项2"</span>, <span class="code-property">target</span>: <span class="code-string">"scene3.html"</span> }
+        ]
+    }
+}</pre>
+                </div>
+                <br>
+                - <strong>command 多指令并行支持</strong>：现在可以在单个 command 属性中使用逗号分隔多个指令<br>
+                - 优势：大幅减少代码行数，提高编写效率，使相关指令的逻辑关系更加清晰<br>
+                - 语法格式：使用英文逗号 , 分隔多个指令，如 "[指令1],[指令2],[指令3]"<br>
+                - 兼容性说明：旧的写法仍然完全支持，已有的项目代码无需修改<br>
+                - 示例对比：
+                <div class="code-block">
+<pre><span class="code-comment">// 之前的写法（需要拆分为三个剧情对象）：</span>
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[normal][lock]"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[pov 主角]"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[lock]"</span>
+}
+
+<span class="code-comment">// 现在的写法（合并为一个剧情对象）：</span>
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[normal],[pov 主角],[lock]"</span>
+}</pre>
+                </div>
+                - 注意事项：多个指令会在同一帧内按顺序执行；如果需要在指令之间等待用户点击或动画完成，仍需拆分为独立的剧情对象
+            </div>
+
+
+            <div class="tip-box">
                 <strong>V1.2.3 (2026/4/16) - 文档优化与视频 BGM 控制</strong><br>
                 <strong>1. 文档全面更新</strong><br>
                 - 修正 README.md 中的场景数据结构示例代码，统一资源引用规范<br>
