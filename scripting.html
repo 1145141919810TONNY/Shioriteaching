@@ -150,6 +150,33 @@
             <ul>
                 <li><code>\n</code>：换行符，用于在同一段落内换行。</li>
                 <li><code>[s]</code>：分段符，点击鼠标后显示下一段文本。</li>
+                <li><code>[汉字,拼音]</code>：注音标注，为文字添加上方注音（类似日语假名）。</li>
+            </ul>
+            
+            <h3>注音功能示例</h3>
+            <p>使用 <code>[汉字,拼音]</code> 语法可以为文本添加注音标注：</p>
+            <div class="code-block">
+<pre><span class="code-property">text</span>: <span class="code-string">"这是一段[测试,ce shi]文本"</span></pre>
+            </div>
+            <p>显示效果："测试"二字上方会显示拼音 "ce shi"。</p>
+            
+            <h4>多语言支持</h4>
+            <div class="code-block">
+<pre><span class="code-comment">// 中文拼音标注</span>
+<span class="code-property">text</span>: <span class="code-string">"这是[中文,zhong wen]注音"</span>
+
+<span class="code-comment">// 日语假名标注</span>
+<span class="code-property">text</span>: <span class="code-string">"这是[日语,にほんご]标注"</span>
+
+<span class="code-comment">// 混合使用</span>
+<span class="code-property">text</span>: <span class="code-string">"[你好,ni hao]，[世界,shi jie]！"</span></pre>
+            </div>
+            
+            <p><strong>注意事项：</strong></p>
+            <ul>
+                <li>注音功能自动适配常规模式和全屏小说模式</li>
+                <li>适用于所有HTML支持的语言</li>
+                <li>注音内容会以内联方式显示在对应文字上方</li>
             </ul>
             <div class="code-block">
 <pre><span class="code-property">text</span>: <span class="code-string">"第一段文字[s]第二段文字\n第三行文字"</span></pre>
