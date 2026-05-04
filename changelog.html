@@ -17,6 +17,15 @@
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
             <div class="tip-box">
+                <strong>V1.2.6 (2026/5/4) - 音频/视频零配置管理</strong><br>
+                <strong>1. 资源自动解析功能</strong><br>
+                - 新增音频和视频资源的零配置管理功能，支持在 `audio` 和 `video` 属性中直接使用文件名（如 `voice1`, `video1`）<br>
+                - 引擎将自动从 `assets/audio/` 和 `assets/video/` 目录下查找对应文件，不再需要手动定义映射路径<br>
+                - 简化了场景文件的编写流程，使开发者能够更专注于剧情创作而非繁琐的路径配置<br>
+                - 示例：<code>audio: "voice1"</code>, <code>video: "video1"</code>
+            </div>
+
+            <div class="tip-box">
                 <strong>V1.2.5 (2026/5/3) - 文本显示优化与注音功能</strong><br>
                 <strong>1. 文本显示字号优化</strong><br>
                 - 调整常规模式剧本显示字号从 18px 提升至 25px<br>
