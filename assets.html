@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资源管理与配置 - Shiori 引擎</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>资源管理与配置指南</h1>
+            <p>统一管理背景、立绘、BGM、音效及视频资源的引用与配置</p>
+        </header>
+
+        <main class="tutorial-content">
+            <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
+
+            <div class="tip-box">
+                <strong>核心原则：集中化管理</strong><br>
+                Shiori 引擎采用集中化配置文件来管理所有静态资源。这种方式避免了在每个场景文件中重复硬编码路径，使得资源维护更加高效且不易出错。<br>
+                所有配置文件均位于项目根目录下，并在场景文件的 <code>&lt;head&gt;</code> 中引入。
+            </div>
+
+            <h2>1. 背景图片 (Backgrounds)</h2>
+            <p>背景图片统一存放在 <code>assets/bg/</code> 目录中。</p>
+            
+            <h3>配置方式：</h3>
+            <p>在场景文件头部引入 <code>bg_config.js</code>，该文件定义了 <code>BG_CONFIG_SUB</code> 对象：</p>
+            <div class="code-block">
+<pre>&lt;script src="../bg_config.js"&gt;&lt;/script&gt;</pre>
+            </div>
+            <p><strong>配置文件示例 (bg_config.js)：</strong></p>
+            <div class="code-block">
+<pre>// 子目录路径配置
+const BG_CONFIG_SUB = {
+    'school_day': '../assets/bg/school_day.png',
+    'classroom_night': '../assets/bg/classroom_night.png'
+};</pre>
+            </div>
+            <p><strong>剧本中使用：</strong></p>
+            <div class="code-block">
+<pre>const sceneData = {
+    background: BG_CONFIG_SUB, // 引用集中配置
+    story: [
+        {
+            text: "切换到学校背景",
+            background: "school_day" // 直接使用配置中的键名
+        }
+    ]
+};</pre>
+            </div>
+
+            <h2>2. 背景音乐 (BGM)</h2>
+            <p>BGM 文件统一存放在 <code>assets/bgm/</code> 目录中。</p>
+
+            <h3>配置方式：</h3>
+            <p>在场景文件头部引入 <code>bgm_config.js</code>，该文件定义了 <code>BGM_CONFIG_SUB</code> 对象：</p>
+            <div class="code-block">
+<pre>&lt;script src="../bgm_config.js"&gt;&lt;/script&gt;</pre>
+            </div>
+            <p><strong>配置文件示例 (bgm_config.js)：</strong></p>
+            <div class="code-block">
+<pre>const BGM_CONFIG_SUB = {
+    'theme_romantic': '../assets/bgm/theme_romantic.ogg',
+    'battle_theme': '../assets/bgm/battle_theme.ogg'
+};</pre>
+            </div>
+            <p><strong>剧本中使用：</strong></p>
+            <div class="code-block">
+<pre>const sceneData = {
+    bgm: BGM_CONFIG_SUB, // 引用集中配置
+    story: [
+        {
+            text: "播放浪漫音乐",
+            bgm: "theme_romantic" // 直接使用配置中的键名
+        },
+        {
+            text: "淡出切换 BGM",
+            bgm: "bgm wait battle_theme" // 使用 wait 指令实现平滑过渡
+        }
+    ]
+};</pre>
+            </div>
+
+            <h2>3. 角色立绘 (Characters)</h2>
+            <p>立绘文件统一存放在 <code>assets/chars/</code> 目录中。</p>
+
+            <h3>配置方式：</h3>
+            <p>在场景文件头部引入 <code>illustration.js</code>，该文件定义了 <code>CHAR_CONFIG_SUB</code> 对象：</p>
+            <div class="code-block">
+<pre>&lt;script src="../illustration.js"&gt;&lt;/script&gt;</pre>
+            </div>
+            <p><strong>配置文件示例 (illustration.js)：</strong></p>
+            <div class="code-block">
+<pre>const CHAR_CONFIG_SUB = {
+    'heroine_smile': '../assets/chars/heroine_smile.png',
+    'hero_serious': '../assets/chars/hero_serious.png'
+};</pre>
+            </div>
+            <p><strong>剧本中使用：</strong></p>
+            <div class="code-block">
+<pre>{
+    text: "角色出现在左侧",
+    chars: "[左 heroine_smile]" // 格式：[位置 资源ID]
+},
+{
+    text: "角色A点头示意",
+    chars: "[角色A 中 点头 hero_serious]" // 支持角色标识符和动作指令
+}</pre>
+            </div>
+            <p><strong>提示：</strong>详细的立绘指令语法（如坐标控制、动作序列）请参考 <a href="chars.html">立绘控制系统教程</a>。</p>
+
+            <h2>4. 音频资源 (Audio - SE/Voice)</h2>
+            <p>音效和语音文件存放在 <code>assets/audio/</code> 目录中。</p>
+
+            <h3>零配置管理模式（推荐）：</h3>
+            <p>从 V1.2.6 开始，引擎支持音频资源零配置管理。你无需在场景中定义映射，直接使用文件名即可。</p>
+            <div class="code-block">
+<pre>{
+    text: "播放开门声",
+    audio: "door_open" // 引擎自动查找 ../assets/audio/door_open.ogg
+},
+{
+    text: "连续播放语音",
+    audio: "voice1[a]voice2" // 依次播放两个音频文件
+}</pre>
+            </div>
+
+            <h2>5. 视频资源 (Video)</h2>
+            <p>视频文件存放在 <code>assets/video/</code> 目录中。</p>
+
+            <h3>零配置管理模式（推荐）：</h3>
+            <p>与音频类似，视频也支持零配置管理。</p>
+            <div class="code-block">
+<pre>{
+    text: "播放开场动画",
+    video: "op_video" // 引擎自动查找 ../assets/video/op_video.mp4
+}</pre>
+            </div>
+            <p><strong>注意：</strong>视频播放时会自动停止当前 BGM，结束后需手动指定新的 BGM。</p>
+
+            <h2>6. CG 鉴赏图片 (CG)</h2>
+            <p>CG 图片存放在 <code>assets/cg/</code> 目录中。</p>
+
+            <h3>配置方式：</h3>
+            <p>在场景文件头部引入 <code>cg_config.js</code>，该文件定义了 <code>CG_CONFIG_SUB</code> 对象：</p>
+            <div class="code-block">
+<pre>&lt;script src="../cg_config.js"&gt;&lt;/script&gt;</pre>
+            </div>
+            <p><strong>配置文件示例 (cg_config.js)：</strong></p>
+            <div class="code-block">
+<pre>const CG_CONFIG_SUB = {
+    'ending_cg': '../assets/cg/ending_cg.jpg',
+    'special_event': '../assets/cg/special_event.jpg'
+};</pre>
+            </div>
+            <p><strong>剧本中使用：</strong></p>
+            <div class="code-block">
+<pre>const sceneData = {
+    background: BG_CONFIG_SUB, // CG 也是通过 background 属性显示
+    story: [
+        {
+            text: "展示一张精美的 CG",
+            background: "ending_cg" // 引用 cg_config.js 中的键名
+        }
+    ]
+};</pre>
+            </div>
+
+            <div class="tip-box">
+                <strong>总结与建议</strong><br>
+                1. <strong>优先使用零配置</strong>：对于音频和视频，直接使用文件名是最便捷的方式。<br>
+                2. <strong>保持命名规范</strong>：建议使用有意义的英文或拼音命名资源文件，避免使用特殊字符。<br>
+                3. <strong>统一入口引入</strong>：确保每个场景文件都正确引入了所需的配置文件（bg, bgm, cg, illustration）。
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2026 Shiori Engine | <a href="index.html">返回首页</a> | <a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">GitHub 仓库</a></p>
+        </footer>
+    </div>
+</body>
+</html>
