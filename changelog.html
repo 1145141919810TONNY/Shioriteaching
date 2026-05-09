@@ -17,6 +17,36 @@
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
             <div class="tip-box">
+                <strong>V2.0.0 (2026/5/9) - 启动器技术栈全面升级</strong><br>
+                <strong>1. 技术栈迁移</strong><br>
+                - 启动器从 C# (.NET) 迁移至 Python (PyQt6 + QtWebEngine)<br>
+                - 内置 Chromium 内核，无需外部浏览器，兼容性更好<br>
+                <br>
+                <strong>2. 单文件打包</strong><br>
+                - 新版启动器采用单文件打包（约 200MB+）<br>
+                - 包含所有 Python/Qt 依赖，只需复制 exe 文件即可运行<br>
+                <br>
+                <strong>3. 启动器放置位置说明</strong><br>
+                - <strong>新版启动器</strong>（Python/PyQt6）：放置在<strong>项目根目录</strong>（与 <code>shiori engine</code> 文件夹同级），运行 <code>Shiori.exe</code> 即可（下载Shiori-engine-python文件夹内的所有内容）<br>
+                - <strong>旧版启动器</strong>（C#/.NET）：放置在 <code>shiori engine/</code> 文件夹内（即 <code>shiori engine/shiori.exe</code>），仍可按原有方式正常使用<br>
+                - 两个版本的启动器可同时存在，互不影响<br>
+                <br>
+                <strong>4. 重要提示</strong><br>
+                - 新版启动器要求引擎文件夹必须命名为 <code>shiori engine</code>（全小写，中间有空格）<br>
+                - 不可更改为其他名称，否则启动器将无法找到引擎入口文件<br>
+                <br>
+                <strong>5. 完全兼容旧版开发方式</strong><br>
+                - 游戏内容（HTML/场景/资源）的修改方式与之前完全一致<br>
+                - 无需改变开发习惯<br>
+                <br>
+                <strong>6. 版本信息</strong><br>
+                - 启动器版本跃升至 V1.1.0<br>
+                - 该启动器还在测试阶段，可能会存在一些 bug<br>
+                - 日后更新的重心会侧重于新版的启动器<br>
+                - 详情请参照 <code>README_BUILD.md</code> 文档
+            </div>
+
+            <div class="tip-box">
                 <strong>V1.2.7 (2026/5/8)</strong><br>
                 - 修复 [后退] 指令映射错误导致的执行失效问题。
             </div>
