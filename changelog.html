@@ -17,6 +17,54 @@
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
             <div class="tip-box">
+                <strong>V2.0.1 / V1.1.1 (2026/5/11) - 引擎核心与启动器重大更新</strong><br>
+                <br>
+                <strong>【重要说明】</strong><br>
+                <strong>1. 新版 Python 启动器已全面取代旧版启动器，旧版将逐步停止支持</strong><br>
+                <strong>2. file:// 协议模式已完全停止支持，请勿直接双击 HTML 文件运行</strong><br>
+                <strong>3. 部分核心功能（如视频播放、存档管理等）无法在 file:// 模式下正常工作</strong><br>
+                <br>
+                <strong>过渡期说明：</strong>由于新版启动器仍处于测试阶段，可能存在未知问题。在正式宣布完全停用旧版启动器之前，我们仍会继续提供旧版启动器的相关优化与 bug 修复服务，以确保您的使用体验。<br>
+                <br>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">
+                <br>
+                <strong>【引擎核心 V2.0.1 更新内容】</strong><br>
+                <strong>1. 样式适配优化</strong><br>
+                - 优化了 index.html 的 CSS 样式，更好地适配新版启动器（主要针对 16:9 分辨率进行优化）<br>
+                <br>
+                <strong>2. 视频播放系统重构</strong><br>
+                - 完全重写了 video.html 的视频播放逻辑<br>
+                - 支持 HTML/Python 双端统一播放<br>
+                - 屏蔽非标准视频控制按钮，提供更一致的用户体验<br>
+                - 具体实现方式请参考 video.html 相关代码注释<br>
+                <br>
+                <strong>3. 智能内容过滤</strong><br>
+                - 剧本系统将自动根据 video.html 的配置，屏蔽不兼容的视频播放内容<br>
+                - 确保在不同环境下视频播放的稳定性和一致性<br>
+                <br>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">
+                <br>
+                <strong>【启动器 V1.1.1 更新内容】</strong><br>
+                <strong>1. 系统架构变更</strong><br>
+                - 新版启动器改为多文件运行模式。虽然文件总大小有所增加，但显著提升了运行与启动速度<br>
+                - <strong>部署说明</strong>：请将 Shiori\dist 目录中的所有内容复制粘贴到项目根目录即可<br>
+                <br>
+                <strong>2. 功能新增</strong><br>
+                - <strong>窗口比例锁定</strong>：支持 16:9 和 4:3 两种长宽比模式，并提供常用分辨率预设，可通过菜单按需调整<br>
+                - <strong>菜单集成</strong>：新版启动器菜单中集成了相关链接的快速访问入口<br>
+                - <strong>引擎完整性验证</strong>：新增「验证引擎完整性.bat」工具，用于检测基本引擎文件架构，开发者可根据需求自定义修改<br>
+                <br>
+                <strong>3. 问题修复</strong><br>
+                - <strong>视频播放修复</strong>：修复了新版启动器无法播放视频的问题<br>
+                  &nbsp;&nbsp;- Python 端推荐使用 WebM 格式（VP9 编码）<br>
+                  &nbsp;&nbsp;- HTML 端保持原有 H.264 格式不变<br>
+                - <strong>快捷键冲突修复</strong>：解决了 F5 快捷键冲突问题，现在 F5 绑定为快速保存存档功能<br>
+                - <strong>进程残留修复</strong>：修复了关闭独立窗口后进程残留导致存档读取失败的问题<br>
+                  &nbsp;&nbsp;- 退出游戏后将自动静默运行 check_process.bat 清理后台进程<br>
+                  &nbsp;&nbsp;- 也可手动双击该脚本进行进程清理
+            </div>
+
+            <div class="tip-box">
                 <strong>V2.0.0 (2026/5/9) - 启动器技术栈全面升级</strong><br>
                 <strong>1. 技术栈迁移</strong><br>
                 - 启动器从 C# (.NET) 迁移至 Python (PyQt6 + QtWebEngine)<br>
