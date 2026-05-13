@@ -188,6 +188,10 @@ chars: <span class="code-string">"[中 0% lh01]"</span>   <span class="code-comm
                 <tbody>
                     <tr><td>渐入</td><td>fadeIn</td><td>立绘从透明平滑过渡到不透明（约0.8秒）</td></tr>
                     <tr><td>渐出</td><td>fadeOut</td><td>立绘从不透明平滑过渡到透明并移除（约0.8秒）</td></tr>
+                    <tr><td>左渐出</td><td>lfadeOut</td><td>在当前位置向左移动10%的同时渐出（约0.8秒）</td></tr>
+                    <tr><td>右渐出</td><td>rfadeOut</td><td>在当前位置向右移动10%的同时渐出（约0.8秒）</td></tr>
+                    <tr><td>左渐入</td><td>lfadeIn</td><td>从左侧10%位置向右移动到当前位置并渐入（约0.8秒）</td></tr>
+                    <tr><td>右渐入</td><td>rfadeIn</td><td>从右侧10%位置向左移动到当前位置并渐入（约0.8秒）</td></tr>
                 </tbody>
             </table>
 
@@ -196,9 +200,21 @@ chars: <span class="code-string">"[中 0% lh01]"</span>   <span class="code-comm
 chars: <span class="code-string">"[中 渐入 lh01]"</span>        <span class="code-comment">// 在中间位置渐入</span>
 chars: <span class="code-string">"[左 fadeIn lh02]"</span>       <span class="code-comment">// 在左侧渐入</span>
 
+<span class="code-comment">// 方向渐入示例：从对应方向滑入到当前位置</span>
+chars: <span class="code-string">"[左渐入 lh01]"</span>          <span class="code-comment">// 从左侧10%位置滑入到当前位置</span>
+chars: <span class="code-string">"[lfadeIn lh02]"</span>        <span class="code-comment">// 英文写法</span>
+chars: <span class="code-string">"[右渐入 lh03]"</span>          <span class="code-comment">// 从右侧10%位置滑入到当前位置</span>
+chars: <span class="code-string">"[rfadeIn lh04]"</span>        <span class="code-comment">// 英文写法</span>
+
 <span class="code-comment">// 渐出示例：建议单独使用，不要添加位置指令</span>
 chars: <span class="code-string">"[渐出 lh01]"</span>            <span class="code-comment">// 正确用法：直接渐出</span>
 chars: <span class="code-string">"[fadeOut lh02]"</span>         <span class="code-comment">// 英文写法</span>
+
+<span class="code-comment">// 方向渐出示例：继承当前位置，向对应方向移动10%并渐出</span>
+chars: <span class="code-string">"[左渐出 lh01]"</span>          <span class="code-comment">// 在当前位置向左移动10%并渐出</span>
+chars: <span class="code-string">"[lfadeOut lh02]"</span>        <span class="code-comment">// 英文写法</span>
+chars: <span class="code-string">"[右渐出 lh03]"</span>          <span class="code-comment">// 在当前位置向右移动10%并渐出</span>
+chars: <span class="code-string">"[rfadeOut lh04]"</span>        <span class="code-comment">// 英文写法</span>
 
 <span class="code-comment">// 注意：不要在渐出时添加位置指令，否则会先闪到目标位置再消失</span>
 chars: <span class="code-string">"[左 渐出 lh01]"</span>         <span class="code-comment">// 不推荐：会先移动到左侧再渐出</span>
