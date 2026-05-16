@@ -115,7 +115,7 @@ const BG_CONFIG_SUB = {
             <p>音效和语音文件存放在 <code>assets/audio/</code> 目录中。</p>
 
             <h3>零配置管理模式（推荐）：</h3>
-            <p>从 V1.2.6 开始，引擎支持音频资源零配置管理。你无需在场景中定义映射，直接使用文件名即可。</p>
+            <p>引擎支持音频资源零配置管理。你无需在场景中定义映射，直接使用文件名即可。</p>
             <div class="code-block">
 <pre>{
     text: "播放开门声",
@@ -126,6 +126,42 @@ const BG_CONFIG_SUB = {
     audio: "voice1[a]voice2" // 依次播放两个音频文件
 }</pre>
             </div>
+
+            <h3>音效（SE）独立通道：</h3>
+            <p>引擎提供了独立的 <code>se</code> 属性用于播放音效，与 <code>audio</code>（语音）通道完全分离。</p>
+            <div class="tip-box">
+                <strong>优势说明：</strong><br>
+                - <strong>并发播放</strong>：音效和语音可以同时播放，互不干扰<br>
+                - <strong>统一管理</strong>：所有音效文件统一存放在 <code>assets/se/</code> 目录<br>
+                - <strong>零配置加载</strong>：与语音相同，直接使用文件名即可，无需预定义映射
+            </div>
+            <div class="code-block">
+<pre><span class="code-comment">// 单独播放音效</span>
+{
+    text: "点击按钮",
+    se: "click"  // 自动加载 ../assets/se/click.ogg 或 .mp3
+}
+
+<span class="code-comment">// 同时播放语音和音效</span>
+{
+    text: "角色说话并伴随背景音",
+    voice: "voice1",  // 播放语音
+    se: "bg_noise"    // 同时播放环境音效
+}
+
+<span class="code-comment">// 多个音效依次播放</span>
+{
+    text: "连击效果",
+    se: ["hit1", "hit2", "hit3"]  // 依次播放三个音效
+}</pre>
+            </div>
+            <p><strong>注意事项：</strong></p>
+            <ul>
+                <li>音效文件应放在 <code>assets/se/</code> 目录下</li>
+                <li>支持常见音频格式：.ogg, .mp3, .wav 等</li>
+                <li><code>se</code> 和 <code>voice</code> 可以同时在同一剧情行中使用</li>
+                <li><code>audio</code> 属性主要用于语音播放</li>
+            </ul>
 
             <h2>5. 视频资源 (Video)</h2>
             <p>视频文件存放在 <code>assets/video/</code> 目录中。</p>
