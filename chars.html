@@ -126,10 +126,11 @@ chars: <span class="code-string">"[中 top lh01]"</span>       <span class="code
             </div>
 
             <h2>5. 精确坐标控制</h2>
-            <p>使用 <code>x:</code> 和 <code>y:</code> 前缀指定精确百分比坐标。</p>
+            <p>使用 <code>x:</code>、<code>y:</code> 和 <code>z:</code> 前缀指定精确百分比坐标和旋转角度。</p>
             <ul>
                 <li><strong>X轴：</strong>以屏幕中心为 0%，负值向左，正值向右</li>
                 <li><strong>Y轴：</strong>以屏幕底部为 0%，负值向下，正值向上</li>
+                <li><strong>Z轴：</strong>旋转角度（度），正值顺时针，负值逆时针，范围 -360° 到 360°</li>
                 <li><strong>优先级：</strong>精确坐标 > 文字指令</li>
             </ul>
             <div class="code-block">
@@ -141,9 +142,15 @@ chars: <span class="code-string">"[x:-20% y:15% lh02]"</span>   <span class="cod
 chars: <span class="code-string">"[x:30% lh01]"</span>         <span class="code-comment">// X轴精确，Y轴默认</span>
 chars: <span class="code-string">"[y:10% lh01]"</span>         <span class="code-comment">// Y轴精确，X轴居中</span>
 
+<span class="code-comment">// 旋转控制</span>
+chars: <span class="code-string">"[z:10 lh01]"</span>          <span class="code-comment">// 顺时针旋转10度</span>
+chars: <span class="code-string">"[z:-15 lh01]"</span>         <span class="code-comment">// 逆时针旋转15度</span>
+chars: <span class="code-string">"[中 z:5 lh01]"</span>        <span class="code-comment">// 居中 + 顺时针旋转5度</span>
+
 <span class="code-comment">// 与其他修饰词组合</span>
 chars: <span class="code-string">"[x:15% y:-10% front 10% lh01]"</span>  <span class="code-comment">// 精确坐标 + 层级 + 缩放</span>
 chars: <span class="code-string">"[瞬 x:-25% y:20% lh01]"</span>         <span class="code-comment">// 瞬移 + 精确坐标</span>
+chars: <span class="code-string">"[x:10% y:5% z:10 lh01]"</span>         <span class="code-comment">// 精确坐标 + 旋转</span>
 
 <span class="code-comment">// 精确坐标优先于文字指令</span>
 chars: <span class="code-string">"[x:10% 左 lh01]"</span>  <span class="code-comment">// 使用 x:10%，忽略“左”</span></pre>
@@ -250,7 +257,7 @@ chars: <span class="code-string">"[instant right lh01]"</span> <span class="code
 
             <h2>10. 动作指令</h2>
             <p>动作指令为立绘提供丰富的动态效果。<strong>使用动作指令时，<code>瞬</code>/<code>instant</code> 会被自动忽略</strong>。</p>
-            
+                        
             <h3>10.1 动作指令列表</h3>
             <table>
                 <thead>
@@ -264,6 +271,12 @@ chars: <span class="code-string">"[instant right lh01]"</span> <span class="code
                     <tr><td>持续发抖</td><td>cshake</td><td>持续左右抖动，需手动停止</td></tr>
                     <tr><td>结束发抖</td><td>sshake</td><td>停止持续发抖，恢复原位</td></tr>
                     <tr><td>点头</td><td>nod</td><td>执行一次"上移2% → 下移4% → 回归原位"序列，总时长约450ms</td></tr>
+                    <tr><td>左倒</td><td>ltilt</td><td><strong>左倒</strong>：逆时针旋转90度，模拟向左侧倒下（约0.5秒）</td></tr>
+                    <tr><td>右倒</td><td>rtilt</td><td><strong>右倒</strong>：顺时针旋转90度，模拟向右侧倒下（约0.5秒）</td></tr>
+                    <tr><td>站立</td><td>stand</td><td><strong>站立</strong>：重置旋转角度到0°，恢复垂直站立状态（约0.3秒）</td></tr>
+                    <tr><td>得意</td><td>proud</td><td><strong>单次得意</strong>：执行一次完整的得意摇摆序列后自动停止（约2.4秒）</td></tr>
+                    <tr><td>持续得意</td><td>cproud</td><td><strong>持续得意</strong>：进入循环摇摆状态，直到被明确停止</td></tr>
+                    <tr><td>结束得意</td><td>sproud</td><td><strong>结束得意</strong>：立即停止持续得意动画，平滑回归基准状态</td></tr>
                 </tbody>
             </table>
 
@@ -293,7 +306,41 @@ chars: <span class="code-string">"[结束发抖 lh01]"</span>       <span class=
 
 <span class="code-comment">// 点头效果</span>
 chars: <span class="code-string">"[中 nod lh01]"</span>           <span class="code-comment">// 执行一次点头动画</span>
-chars: <span class="code-string">"[中 点头 lh01]"</span>          <span class="code-comment">// 中文等价</span></pre>
+chars: <span class="code-string">"[中 点头 lh01]"</span>          <span class="code-comment">// 中文等价</span>
+
+<span class="code-comment">// 左倒/右倒效果</span>
+chars: <span class="code-string">"[中 ltilt lh01]"</span>        <span class="code-comment">// 向左倒下（逆时针旋转90度）</span>
+chars: <span class="code-string">"[中 左倒 lh01]"</span>        <span class="code-comment">// 中文等价</span>
+chars: <span class="code-string">"[中 rtilt lh01]"</span>       <span class="code-comment">// 向右倒下（顺时针旋转90度）</span>
+chars: <span class="code-string">"[中 右倒 lh01]"</span>        <span class="code-comment">// 中文等价</span>
+
+<span class="code-comment">// 站立效果（重置旋转）</span>
+chars: <span class="code-string">"[中 stand lh01]"</span>       <span class="code-comment">// 重置旋转角度到0°</span>
+chars: <span class="code-string">"[中 站立 lh01]"</span>        <span class="code-comment">// 中文等价</span>
+
+<span class="code-comment">// 得意效果（摇摆动画）</span>
+<span class="code-comment">// 单次得意（短暂表现）</span>
+chars: <span class="code-string">"[中 proud lh01]"</span>       <span class="code-comment">// 执行得意摇摆动画，重复2次，约2.4秒</span>
+chars: <span class="code-string">"[中 得意 lh01]"</span>        <span class="code-comment">// 中文等价</span>
+
+<span class="code-comment">// 持续得意（长时间保持）</span>
+chars: <span class="code-string">"[中 cproud lh01]"</span>      <span class="code-comment">// 开始持续得意</span>
+chars: <span class="code-string">"[中 持续得意 lh01]"</span>    <span class="code-comment">// 中文等价</span>
+
+<span class="code-comment">// ... 其他剧情 ...</span>
+
+chars: <span class="code-string">"[sproud lh01]"</span>         <span class="code-comment">// 停止持续得意</span>
+chars: <span class="code-string">"[结束得意 lh01]"</span>       <span class="code-comment">// 中文等价</span></pre>
+            </div>
+
+            <div class="tip-box">
+                <strong>重要提示：</strong>
+                <ul>
+                    <li>若需角色长时间保持得意状态，请使用 <code>[持续得意/cproud]</code> 配合 <code>[结束得意/sproud]</code></li>
+                    <li>若仅需短暂表现，请使用 <code>[得意/proud]</code></li>
+                    <li><strong>不要</strong>频繁重复调用单次得意指令来模拟持续效果，以避免性能开销和动画冲突</li>
+                    <li>得意动画会保留用户设置的Z轴旋转，并在其基础上进行±5度的摇摆</li>
+                </ul>
             </div>
 
             <h3>10.3 动作指令优先级规则</h3>
@@ -315,7 +362,63 @@ chars: <span class="code-string">"[中 点头 lh01]"</span>          <span class
                 </tbody>
             </table>
 
-            <h2>11. 连续动作指令</h2>
+            <h2>11. 明暗亮度控制</h2>
+            <p>通过亮度控制指令，可以调整立绘的视觉亮度，实现多立绘同屏时的视线引导效果。</p>
+            
+            <h3>11.1 亮度控制指令</h3>
+            <table>
+                <thead>
+                    <tr><th>中文</th><th>英文</th><th>效果</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>明</td><td>bright</td><td>恢复立绘亮度至100%，显示原本色彩</td></tr>
+                    <tr><td>暗</td><td>dim / dark</td><td>降低立绘亮度至50%，视觉上压暗</td></tr>
+                </tbody>
+            </table>
+
+            <div class="tip-box">
+                <strong>重要特性：</strong><br>
+                - <strong>状态幂等性</strong>：亮度控制为绝对状态而非累加，无论连续声明多少次 <code>暗</code>，立绘亮度始终保持在50%<br>
+                - <strong>属性继承</strong>：如果新指令未指定亮度控制，立绘将保持当前的亮度状态<br>
+                - <strong>应用场景</strong>：在多立绘同屏时，通过压暗非说话角色、提亮说话角色，引导玩家视线聚焦于当前对话者
+            </div>
+
+            <h3>11.2 亮度控制示例</h3>
+            <div class="code-block">
+<pre><span class="code-comment">// 基础用法：变暗</span>
+chars: <span class="code-string">"[中 暗 lh01]"</span>              <span class="code-comment">// 居中 + 变暗50%</span>
+chars: <span class="code-string">"[middle dim lh01]"</span>         <span class="code-comment">// 英文等价</span>
+
+<span class="code-comment">// 基础用法：恢复明亮</span>
+chars: <span class="code-string">"[中 明 lh01]"</span>              <span class="code-comment">// 居中 + 恢复100%亮度</span>
+chars: <span class="code-string">"[middle bright lh01]"</span>      <span class="code-comment">// 英文等价</span>
+
+<span class="code-comment">// 与位置组合</span>
+chars: <span class="code-string">"[左 暗 lh01]"</span>              <span class="code-comment">// 左侧 + 变暗</span>
+chars: <span class="code-string">"[right dim lh02]"</span>          <span class="code-comment">// 右侧 + 变暗</span>
+
+<span class="code-comment">// 与缩放组合</span>
+chars: <span class="code-string">"[中 暗 10% lh01]"</span>          <span class="code-comment">// 居中 + 变暗 + 放大10%</span>
+chars: <span class="code-string">"[middle dim -15% lh01]"</span>    <span class="code-comment">// 居中 + 变暗 + 缩小15%</span>
+
+<span class="code-comment">// 多立绘同屏场景：压暗非说话角色，提亮说话角色</span>
+chars: <span class="code-string">"[角色A 左 暗 lh1],[角色B 右 明 lh2]"</span>
+<span class="code-comment">// 角色A在左侧变暗，角色B在右侧保持明亮</span>
+
+<span class="code-comment">// 切换对话焦点</span>
+chars: <span class="code-string">"[角色A 明 lh1],[角色B 暗 lh2]"</span>
+<span class="code-comment">// 现在角色A变亮，角色B变暗</span>
+
+<span class="code-comment">// 中英文混合</span>
+chars: <span class="code-string">"[中 dark lh01]"</span>            <span class="code-comment">// 中文位置 + 英文亮度</span>
+chars: <span class="code-string">"[left 明 lh02]"</span>            <span class="code-comment">// 英文位置 + 中文亮度</span>
+
+<span class="code-comment">// 与其他修饰词组合</span>
+chars: <span class="code-string">"[左 下 front 暗 lh01]"</span>     <span class="code-comment">// 左侧 + 向下 + 顶层 + 变暗</span>
+chars: <span class="code-string">"[x:10% y:5% bright lh01]"</span>  <span class="code-comment">// 精确坐标 + 明亮</span></pre>
+            </div>
+
+            <h2>12. 连续动作指令</h2>
             <p>允许在一个指令中定义一系列按顺序执行的状态变化，使用逗号 <code>,</code> 作为分隔符。</p>
             
             <h3>11.1 基础语法与统一化状态帧</h3>
@@ -383,7 +486,7 @@ chars: <span class="code-string">"[左 前 10%,右 lh01]"</span>
 chars: <span class="code-string">"[中 retreat,中 forward lh01]"</span></pre>
             </div>
 
-            <h2>12. 互斥处理规则</h2>
+            <h2>13. 互斥处理规则</h2>
             <p>对于<strong>同一类型</strong>的属性，如果出现了多个同类型关键词，<strong>默认执行第一个</strong>，忽略后续的同类关键词。</p>
             <div class="code-block">
 <pre><span class="code-comment">// 只取第一个水平位置 "左"，忽略后面的 "right"</span>
@@ -398,7 +501,7 @@ chars: <span class="code-string">"[left right 下 downm front back 10% lh01]"</s
             </div>
             <p><strong>注意：</strong>不同类型的关键词<strong>不冲突</strong>，可以同时生效。</p>
 
-            <h2>13. 组合指令示例</h2>
+            <h2>14. 组合指令示例</h2>
             <p>您可以将多个修饰词组合在一个指令中，<strong>顺序不影响解析结果</strong>。</p>
             <div class="code-block">
 <pre><span class="code-comment">// 水平 + 垂直</span>
@@ -421,13 +524,18 @@ chars: <span class="code-string">"[instant right downm -10% lh03]"</span>
 <span class="code-comment">// 精确坐标组合</span>
 chars: <span class="code-string">"[x:10% y:-5% lh01]"</span>
 chars: <span class="code-string">"[x:-15% y:10% front 10% lh02]"</span>
-chars: <span class="code-string">"[瞬 x:20% y:-10% lh03]"</span></pre>
+chars: <span class="code-string">"[瞬 x:20% y:-10% lh03]"</span>
+
+<span class="code-comment">// 精确坐标 + 旋转</span>
+chars: <span class="code-string">"[x:10% y:5% z:10 lh01]"</span>      <span class="code-comment">// 向右10%，向上5%，顺时针旋转10度</span>
+chars: <span class="code-string">"[中 z:-15 lh01]"</span>              <span class="code-comment">// 居中 + 逆时针旋转15度</span>
+chars: <span class="code-string">"[x:-10% z:5 10% lh01]"</span>       <span class="code-comment">// 向左10% + 顺时针旋转5度 + 放大10%</span></pre>
             </div>
 
-            <h2>14. 清除立绘</h2>
+            <h2>15. 清除立绘</h2>
             <p>使用 <code>消失</code> 指令移除指定立绘或全部立绘。</p>
             
-            <h3>14.1 单个立绘清除</h3>
+            <h3>15.1 单个立绘清除</h3>
             <table>
                 <thead>
                     <tr><th>中文</th><th>英文</th><th>效果</th></tr>
@@ -446,7 +554,7 @@ chars: <span class="code-string">"[remove lh01]"</span>
 chars: <span class="code-string">"[消失 lh01],[消失 lh02]"</span></pre>
             </div>
 
-            <h3>14.2 批量清除所有立绘</h3>
+            <h3>15.2 批量清除所有立绘</h3>
             <p>一键清除屏幕上所有活跃立绘，包括自动停止所有动画状态（如持续发抖）。</p>
             <div class="code-block">
 <pre><span class="code-comment">// 中文指令</span>
@@ -468,7 +576,7 @@ chars: <span class="code-string">"[消失 all]"</span></pre>
                 - 完全兼容原有的单立绘清除功能
             </div>
 
-            <h2>15. 测试指南</h2>
+            <h2>16. 测试指南</h2>
             <div class="tip-box">
                 <strong>立绘功能测试：</strong><br>
                 本引擎提供了完整的立绘测试场景，位于 <code>scenes\1.html</code>。<br><br>
