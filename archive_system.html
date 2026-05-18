@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shiori 存档系统详细说明</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .archive-system-doc {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .module-section {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-table {
+            margin: 30px 0;
+        }
+        
+        .faq-item {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .faq-question {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        
+        .highlight-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Shiori 存档系统详细说明</h1>
+        </header>
+
+        <main class="tutorial-content">
+            <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
+            
+            <div class="archive-system-doc">
+                <section class="intro">
+                    <p>Shiori 引擎提供了一套完整的存档与导航系统，包含五个核心模块。这些模块采用模块化设计，既可独立运行，又能通过统一的数据源实现状态同步，为开发者提供了灵活的游戏进度管理方案。</p>
+                </section>
+
+                <hr>
+
+                <section class="module-section">
+                    <h2>1. 进度管理（saves.html）</h2>
+                    
+                    <h3>功能定位</h3>
+                    <p>最原始的存档管理系统，提供基础的API接口支持，是整个存档体系的数据基石。</p>
+                    
+                    <h3>技术实现细节</h3>
+                    <ul>
+                        <li><strong>数据存储</strong>：通过 <code>localStorage.gameProgress</code> 存储游戏进度数据</li>
+                        <li><strong>场景追踪</strong>：使用 <code>sceneMarkers</code> 数组记录玩家已访问的所有场景节点</li>
+                        <li><strong>展示方式</strong>：简单的列表式展示，无复杂的UI交互和视觉效果</li>
+                    </ul>
+                    
+                    <h3>数据结构示例</h3>
+                    <div class="code-block">
+<pre>{
+  sceneMarkers: ["scene1", "scene2", "scene3"],  // 已访问场景列表
+  currentScene: "scene5",                         // 当前所在场景
+  currentLine: 42,                                // 当前剧情行号
+  timestamp: 1716000000000                        // 最后更新时间戳
+}</pre>
+                    </div>
+                    
+                    <h3>适用场景与局限性</h3>
+                    <div class="highlight-box">
+                        <strong>优势：</strong>
+                        <ul>
+                            <li>轻量级实现，性能开销极小</li>
+                            <li>作为其他高级功能的底层数据源</li>
+                            <li>为成就系统、统计面板提供原始数据支持</li>
+                            <li>开发者调试时快速查看游戏进度状态</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="warning-box">
+                        <strong>局限：</strong>
+                        <ul>
+                            <li>无法直接进行存档/读档操作</li>
+                            <li>缺乏用户友好的界面交互</li>
+                            <li>不支持多存档位管理</li>
+                            <li>无视觉反馈和状态提示</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="module-section">
+                    <h2>2. 小故事鉴赏（story.html）</h2>
+                    
+                    <h3>功能定位</h3>
+                    <p>独立的小故事/番外篇鉴赏模块，用于展示与主线剧情解耦的额外内容。</p>
+                    
+                    <h3>技术实现细节</h3>
+                    <ul>
+                        <li><strong>内容管理</strong>：完全硬编码实现，未接入游戏进度API</li>
+                        <li><strong>展示机制</strong>：静态内容展示，不支持动态解锁机制</li>
+                        <li><strong>架构设计</strong>：独立的HTML结构，与主线剧情完全解耦</li>
+                        <li><strong>数据隔离</strong>：不读取也不写入 <code>localStorage.gameProgress</code></li>
+                    </ul>
+                    
+                    <h3>适用场景</h3>
+                    <ul>
+                        <li><strong>角色番外故事</strong>：展示角色的背景故事、个人线剧情</li>
+                        <li><strong>背景设定集</strong>：世界观介绍、角色档案、术语解释</li>
+                        <li><strong>DLC内容入口</strong>：付费或免费追加内容的独立展示平台</li>
+                        <li><strong>隐藏剧情查阅</strong>：达成特定条件后解锁的特殊剧情回顾</li>
+                        <li><strong>二创作品收录</strong>：官方认可的玩家创作内容展示区</li>
+                    </ul>
+                </section>
+
+                <section class="module-section">
+                    <h2>3. 行级存档恢复（archive.html）</h2>
+                    
+                    <h3>功能定位</h3>
+                    <p>精细化的存档管理系统，支持精确到剧情行的保存与恢复，是玩家最常用的核心存档功能。</p>
+                    
+                    <h3>核心功能</h3>
+                    <ol>
+                        <li><strong>完整上下文保存</strong>：
+                            <ul>
+                                <li>当前场景文件名</li>
+                                <li>精确的剧情行号</li>
+                                <li>所有游戏变量状态（好感度、标志位、物品等）</li>
+                                <li>保存时间和自定义名称</li>
+                            </ul>
+                        </li>
+                        <li><strong>多存档位管理</strong>：
+                            <ul>
+                                <li>支持无限数量的存档（受限于浏览器存储容量）</li>
+                                <li>每个存档位独立存储，互不干扰</li>
+                                <li>支持双击编辑存档名称</li>
+                            </ul>
+                        </li>
+                        <li><strong>智能返回机制</strong>：
+                            <ul>
+                                <li>从存档页返回时自动定位到原剧情位置</li>
+                                <li>显示"返回当前页面"按钮并高亮当前节点</li>
+                                <li>保持流畅的游戏体验，避免迷失方向</li>
+                            </ul>
+                        </li>
+                        <li><strong>数据导入导出</strong>：
+                            <ul>
+                                <li>支持将所有存档导出为 JSON 文件</li>
+                                <li>可从 JSON 文件导入存档数据</li>
+                                <li>便于备份、分享和跨设备迁移</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <h3>适用场景</h3>
+                    <ul>
+                        <li><strong>关键选择前存档</strong>：在重要分支点前手动创建存档点</li>
+                        <li><strong>分支路线测试</strong>：快速切换不同选择路线进行对比</li>
+                        <li><strong>困难章节挑战</strong>：在高难度段落反复尝试直至通关</li>
+                        <li><strong>多结局收集</strong>：回溯到关键点探索不同结局</li>
+                        <li><strong>进度备份</strong>：定期导出存档防止数据丢失</li>
+                    </ul>
+                </section>
+
+                <section class="module-section">
+                    <h2>4. 剧本流程图（flowchart.html）- 正式版</h2>
+                    
+                    <h3>功能定位</h3>
+                    <p>可视化的剧本导航系统，根据玩家实际游戏进度动态解锁节点，提供沉浸式的剧情回顾体验。</p>
+                    
+                    <h3>技术实现细节</h3>
+                    <h4>解锁判断逻辑</h4>
+                    <div class="code-block">
+<pre>// 从 saves.html 读取已访问场景
+const visitedScenes = localStorage.gameProgress.sceneMarkers || [];
+
+// 判断节点是否解锁
+function isNodeUnlocked(sceneId) {
+  return visitedScenes.includes(sceneId);
+}
+
+// 渲染节点状态
+if (isNodeUnlocked(node.id)) {
+  renderNormalNode(node);      // 正常显示，可点击
+} else {
+  renderLockedNode(node);      // 显示"？？？"，不可点击
+}</pre>
+                    </div>
+                    
+                    <h4>自动布局引擎</h4>
+                    <ol>
+                        <li><strong>垂直位置计算</strong>：根据节点 ID 的层级深度确定 Y 轴位置</li>
+                        <li><strong>水平分布调整</strong>：使用 x/y 百分比偏移微调节点位置，避免节点重叠和连线交叉</li>
+                        <li><strong>SVG 正交连线</strong>：智能绘制节点间的关系路径，采用直角折线提升可读性</li>
+                    </ol>
+                    
+                    <h3>智能导航功能</h3>
+                    <ul>
+                        <li><strong>当前位置高亮</strong>：从剧情页进入时，高亮显示当前所在节点</li>
+                        <li><strong>一键返回</strong>：提供"返回当前页面"按钮，点击后恢复到原剧情行</li>
+                        <li><strong>路径追溯</strong>：可通过点击已解锁节点快速跳转到任意历史场景</li>
+                    </ul>
+                </section>
+
+                <section class="module-section">
+                    <h2>5. 剧本流程图（flowchart_debug.html）- 调试版</h2>
+                    
+                    <h3>功能定位</h3>
+                    <p>开发调试专用的完整流程图查看器，无视游戏进度限制，始终显示所有节点和连线。</p>
+                    
+                    <h3>技术实现细节</h3>
+                    <h4>硬编码场景数据</h4>
+                    <div class="code-block">
+<pre>// 调试版直接使用完整的场景定义
+const allScenes = [
+  { id: "scene1", label: "初次相遇", connections: ["scene2", "scene3"] },
+  { id: "scene2", label: "图书馆约会", connections: ["scene4"] },
+  { id: "scene3", label: "咖啡厅闲聊", connections: ["scene4"] },
+  { id: "scene4", label: "告白场景", connections: ["ending_good", "ending_bad"] },
+  // ... 所有场景，包括测试分支和调试标记点
+];
+
+// 移除解锁判断，所有节点始终可见
+function renderNode(node) {
+  renderNormalNode(node);  // 永远以正常状态渲染
+}</pre>
+                    </div>
+                    
+                    <h3>与正式版的详细对比</h3>
+                    <div class="comparison-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>对比维度</th>
+                                    <th>正式版 (flowchart.html)</th>
+                                    <th>调试版 (flowchart_debug.html)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>数据来源</strong></td>
+                                    <td>动态读取 localStorage</td>
+                                    <td>硬编码 JavaScript 对象</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>节点可见性</strong></td>
+                                    <td>仅显示已访问节点</td>
+                                    <td>显示所有节点</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>解锁状态</strong></td>
+                                    <td>未访问节点显示"？？？"</td>
+                                    <td>所有节点正常显示</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>点击权限</strong></td>
+                                    <td>仅可点击已解锁节点</td>
+                                    <td>所有节点均可点击</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>实时更新</strong></td>
+                                    <td>监听进度变化自动刷新</td>
+                                    <td>静态显示，不响应变化</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>性能开销</strong></td>
+                                    <td>中等（需实时比对）</td>
+                                    <td>极低（无运行时判断）</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>适用人群</strong></td>
+                                    <td>玩家</td>
+                                    <td>开发者、测试人员</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>分发方式</strong></td>
+                                    <td>打包进 Shiori.exe</td>
+                                    <td>打包进 Shiori_debug.exe</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="module-section">
+                    <h2>系统架构总览</h2>
+                    
+                    <h3>模块化设计原则</h3>
+                    
+                    <h4>1. 独立运行</h4>
+                    <p>每个系统均可单独使用，无需依赖其他模块：</p>
+                    <ul>
+                        <li>可仅使用 <code>archive.html</code> 而不启用 <code>flowchart.html</code></li>
+                        <li>可在项目中删除 <code>story.html</code> 而不影响其他功能</li>
+                        <li>各模块间无硬性耦合，便于按需裁剪</li>
+                    </ul>
+                    
+                    <h4>2. 数据互通</h4>
+                    <p>共享 <code>localStorage.gameProgress</code> 作为统一数据源：</p>
+                    <div class="code-block">
+<pre>// 统一的数据结构
+localStorage.gameProgress = {
+  sceneMarkers: ["scene1", "scene2"],  // saves.html 写入，flowchart.html 读取
+  currentScene: "scene5",               // archive.html 更新，flowchart.html 高亮
+  currentLine: 42,                      // archive.html 保存，用于智能返回
+  archives: [...],                      // archive.html 独占管理
+  lastUpdate: 1716000000000             // 所有模块共同维护
+};</pre>
+                    </div>
+                    
+                    <h4>3. 按需配置</h4>
+                    <p>可根据项目需求灵活增减功能模块：</p>
+                    <ul>
+                        <li><strong>小型项目</strong>：仅保留 <code>archive.html</code> 即可满足基本需求</li>
+                        <li><strong>中型项目</strong>：增加 <code>flowchart.html</code> 提升导航体验</li>
+                        <li><strong>大型项目</strong>：启用全部模块，构建完整的进度管理体系</li>
+                        <li><strong>调试阶段</strong>：使用 <code>flowchart_debug.html</code> 加速开发迭代</li>
+                    </ul>
+                    
+                    <h4>4. 首次编译友好</h4>
+                    <p>所有新增功能均为纯前端实现：</p>
+                    <ul>
+                        <li>不引入额外依赖库（无 npm install）</li>
+                        <li>不修改核心引擎代码（engine.js 保持不变）</li>
+                        <li>不影响首次编译所需的文件结构</li>
+                        <li>编译流程与原有项目完全兼容</li>
+                    </ul>
+                </section>
+
+                <section class="module-section">
+                    <h2>存档隔离机制</h2>
+                    
+                    <h3>调试版与正式版的数据隔离</h3>
+                    
+                    <h4>隔离原理</h4>
+                    <ul>
+                        <li><strong>正式版（Shiori.exe）</strong>：使用标准 WebView2 用户数据目录</li>
+                        <li><strong>调试版（Shiori_debug.exe）</strong>：使用独立的调试版用户数据目录</li>
+                        <li>两者的 <code>localStorage</code> 完全隔离，互不干扰</li>
+                    </ul>
+                    
+                    <h4>实际应用价值</h4>
+                    <ol>
+                        <li><strong>开发阶段</strong>：
+                            <ul>
+                                <li>可在调试版中自由测试新功能</li>
+                                <li>不会影响正式版中玩家的真实存档</li>
+                                <li>可随时重置调试版数据而不担心误删玩家进度</li>
+                            </ul>
+                        </li>
+                        <li><strong>发布前检查</strong>：
+                            <ul>
+                                <li>在打包分发正式版前，清除调试过程中产生的测试存档</li>
+                                <li>通过窗口菜单的 <code>调试</code> → <code>清除所有存档</code> 一键清理</li>
+                                <li>确保正式发布版本的存档数据干净整洁</li>
+                            </ul>
+                        </li>
+                        <li><strong>数据安全</strong>：
+                            <ul>
+                                <li>开发者测试环境与玩家生产环境完全独立</li>
+                                <li>避免测试数据污染正式发布版本</li>
+                                <li>降低因调试操作导致玩家数据丢失的风险</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <h4>清除存档功能</h4>
+                    <p>调试版提供一键清除所有存档的功能：</p>
+                    <ul>
+                        <li><strong>位置</strong>：窗口菜单 → <code>调试</code> → <code>清除所有存档</code></li>
+                        <li><strong>确认机制</strong>：执行前弹出二次确认对话框，防止误操作</li>
+                        <li><strong>清除范围</strong>：
+                            <ul>
+                                <li>所有剧本的进度存档（sceneMarkers）</li>
+                                <li>所有手动创建的存档位（archives）</li>
+                                <li>选择记录和剧情标志位（flags）</li>
+                                <li>好感度数据（affinity）</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="module-section">
+                    <h2>常见问题解答</h2>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">Q1: 为什么需要这么多存档系统？</div>
+                        <p><strong>A:</strong> 每个系统针对不同场景优化：<code>saves.html</code> 是底层数据接口；<code>story.html</code> 用于独立内容展示；<code>archive.html</code> 是玩家日常使用的核心存档功能；<code>flowchart.html</code> 提供可视化导航；<code>flowchart_debug.html</code> 是开发工具。</p>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">Q2: 存档数据会丢失吗？</div>
+                        <p><strong>A:</strong> 存档存储在浏览器的 <code>localStorage</code> 中。正常情况下数据持久保存，但可能在用户手动清除浏览器数据、卸载重装游戏或存储空间不足时丢失。建议定期使用 <code>archive.html</code> 的导出功能备份存档。</p>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">Q3: 如何在不同设备间转移存档？</div>
+                        <p><strong>A:</strong> 使用 <code>archive.html</code> 的导入导出功能：在旧设备上点击"导出所有存档"保存 JSON 文件，将文件复制到新设备后点击"导入存档"选择该文件即可。</p>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">Q4: 调试版和正式版可以共存吗？</div>
+                        <p><strong>A:</strong> 可以，且推荐共存。两者使用不同的可执行文件名，存档数据完全隔离，可同时安装在同一目录下。开发者日常使用调试版，玩家使用正式版。</p>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">Q5: 流程图节点太多导致混乱怎么办？</div>
+                        <p><strong>A:</strong> 建议合理分组相关场景、使用偏移量微调节点位置、考虑未来扩展折叠/展开功能和颜色区分不同类型节点。可在 flowchart_debug.html 中预览完整布局后再调整。</p>
+                    </div>
+                </section>
+
+                <section class="module-section">
+                    <h2>最佳实践建议</h2>
+                    
+                    <h3>对于开发者</h3>
+                    <ol>
+                        <li><strong>开发阶段</strong>：
+                            <ul>
+                                <li>始终使用调试版（Shiori_debug.exe）进行测试</li>
+                                <li>定期查看 flowchart_debug.html 确认剧本结构</li>
+                                <li>利用 F1 调试面板实时监控游戏状态</li>
+                            </ul>
+                        </li>
+                        <li><strong>测试阶段</strong>：
+                            <ul>
+                                <li>覆盖所有分支路线，确保无死胡同</li>
+                                <li>验证存档/读档功能的稳定性</li>
+                                <li>测试极端情况（大量存档、快速切换场景等）</li>
+                            </ul>
+                        </li>
+                        <li><strong>发布前</strong>：
+                            <ul>
+                                <li>清除调试版中的所有测试存档</li>
+                                <li>检查正式版中流程图节点的解锁逻辑</li>
+                                <li>确认存档导出/导入功能正常工作</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <h3>对于玩家</h3>
+                    <ol>
+                        <li><strong>定期备份</strong>：每完成一个重要章节后导出存档，将 JSON 文件保存在安全位置</li>
+                        <li><strong>合理使用多存档位</strong>：在关键选择前创建多个存档点，为不同路线保留独立存档</li>
+                        <li><strong>利用流程图导航</strong>：通过 flowchart.html 查看已探索的剧情，发现遗漏的场景并及时补全</li>
+                    </ol>
+                </section>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2026 Shiori Engine. 作者：月が綺麗ですね_ | 本网页采用MIT License协议，与引擎本体无关</p>
+        </footer>
+    </div>
+</body>
+</html>
