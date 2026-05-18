@@ -17,6 +17,52 @@
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
             <div class="tip-box">
+                <strong>V2.0.6 / V1.2.1 (2026/5/18) - 流程图功能增强与存档系统优化</strong><br>
+                <br>
+                <strong>【引擎核心 V2.0.6 更新内容】</strong><br>
+                <br>
+                <strong>流程图功能增强</strong><br>
+                - <strong>正式版与调试版差异化显示</strong>：<br>
+                  &nbsp;&nbsp;- 正式版（Shiori.exe）：仅显示当前剧本的基础流程图结构，隐藏调试相关节点<br>
+                  &nbsp;&nbsp;- 调试版（Shiori_debug.exe）：完整显示所有流程节点，包括测试分支和调试标记点，此功能在窗口菜单的`调试`二级菜单中<br>
+                  &nbsp;&nbsp;- 通过环境检测自动适配显示模式，确保玩家体验简洁、开发者调试信息完整<br>
+                <br>
+                <strong>CSS样式优化</strong><br>
+                - <strong>简化进度管理页面样式</strong>：重构 `saves.html` 的CSS代码，移除冗余样式规则，提升代码可维护性<br>
+                - <strong>统一返回按钮交互</strong>：将"返回当前页面"智能返回按钮的样式和逻辑与 `archive.html` 保持一致，提供统一的用户体验<br>
+                <br>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">
+                <br>
+                <strong>【启动器 V1.2.1 更新内容】</strong><br>
+                <br>
+                <strong>构建流程优化</strong><br>
+                - <strong>二次编译性能提升</strong>：<br>
+                  &nbsp;&nbsp;- 优化 C# 项目的增量编译机制，减少不必要的重新编译步骤<br>
+                  &nbsp;&nbsp;- 引入智能依赖检测，仅在源文件变更时触发完整编译<br>
+                  &nbsp;&nbsp;- 典型场景下二次编译时间从 2-5 秒缩短至 1-2 秒<br>
+                  &nbsp;&nbsp;- <strong>首次编译不受影响</strong>：优化仅针对增量编译阶段，首次完整编译所需时间保持不变（约 10-20 秒），确保开发环境的稳定性<br>
+                <br>
+                <strong>存档管理功能扩展</strong><br>
+                - <strong>新增一键清除存档功能</strong>：<br>
+                  &nbsp;&nbsp;- 在调试版（Shiori_debug.exe）的`调试`菜单中添加"清除所有存档"按钮<br>
+                  &nbsp;&nbsp;- 执行前提供二次确认对话框，防止误操作<br>
+                  &nbsp;&nbsp;- 清除范围涵盖所有剧本的进度存档、选择记录等持久化数据<br>
+                  &nbsp;&nbsp;- 适用于重新开始游戏或清理测试数据的场景<br>
+                <br>
+                - <strong>新增存档相关问题帮助文档</strong>：<br>
+                  &nbsp;&nbsp;- 在`帮助`菜单中添加"存档相关问题"选项，提供详细的存档系统说明<br>
+                  &nbsp;&nbsp;- 内容涵盖：存档数据存储位置、存档类型说明、三种备份方法（手动备份文件夹/游戏内导出/云同步）、常见问题FAQ<br>
+                  &nbsp;&nbsp;- 根据版本差异化显示：调试版强调清除测试数据指引，正式版突出玩家备份指南<br>
+                  &nbsp;&nbsp;- 支持滚动查看，窗口可调整大小，确保长篇内容完整可读<br>
+                <br>
+                <strong>快捷键优化</strong><br>
+                - <strong>新增引擎刷新快捷键</strong>：添加 `Ctrl+F5` 用于强制刷新引擎<br>
+                  &nbsp;&nbsp;- 保留原有 `F5` 快速存档功能不变<br>
+                  &nbsp;&nbsp;- 避免与浏览器默认刷新行为冲突，提供更明确的刷新触发方式<br>
+                  &nbsp;&nbsp;- 适用于开发调试过程中快速重载引擎状态
+            </div>
+
+            <div class="tip-box">
                 <strong>V2.0.5 (2026/5/16) - 立绘控制系统增强与音频系统优化</strong><br>
                 <br>
                 <strong>【引擎核心 V2.0.5 更新内容】</strong><br>
