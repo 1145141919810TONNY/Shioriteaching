@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高级立绘系统详细教学 - Shiori 引擎</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>高级立绘系统详细教学</h1>
+            <p>全面升级的立绘控制方案：方位 → 服装（dress）→ 表情（face）</p>
+        </header>
+
+        <main class="tutorial-content">
+            <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
+
+            <h2>概述</h2>
+            <p>高级立绘系统（也称「新系统」）是引擎对旧版简单立绘系统的全面升级。旧系统中角色立绘是一张完整图片（通过 <code>lh1</code> 等资源 ID 引用），而新系统将立绘<strong>拆分为三个层级</strong>：<strong>方位 → 服装（dress）→ 表情（face）</strong>，每个层级独立配置图片和坐标，实现了服装与表情的自由组合，大大减少了图片资源的制作量。</p>
+
+            <h3>与旧系统的关系</h3>
+            <ul>
+                <li>高级立绘系统与旧版简单立绘系统<strong>完全兼容</strong>，可在同一条 <code>chars</code> 指令中混合使用。</li>
+                <li>你可以随时在一个剧本中混用新旧两种立绘——引擎会自动检测指令格式并使用对应的渲染方式。</li>
+            </ul>
+
+            <div class="code-block">
+<pre><span class="code-comment">示例：新旧系统混合</span>
+chars=<span class="code-string">"[角色B 右 lh12345], [角色A 中 正面 服装1 表情101]"</span>
+       └─ 旧系统 ─┘      └─── 新系统 ───┘</pre>
+            </div>
+
+            <h2>一些建议</h2>
+            <ul>
+	    <li>不推荐一边改变角色的立绘一边移动其位置</li>
+	    <li>不推荐立绘进场时立刻带上动画（如`[发抖]`等）</li>
+            </ul>
+
+            <h2>一、语法格式</h2>
+
+            <h3>基本语法</h3>
+            <div class="code-block">
+<pre>chars=<span class="code-string">"[&lt;角色标识&gt; &lt;方位&gt; &lt;服装标识&gt; &lt;表情标识&gt; &lt;可选修饰词...&gt;]"</span></pre>
+            </div>
+            <ul>
+                <li><code>&lt;角色标识&gt;</code>：必须在 <code>CHAR_DIFF_CONFIG</code> 中配置，且必须紧跟在 <code>[</code> 右边（无空格）。</li>
+                <li><code>&lt;方位&gt;</code>：决定使用哪一组 dress/face 配置，如 <code>正面</code>、<code>侧面</code>、<code>左侧面</code> 等。此名称<strong>完全由你在配置中自定义</strong>。</li>
+                <li><code>&lt;服装标识&gt;</code>：对应配置中 <code>dress</code> 数组内某个对象的 <code>id</code>。</li>
+                <li><code>&lt;表情标识&gt;</code>：对应配置中 <code>face</code> 数组内某个对象的 <code>id</code>。</li>
+                <li><code>&lt;可选修饰词&gt;</code>：位置、动作、渐变、亮度等（详见旧系统文档 <code>illustration.md</code>）。</li>
+            </ul>
+
+            <div class="warning-box">
+                <strong>注意</strong>：百分比缩放指令（如 <code>[30%]</code>）和包含缩放效果的动画（<code>后退</code>/<code>retreat</code>、<code>前进</code>/<code>forward</code>、<code>吓一跳</code>/<code>scare</code>）在新版立绘中会被<strong>自动屏蔽</strong>，详见第六章。
+            </div>
+
+            <h3>基础示例</h3>
+            <div class="code-block">
+<pre>chars=<span class="code-string">"[角色A 中 正面 服装1 表情101]"</span></pre>
+            </div>
+            <p>其中：</p>
+            <ul>
+                <li><code>角色A</code> — 角色标识符</li>
+                <li><code>中</code> — 水平位置修饰词（在画面中央）</li>
+                <li><code>正面</code> — 方位标识符（使用正面朝向的 dress/face 配置）</li>
+                <li><code>服装1</code> — 服装差分 ID</li>
+                <li><code>表情101</code> — 表情差分 ID</li>
+            </ul>
+
+            <h3>连续序列指令</h3>
+            <p>多个状态可用逗号分隔，引擎会按 500ms 间隔自动逐步切换，类似于关键帧动画：</p>
+
+            <div class="code-block">
+<pre>chars=<span class="code-string">"[角色A 左 正面 服装1 表情101, 中 正面 服装1 表情105, 右 正面 服装1 表情110]"</span></pre>
+            </div>
+
+            <p><strong>序列特性</strong>：</p>
+            <ul>
+                <li>每步间隔 <strong>500ms</strong>，自动从第一步执行到最后一步。</li>
+                <li>在序列进行中点击鼠标，角色会<strong>瞬间跳到最终状态</strong>（最后一段所描述的位置和差分）。</li>
+                <li>可在任意段前插入独立的 <code>瞬</code> / <code>instant</code> 标记，表示该步<strong>瞬时切换</strong>，不使用过渡动画：</li>
+            </ul>
+
+            <div class="code-block">
+<pre>chars=<span class="code-string">"[角色A 左 正面 服装1 表情101, 瞬, 中 正面 服装1 表情105]"</span>
+                                                        ↑ 这一步瞬间完成</pre>
+            </div>
+
+            <h2>二、配置文件：<code>illustration.js</code></h2>
+
+            <h3>2.1 <code>CHAR_DIFF_CONFIG</code> — 立绘差分配置</h3>
+            <p>这是新系统的<strong>核心配置</strong>，位于 <code>illustration.js</code> 中。结构如下：</p>
+
+            <div class="code-block">
+<pre>window.CHAR_DIFF_CONFIG = {
+    <span class="code-string">"角色名称"</span>: {
+        <span class="code-string">"方位名称"</span>: {
+            dress: [
+                { id: <span class="code-string">"服装ID"</span>, file: <span class="code-string">"文件名"</span>, x: 50, y: 0, z: 0 }
+            ],
+            face: [
+                { id: <span class="code-string">"表情ID"</span>, file: <span class="code-string">"文件名"</span>, x: 50, y: 50, z: -50 }
+            ]
+        }
+    }
+};</pre>
+            </div>
+
+            <div class="warning-box">
+                <strong>重要</strong>：配置变量必须使用 <code>window.</code> 前缀定义，否则引擎无法访问。
+            </div>
+
+            <p><strong>完整配置示例</strong>：</p>
+
+            <div class="code-block">
+<pre>window.CHAR_DIFF_CONFIG = {
+    <span class="code-string">"角色A"</span>: {
+        <span class="code-string">"正面"</span>: {
+            dress: [
+                { id: <span class="code-string">"服装1"</span>, file: <span class="code-string">"charA_front_dress1"</span>, x: 50, y: 0, z: 0 },
+                { id: <span class="code-string">"服装2"</span>, file: <span class="code-string">"charA_front_dress2"</span>, x: 50, y: 0, z: 0 }
+            ],
+            face: [
+                { id: <span class="code-string">"表情1"</span>, file: <span class="code-string">"charA_front_face1"</span>, x: 50, y: 50, z: -50 },
+                { id: <span class="code-string">"表情2"</span>, file: <span class="code-string">"charA_front_face2"</span>, x: 50, y: 50, z: -50 }
+            ]
+        },
+        <span class="code-string">"侧面"</span>: {
+            dress: [
+                { id: <span class="code-string">"服装1"</span>, file: <span class="code-string">"charA_side_dress1"</span>, x: 33.85, y: 0, z: 0 }
+            ],
+            face: [
+                { id: <span class="code-string">"表情1"</span>, file: <span class="code-string">"charA_side_face1"</span>, x: 31.61, y: 33.21, z: 0 }
+            ]
+        }
+    },
+    <span class="code-string">"角色B"</span>: {
+        <span class="code-string">"正面"</span>: {
+            dress: [
+                { id: <span class="code-string">"服装1"</span>, file: <span class="code-string">"charB_front_dress1"</span>, x: 50, y: 0, z: 0 }
+            ],
+            face: [
+                { id: <span class="code-string">"表情1"</span>, file: <span class="code-string">"charB_front_face1"</span>, x: 50, y: 50, z: -50 }
+            ]
+        }
+    }
+};</pre>
+            </div>
+
+            <p><strong>配置规则</strong>：</p>
+            <ul>
+                <li>所有标识符（角色名、方位名、服装ID、表情ID）均可自由命名——支持中文、英文、日文，甚至是任意自定义字符串，只要能正确识别即可。</li>
+                <li>同一个 <code>dress</code> 或 <code>face</code> 数组内，<code>id</code> <strong>不可重复</strong>；跨数组之间可以重复。</li>
+                <li><code>file</code> 字段建议直接写文件名（如 <code>"char_front_dress1"</code>），无需完整路径；也支持完整路径。</li>
+                <li>每个方位下可以配置任意数量的服装和表情差分，无数量限制。</li>
+            </ul>
+
+            <h3>2.2 <code>CHAR_PATH_MAP</code> — 子文件夹路径映射（可选）</h3>
+            <p>当你的立绘资源存放在特定子文件夹中时，需要配置此项。如果不使用子文件夹则可忽略。</p>
+
+            <div class="code-block">
+<pre>window.CHAR_PATH_MAP = {
+    <span class="code-string">"角色A"</span>: <span class="code-string">"/assets/chars/角色A"</span>,
+    <span class="code-string">"角色B"</span>: <span class="code-string">"/assets/chars/角色B"</span>
+};</pre>
+            </div>
+
+            <div class="warning-box">
+                <strong>重要警告：<code>CHAR_PATH_MAP</code> 中配置的路径所对应的文件夹必须实际存在。</strong>
+                <br><br>
+                如果你在 <code>CHAR_PATH_MAP</code> 中声明了某个角色的映射路径（例如 <code>"角色B": "/assets/chars/角色B"</code>），但该文件夹在磁盘上不存在或已被删除，则<strong>该角色所有的立绘（dress 和 face）将无法显示</strong>——引擎会使用映射路径拼接最终 URL，浏览器请求该 URL 时得到 404。
+                <br><br>
+                示例：若配置了 <code>"角色B": "/assets/chars/角色B"</code>，但 <code>/assets/chars/角色B/</code> 文件夹不存在，则使用 <code>[角色B 中 正面 服装1 表情101]</code> 时角色B 的立绘将全部加载失败。
+            </div>
+
+            <h4>路径解析内部机制</h4>
+            <p>引擎的 <code>resolveCharFilePath</code> 函数在查找立绘文件时，按<strong>四级优先级</strong>解析路径：</p>
+
+            <table>
+                <thead>
+                    <tr><th>优先级</th><th>规则</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>完整路径直接返回</td><td>若 <code>file</code> 字段本身包含 <code>/</code> 或 <code>\</code>，视为已提供完整路径</td></tr>
+                    <tr><td>2</td><td>命名空间缓存命中</td><td>引擎首次调用时预填充 <code>CHAR_FILE_MAP</code>，key 格式为 <code>角色名_fileID</code>（如 <code>"角色A_charA_front_dress1"</code>），命中后直接返回预填充的完整路径</td></tr>
+                    <tr><td>3</td><td><code>CHAR_PATH_MAP</code> 显式映射</td><td>若 <code>CHAR_PATH_MAP</code> 中有该角色的映射 → 拼接 <code>{映射路径}/{file}.png</code></td></tr>
+                    <tr><td>4</td><td>默认回退</td><td>均未命中时 → 回退至 <code>/assets/chars/{角色名}/{file}.png</code></td></tr>
+                </tbody>
+            </table>
+
+            <h4>命名空间隔离</h4>
+            <p>引擎预填充 <code>CHAR_FILE_MAP</code> 缓存时，key 统一使用 <code>角色名_fileID</code> 格式，确保每个角色的查找完全独立，互不干扰。即使多个角色（如「角色A」和「角色B」）在 <code>CHAR_DIFF_CONFIG</code> 中使用了相同的 <code>file</code> 名，也能各自正确命中自己的资源路径。</p>
+
+            <div class="code-block">
+<pre>CHAR_FILE_MAP[<span class="code-string">"角色A_charA_front_dress1"</span>]  → 指向角色A的资源路径
+CHAR_FILE_MAP[<span class="code-string">"角色B_charA_front_dress1"</span>]  → 指向角色B的资源路径（独立）
+<span class="code-string">"角色A"</span> 查找 → 命中 <span class="code-string">"角色A_charA_front_dress1"</span> → 正确</pre>
+            </div>
+
+            <h3>2.3 <code>CHAR_DIFF_OFFSET</code> — 表情位置校正（可选）</h3>
+            <p>用于微调剧本中表情相对于身体立绘的位置，解决可视化窗口与剧本显示不一致的问题。</p>
+
+            <div class="code-block">
+<pre>window.CHAR_DIFF_OFFSET = {
+    <span class="code-string">"全局"</span>: {
+        x: 0,  <span class="code-comment">// 全局 x 轴校正偏移（只影响表情层）</span>
+        y: 0   <span class="code-comment">// 全局 y 轴校正偏移（只影响表情层）</span>
+    },
+    <span class="code-string">"角色A"</span>: {
+        <span class="code-string">"正面"</span>: { x: 0, y: 0 },
+        <span class="code-string">"侧面"</span>: { x: -0.5, y: 0 }
+    },
+    <span class="code-string">"角色B"</span>: {
+        <span class="code-string">"正面"</span>: { x: 0, y: 0 },
+        <span class="code-string">"侧面"</span>: { x: 0, y: 0 }
+    }
+};</pre>
+            </div>
+
+            <p><strong>叠加规则</strong>：</p>
+            <ul>
+                <li><strong>计算公式</strong>：最终偏移 = 全局偏移 + 角色偏移 + 方位偏移</li>
+                <li><strong>叠加顺序</strong>：全局层 → 角色层 → 方位层，依次叠加</li>
+                <li><strong>查找逻辑</strong>：引擎先查找全局偏移，再查找对应角色的偏移，最后查找对应方位的偏移，不存在的层级视为 0</li>
+                <li><strong>偏移方向</strong>：正值向右/向上偏移，负值向左/向下偏移</li>
+                <li><strong>作用范围</strong>：只影响表情层（face），不影响身体立绘（dress）</li>
+                <li><strong>配置可选</strong>：所有配置都是可选的，不存在的配置项视为 0</li>
+                <li><strong>预览屏蔽</strong>：此配置在可视化预览窗口中会被屏蔽，不影响预览效果</li>
+            </ul>
+
+            <p><strong>计算示例</strong>：</p>
+
+            <p>假设配置如下：</p>
+            <div class="code-block">
+<pre>window.CHAR_DIFF_OFFSET = {
+    <span class="code-string">"全局"</span>: { x: 1, y: 0.5 },
+    <span class="code-string">"角色A"</span>: { <span class="code-string">"正面"</span>: { x: -0.5, y: 0 } }
+};</pre>
+            </div>
+
+            <p>当渲染「角色A 正面」时：</p>
+            <ul>
+                <li>全局偏移：x=1, y=0.5</li>
+                <li>角色偏移：角色A 存在，但未配置「正面」方位，故方位偏移为 0</li>
+                <li>最终偏移：x = 1 + 0 + 0 = 1，y = 0.5 + 0 + 0 = 0.5</li>
+            </ul>
+
+            <p>当渲染「角色A 侧面」时（未配置）：</p>
+            <ul>
+                <li>全局偏移：x=1, y=0.5</li>
+                <li>角色偏移：角色A 未配置「侧面」方位，故为 0</li>
+                <li>最终偏移：x = 1 + 0 + 0 = 1，y = 0.5 + 0 + 0 = 0.5</li>
+            </ul>
+
+            <p><strong>实际应用</strong>：</p>
+            <p>引擎内部计算逻辑如下：</p>
+            <div class="code-block">
+<pre><span class="code-comment">// 获取三层偏移</span>
+<span class="code-keyword">const</span> globalOffset = CHAR_DIFF_OFFSET[<span class="code-string">"全局"</span>] || {};
+<span class="code-keyword">const</span> charOffset = CHAR_DIFF_OFFSET[charName] || {};
+<span class="code-keyword">const</span> orientOffset = charOffset[orientation] || {};
+
+<span class="code-comment">// 计算最终偏移</span>
+<span class="code-keyword">const</span> finalOffsetX = (globalOffset.x || 0) + (charOffset.x || 0) + (orientOffset.x || 0);
+<span class="code-keyword">const</span> finalOffsetY = (globalOffset.y || 0) + (charOffset.y || 0) + (orientOffset.y || 0);
+
+<span class="code-comment">// 应用到表情位置</span>
+facePosition.x += finalOffsetX;
+facePosition.y += finalOffsetY;</pre>
+            </div>
+
+            <div class="warning-box">
+                <strong>注意</strong>：<code>CHAR_DIFF_OFFSET</code> 的偏移值是叠加在 <code>CHAR_DIFF_CONFIG</code> 中配置的 face 坐标之上的，不会影响 dress 的位置。
+            </div>
+
+            <h2>三、坐标系与位置控制</h2>
+
+            <h3>3.1 配置中的 <code>x</code> / <code>y</code> / <code>z</code> 参数</h3>
+            <p>每个 dress 和 face 对象都有三个坐标参数，使用<strong>屏幕百分比</strong>而非像素：</p>
+
+            <table>
+                <thead>
+                    <tr><th>参数</th><th>含义</th><th>单位</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>x</code></td><td>水平位置</td><td>%</td><td>距左边缘的屏幕宽度百分比（0=左边缘, 50=屏幕中心, 100=右边缘）。引擎以 <code>translateX(-50%)</code> 居中，即图片水平中心对齐到 x% 处</td></tr>
+                    <tr><td><code>y</code></td><td>垂直位置</td><td>%</td><td>距 <code>#character-container</code>（屏幕底部75%区域）底部的百分比。0=容器底部, 正值=向上移动, 负值=向下（图片底部延伸出屏幕）</td></tr>
+                    <tr><td><code>z</code></td><td>基准大小</td><td>%</td><td>控制图像高度占容器高度的百分比。0=图像高度100%容器, -20=80%, 30=130%, -91.5=8.5%。<strong>这是控制立绘整体大小的主控制器</strong></td></tr>
+                </tbody>
+            </table>
+
+            <p><strong>坐标对照表</strong>（参考分辨率 1920×1080，容器 75vh=810px）：</p>
+            <ul>
+                <li>X轴：100px = 5.21%，300px = 15.63%，650px = 33.85%</li>
+                <li>Y轴：100px = 12.35%，300px = 37.04%，528px = 65.19%</li>
+            </ul>
+
+            <div class="warning-box">
+                <strong>注意</strong>：
+                <ul>
+                    <li><code>dress.x/dress.y</code>：控制整个立绘容器的位置，作为基准坐标</li>
+                    <li><code>face.x/face.y</code>：使用与 dress 相同的坐标系，引擎自动计算差值作为层内偏移</li>
+                    <li><code>face.z</code>：控制表情相对于容器的基准大小百分比</li>
+                </ul>
+            </div>
+
+            <h2>四、可视化调试窗口</h2>
+            <p>引擎提供了可视化立绘预览窗口，方便你在编写剧本时实时查看立绘效果。</p>
+            <ul>
+                <li><strong>快捷键</strong>：<code>F9</code></li>
+                <li><strong>可用版本</strong>：仅在 <code>Shiori_debug.exe</code> 中可用，位于「调试」菜单中。</li>
+                <li><strong>功能说明</strong>：
+                    <ul>
+                        <li>窗口会自动解析 <code>CHAR_DIFF_CONFIG</code> 中配置的所有立绘差分。</li>
+                        <li>仅展示新系统（高级）立绘，旧版简单立绘不做展示。</li>
+                        <li>复制出来的差分为纯 ID（方位 + 服装 + 表情），不包含修饰词——请在剧本中自行补充位置、动作等修饰词。</li>
+                        <li><strong><code>CHAR_DIFF_OFFSET</code> 在预览窗口中被屏蔽</strong>，确保预览效果不受剧本偏移配置影响。</li>
+                        <li><strong>立绘容器占满全部高度</strong>（无对话框区域），提供更完整的预览空间。</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h2>五、进阶技巧与注意事项</h2>
+
+            <h3>5.1 资源文件组织建议</h3>
+            <p>推荐的目录结构：</p>
+
+            <div class="code-block">
+<pre>assets/
+└── chars/
+    ├── 角色A/
+    │   ├── charA_front_dress1.png
+    │   ├── charA_front_face1.png
+    │   └── charA_side_dress1.png
+    ├── 角色B/
+    │   ├── charB_front_dress1.png
+    │   └── charB_front_face1.png
+    └── ...</pre>
+            </div>
+
+            <p>然后在 <code>CHAR_DIFF_CONFIG</code> 中只需要写文件名，在 <code>CHAR_PATH_MAP</code> 中配置路径前缀即可。这样更换资源目录时只需修改一处配置。</p>
+
+            <h3>5.2 配置变量命名规范</h3>
+            <p>所有配置变量必须使用 <code>window.</code> 前缀定义，否则引擎无法访问：</p>
+
+            <div class="code-block">
+<pre><span class="code-comment">// 正确</span>
+window.CHAR_DIFF_CONFIG = { ... };
+window.CHAR_PATH_MAP = { ... };
+window.CHAR_DIFF_OFFSET = { ... };
+
+<span class="code-comment">// 错误（引擎无法访问）</span>
+<span class="code-keyword">const</span> CHAR_DIFF_CONFIG = { ... };</pre>
+            </div>
+
+            <h3>5.3 新旧系统混用</h3>
+            <p>高级立绘系统与旧版简单立绘系统完全兼容，可以在同一条指令中混合使用：</p>
+
+            <div class="code-block">
+<pre>chars=<span class="code-string">"[角色A 中 正面 服装1 表情101], [角色B 右 lh12345]"</span></pre>
+            </div>
+
+            <p>引擎会自动检测指令格式并使用对应的渲染方式。</p>
+
+            <h3>5.4 注意事项</h3>
+            <ul>
+                <li><strong>face 的位置计算</strong>：<code>face</code> 使用与 <code>dress</code> 相同的坐标系，引擎会自动计算两者差值作为层内偏移</li>
+                <li><strong>CHAR_DIFF_OFFSET 仅影响表情</strong>：此配置仅对表情层生效，不会影响身体立绘的位置</li>
+                <li><strong>可视化窗口屏蔽偏移</strong>：在可视化预览窗口中，<code>CHAR_DIFF_OFFSET</code> 会被置空，确保预览效果不受剧本偏移配置影响</li>
+                <li><strong>修饰词屏蔽</strong>：百分比缩放指令和包含缩放效果的动画已在新版立绘中自动屏蔽，详见第六章</li>
+                <li><strong>旧系统文档</strong>：关于位置修饰词、动作指令、渐变动画、亮度控制等通用功能，请参考 <code>illustration.md</code> 文档</li>
+            </ul>
+
+            <h2>六、新版立绘屏蔽功能</h2>
+            <p>新版立绘系统对部分修饰词进行了<strong>自动屏蔽</strong>处理。以下是完整的屏蔽清单和行为说明：</p>
+
+            <h3>6.1 屏蔽原理</h3>
+            <p>所有屏蔽操作在指令解析阶段（<code>parseCharDiffModifiers</code> 函数）完成。被屏蔽的修饰词会被<strong>安全忽略</strong>——不会导致报错、脚本中断或异常行为，立绘渲染完全不受影响。控制台会输出 <code>[新版屏蔽]</code> 日志便于调试。</p>
+
+            <div class="tip-box">
+                <strong>兼容性保障</strong>：屏蔽功能<strong>仅对新版立绘系统生效</strong>。旧版简单立绘系统中的所有修饰词保持不变，后退、前进、吓一跳动作和百分比缩放均正常可用。
+            </div>
+
+            <h3>6.2 百分比缩放指令</h3>
+            <p><strong>所有百分比形式的缩放指令</strong>在渲染过程中被忽略，立绘始终保持原始大小（scale=1）。</p>
+
+            <table>
+                <thead>
+                    <tr><th>指令示例</th><th>旧系统效果</th><th>新版系统效果</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>[10%]</code></td><td>放大到 110%</td><td><strong>屏蔽</strong> — 保持 100%</td></tr>
+                    <tr><td><code>[-20%]</code></td><td>缩小到 80%</td><td><strong>屏蔽</strong> — 保持 100%</td></tr>
+                    <tr><td><code>[30%]</code></td><td>放大到 130%</td><td><strong>屏蔽</strong> — 保持 100%</td></tr>
+                    <tr><td><code>[0%]</code></td><td>保持 100%</td><td><strong>屏蔽</strong> — 保持 100%</td></tr>
+                </tbody>
+            </table>
+
+            <p>如需在新版立绘中调整大小，请使用 <code>CHAR_DIFF_CONFIG</code> 中的 <code>z</code> 参数（基准大小），或通过 <code>CHAR_PATH_MAP</code> 配置不同尺寸的资源文件。</p>
+
+            <h3>6.3 包含缩放效果的动画</h3>
+            <p>以下三个涉及 <code>scale</code> 变换的动画在解析时被过滤，<code>actionType</code> 保持 <code>null</code>，动画不会被执行：</p>
+
+            <table>
+                <thead>
+                    <tr><th>指令</th><th>中文/英文</th><th>屏蔽原因</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>后退</code> / <code>retreat</code></td><td>retreat</td><td>涉及缩放 -10%</td></tr>
+                    <tr><td><code>前进</code> / <code>forward</code></td><td>forward</td><td>涉及缩放 +10%</td></tr>
+                    <tr><td><code>吓一跳</code> / <code>scare</code></td><td>scare</td><td>涉及缩放 ±7% 循环</td></tr>
+                </tbody>
+            </table>
+
+            <h3>6.4 不受影响的动画</h3>
+            <p>以下不包含缩放效果的动画在新版立绘中<strong>正常可用</strong>：</p>
+
+            <table>
+                <thead>
+                    <tr><th>中文</th><th>英文</th><th>效果</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>发抖</code></td><td><code>shake</code></td><td>X轴左右偏移</td></tr>
+                    <tr><td><code>持续发抖</code></td><td><code>cshake</code></td><td>持续左右抖动</td></tr>
+                    <tr><td><code>结束发抖</code></td><td><code>sshake</code></td><td>停止持续发抖</td></tr>
+                    <tr><td><code>点头</code></td><td><code>nod</code></td><td>上移→下移→回归</td></tr>
+                    <tr><td><code>左倒</code></td><td><code>ltilt</code></td><td>逆时针旋转90度</td></tr>
+                    <tr><td><code>右倒</code></td><td><code>rtilt</code></td><td>顺时针旋转90度</td></tr>
+                    <tr><td><code>站立</code></td><td><code>stand</code></td><td>重置旋转角度</td></tr>
+                    <tr><td><code>得意</code></td><td><code>proud</code></td><td>单次得意摇摆</td></tr>
+                    <tr><td><code>持续得意</code></td><td><code>cproud</code></td><td>持续得意摇摆</td></tr>
+                    <tr><td><code>结束得意</code></td><td><code>sproud</code></td><td>停止持续得意</td></tr>
+                </tbody>
+            </table>
+
+            <h3>6.5 写入被屏蔽内容的行为</h3>
+            <p>如果你在剧本中编写了被屏蔽的修饰词（例如 <code>[角色A 中 正面 服装1 表情101 10% 后退]</code>），新版立绘系统会：</p>
+
+            <ol>
+                <li><strong>安全过滤</strong>：百分比 <code>10%</code> 会被忽略，立绘保持原始大小</li>
+                <li><strong>跳过动画</strong>：<code>后退</code> 动作不会被执行，立绘不产生位置/缩放变化</li>
+                <li><strong>正常渲染</strong>：其余修饰词（位置 <code>中</code>、方位 <code>正面</code>、服装 <code>服装1</code>、表情 <code>表情101</code>）照常生效</li>
+                <li><strong>控制台日志</strong>：在浏览器开发者工具的控制台中会看到类似以下的日志输出：</li>
+            </ol>
+
+            <div class="code-block">
+<pre>[CharDiffParser] [新版屏蔽] 百分比缩放指令已过滤: <span class="code-string">'10%'</span> -> 强制保持 100% (scale=1)
+[CharDiffParser] [新版屏蔽] 包含缩放效果的动画已过滤: <span class="code-string">'后退'</span> (retreat)</pre>
+            </div>
+
+            <div class="tip-box">
+                <strong>无需修改现有剧本</strong>：如果你或他人习惯在指令中添加缩放修饰词，无需逐一排查。所有被屏蔽的修饰词均会被引擎自动安全处理，不会导致渲染异常或脚本错误。
+            </div>
+
+        </main>
+
+        <footer>
+            <p>© 2026 Shiori Engine. 作者：月が綺麗ですね_ | <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/README.md" target="_blank">查看完整文档</a> | <a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">GitHub 仓库</a> | 本网页采用MIT License协议，与引擎本体无关</p>
+        </footer>
+    </div>
+</body>
+</html>
