@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[wait time] 标签使用指南 - Shiori 引擎</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>[wait time] 标签使用指南</h1>
+            <p>掌握自动等待与序列控制的核心用法</p>
+        </header>
+
+        <main class="tutorial-content">
+            <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
+
+            <h2>目录</h2>
+            <ol>
+                <li><a href="#basic">基础语法</a></li>
+                <li><a href="#format">标签格式要求</a></li>
+                <li><a href="#core">核心功能</a></li>
+                <li><a href="#elements">各元素类型实现</a></li>
+                <li><a href="#async">异步处理</a></li>
+                <li><a href="#click">点击跳过行为</a></li>
+                <li><a href="#compatibility">与旧指令的兼容性</a></li>
+                <li><a href="#extension">扩展语法</a></li>
+                <li><a href="#notes">注意事项</a></li>
+                <li><a href="#error">错误处理</a></li>
+                <li><a href="#examples">完整示例</a></li>
+            </ol>
+
+            <hr>
+
+            <h2 id="basic">1. 基础语法</h2>
+            
+            <h3>标签格式</h3>
+            <div class="code-block">
+<pre>[wait time= ${number}]</pre>
+            </div>
+            <p>其中 <code>${number}</code> 是正整数，表示毫秒（1秒 = 1000毫秒）。</p>
+
+            <h3>正确示例</h3>
+            <div class="code-block">
+<pre>[wait time=1000]      // 等待1秒
+[wait time=5000]      // 等待5秒
+[wait time=10000]     // 等待10秒</pre>
+            </div>
+
+            <h3>错误示例</h3>
+            <div class="code-block">
+<pre>[wait time]           // 缺少数值
+[wait time=abc]       // 非数字值
+[wait time=-1000]    // 负数
+[wait time=0]         // 零值</pre>
+            </div>
+
+            <hr>
+
+            <h2 id="format">2. 标签格式要求</h2>
+            <ol>
+                <li><strong>必须包含数值</strong>：<code>[wait time]</code> 单独使用无效，必须指定毫秒数</li>
+                <li><strong>数值必须为正整数</strong>：0 或负数将被忽略</li>
+                <li><strong>支持空格变化</strong>：<code>time</code> 和 <code>=</code> 之间可以有空格
+                    <ul>
+                        <li><code>[wait time=1000]</code></li>
+                        <li><code>[wait time =1000]</code></li>
+                        <li><code>[wait time = 1000]</code></li>
+                    </ul>
+                </li>
+            </ol>
+
+            <hr>
+
+            <h2 id="core">3. 核心功能</h2>
+            
+            <h3>基本行为</h3>
+            <ul>
+                <li><strong>暂停执行</strong>：标签会暂停当前元素的操作</li>
+                <li><strong>自动继续</strong>：等待指定时间后自动执行下一个操作</li>
+                <li><strong>无需交互</strong>：与 <code>[s]</code> 标签不同，不需要用户点击</li>
+            </ul>
+
+            <h3>点击跳过</h3>
+            <ul>
+                <li>用户在等待期间点击屏幕，会立即中断当前等待</li>
+                <li>只中断当前的 wait，继续执行后续内容</li>
+                <li>不影响其他异步元素的执行</li>
+            </ul>
+
+            <hr>
+
+            <h2 id="elements">4. 各元素类型实现</h2>
+
+            <h3>Command 元素</h3>
+            <p><strong>作用</strong>：作为全局计时器，影响整个行</p>
+            
+            <p><strong>语法</strong>：</p>
+            <div class="code-block">
+<pre>{
+    command: "[wait time=1000]"
+}</pre>
+            </div>
+
+            <p><strong>单独使用（空文本）</strong>：</p>
+            <div class="code-block">
+<pre>{
+    text: "",
+    command: "[wait time=1000]"
+}</pre>
+            </div>
+
+            <p><strong>特点</strong>：</p>
+            <ul>
+                <li>等待结束后自动进入下一行</li>
+                <li>不阻塞 chars 处理</li>
+                <li>点击可立即跳过</li>
+            </ul>
+
+            <p><strong>示例</strong>：</p>
+            <div class="code-block">
+<pre>{
+    text: "等待3秒后继续...",
+    command: "[wait time=3000]"
+}</pre>
+            </div>
+
+            <hr>
+
+            <h3>Background 元素</h3>
+            <p><strong>作用</strong>：背景图片切换序列</p>
+            
+            <p><strong>语法</strong>：</p>
+            <div class="code-block">
+<pre>background: "bg1,[wait time=1000]bg2,[wait time=2000]bg3"</pre>
+            </div>
+
+            <p><strong>执行流程</strong>：</p>
+            <ol>
+                <li>显示 bg1</li>
+                <li>等待 1000ms</li>
+                <li>显示 bg2</li>
+                <li>等待 2000ms</li>
+                <li>显示 bg3</li>
+            </ol>
+
+            <p><strong>支持转场指令</strong>：</p>
+            <div class="code-block">
+<pre>background: "bg1,[wait time=1000]转场 bg2,[wait time=2000]左滑 bg3"</pre>
+            </div>
+
+            <p><strong>完整示例</strong>：</p>
+            <div class="code-block">
+<pre>{
+    text: "背景切换测试",
+    speaker: "系统",
+    background: "bg_001_00_00,[wait time=1000]bg_002_00_00,[wait time=2000]bg_003_00_00"
+}</pre>
+            </div>
+
+            <hr>
+
+            <h3>BGM 元素</h3>
+            
+            <p><strong>基础用法</strong>：</p>
+            <div class="code-block">
+<pre>bgm: "bgm1,[wait time=10000]bgm2"</pre>
+            </div>
+
+            <p><strong>执行流程</strong>：</p>
+            <ol>
+                <li>立即播放 bgm1</li>
+                <li>等待 10000ms</li>
+                <li>淡入播放 bgm2</li>
+            </ol>
+
+            <p><strong>淡入播放（扩展语法）</strong>：</p>
+            <div class="code-block">
+<pre>// [wait time] 后跟着 BGM 名称时，执行淡入效果
+bgm: "[wait time=2000]bgm1"  // 等待2秒后淡入播放 bgm1</pre>
+            </div>
+
+            <p><strong>淡出停止（扩展语法）</strong>：</p>
+            <div class="code-block">
+<pre>// bgm stop[wait time=XXX] 格式：淡出指定时间后停止
+bgm: "bgm stop[wait time=2000]"  // 2秒内淡出停止</pre>
+            </div>
+
+            <p><strong>常用组合</strong>：</p>
+            <div class="code-block">
+<pre>// 播放BGM，等待后切换到另一个BGM
+{
+    bgm: "bgm1,[wait time=10000]bgm2"
+}
+
+// 淡入播放新BGM
+{
+    bgm: "[wait time=2000]bgm1"
+}
+
+// 淡出停止当前BGM
+{
+    bgm: "bgm stop[wait time=1500]"
+}</pre>
+            </div>
+
+            <hr>
+
+            <h3>Audio 元素</h3>
+            
+            <p><strong>基础用法</strong>：</p>
+            <div class="code-block">
+<pre>audio: "audio1,[wait time=2000]audio2,[wait time=2000]audio3"</pre>
+            </div>
+
+            <p><strong>停止播放</strong>：</p>
+            <div class="code-block">
+<pre>audio: "stop"  // 立即停止当前语音</pre>
+            </div>
+
+            <p><strong>执行流程</strong>：</p>
+            <ol>
+                <li>播放 audio1</li>
+                <li>等待 2000ms</li>
+                <li>播放 audio2</li>
+                <li>等待 2000ms</li>
+                <li>播放 audio3</li>
+            </ol>
+
+            <p><strong>完整示例</strong>：</p>
+            <div class="code-block">
+<pre>{
+    text: "语音序列测试",
+    speaker: "角色A",
+    audio: "YN100001,[wait time=3000]YN100002"
+}</pre>
+            </div>
+
+            <p><strong>停止示例</strong>：</p>
+            <div class="code-block">
+<pre>{
+    text: "播放语音...",
+    speaker: "角色A",
+    audio: "YN100001"
+},
+{
+    text: "立即停止！",
+    speaker: "系统",
+    audio: "stop"
+}</pre>
+            </div>
+
+            <p><strong>重要提示</strong>：</p>
+            <ul>
+                <li>默认情况下，音频会播放完毕</li>
+                <li>只有显式使用 <code>audio: "stop"</code> 才会立即停止</li>
+            </ul>
+
+            <hr>
+
+            <h3>SE 元素</h3>
+            
+            <p><strong>基础用法</strong>：</p>
+            <div class="code-block">
+<pre>se: "SE001,[wait time=1000]SE002,[wait time=1000]SE003"</pre>
+            </div>
+
+            <p><strong>停止播放</strong>：</p>
+            <div class="code-block">
+<pre>se: "stop"  // 立即停止当前音效</pre>
+            </div>
+
+            <p><strong>完整示例</strong>：</p>
+            <div class="code-block">
+<pre>{
+    text: "音效序列测试",
+    speaker: "系统",
+    se: "SE001,[wait time=1000]SE002,[wait time=1000]SE003"
+}</pre>
+            </div>
+
+            <p><strong>停止示例</strong>：</p>
+            <div class="code-block">
+<pre>{
+    text: "播放音效...",
+    speaker: "系统",
+    se: "SE001"
+},
+{
+    text: "立即停止！",
+    speaker: "系统",
+    se: "stop"
+}</pre>
+            </div>
+
+            <hr>
+
+            <h3>Chars 元素</h3>
+            
+            <p><strong>基础用法</strong>：</p>
+            <div class="code-block">
+<pre>chars: "[左 lh1],[wait time=1000],[中 lh2],[右 lh3]"</pre>
+            </div>
+
+            <p><strong>执行流程</strong>：</p>
+            <ol>
+                <li>显示左侧立绘 lh1</li>
+                <li>等待 1000ms</li>
+                <li>显示中间立绘 lh2</li>
+                <li>显示右侧立绘 lh3</li>
+            </ol>
+
+            <p><strong>消失指令</strong>：</p>
+            <div class="code-block">
+<pre>// [消失 立绘ID] 移除特定立绘
+chars: "[左 lh1],[wait time=1000],[消失 lh1][中 lh2],[右 lh3]"</pre>
+            </div>
+
+            <p><strong>完整示例</strong>：</p>
+            <div class="code-block">
+<pre>{
+    text: "立绘序列测试",
+    speaker: "角色A",
+    chars: "[左 lh1],[wait time=1000],[中 lh2],[wait time=1000],[右 lh3]"
+}</pre>
+            </div>
+
+            <p><strong>立绘消失示例</strong>：</p>
+            <div class="code-block">
+<pre>{
+    text: "立绘消失测试",
+    speaker: "角色A",
+    chars: "[左 lh1],[中 lh2],[右 lh3],[wait time=2000],[消失 lh2],[wait time=1000],[消失 lh3]"
+}</pre>
+            </div>
+
+            <p><strong>特点</strong>：</p>
+            <ul>
+                <li>元素持续显示，直到被 <code>[消失]</code> 指令移除</li>
+                <li>后面的立绘出现时，前面的立绘保持可见</li>
+                <li><code>[wait time]</code> 仅作为等待，不显示新立绘</li>
+            </ul>
+
+            <hr>
+
+            <h2 id="async">5. 异步处理</h2>
+
+            <h3>多元素异步执行</h3>
+            <p>同一行中的多个元素可以同时执行独立的等待序列：</p>
+            <div class="code-block">
+<pre>{
+    text: "123",
+    speaker: "角色A",
+    background: "bg1,[wait time=1000]bg2,[wait time=2000]bg3",
+    bgm: "bgm1,[wait time=10000]bgm2",
+    se: "SE001",
+    audio: "YN100001",
+    chars: "[左 lh1],[wait time=1000],[中 lh2],[右 lh3],[wait time=1000],[左前 lh4]"
+}</pre>
+            </div>
+
+            <h3>执行特点</h3>
+            <ul>
+                <li><strong>独立性</strong>：每个元素的等待序列独立运行</li>
+                <li><strong>并发性</strong>：背景、BGM、语音、音效、立绘可以同时进行</li>
+                <li><strong>互不阻塞</strong>：一个元素的等待不会阻止其他元素执行</li>
+            </ul>
+
+            <hr>
+
+            <h2 id="click">6. 点击跳过行为</h2>
+
+            <h3>行为说明</h3>
+            <ul>
+                <li>在等待期间点击，会<strong>只中断当前的 wait</strong></li>
+                <li>立即执行该元素的后续内容</li>
+                <li><strong>不会</strong>跳过所有内容进入下一行</li>
+                <li><strong>不会</strong>影响其他异步元素的执行</li>
+            </ul>
+
+            <h3>示例</h3>
+            <div class="code-block">
+<pre>{
+    background: "bg1,[wait time=5000]bg2,[wait time=5000]bg3"
+}</pre>
+            </div>
+            <p><strong>点击效果</strong>：</p>
+            <ul>
+                <li>如果在第一个 <code>[wait time=5000]</code> 期间点击 → 立即显示 bg2，继续等待第二个 <code>[wait time=5000]</code></li>
+                <li>如果在第二个 <code>[wait time=5000]</code> 期间点击 → 立即显示 bg3，等待结束</li>
+            </ul>
+
+            <hr>
+
+            <h2 id="compatibility">7. 与旧指令的兼容性</h2>
+
+            <h3>[s] 标签</h3>
+            <p><strong>作用</strong>：等待用户点击后继续（阻塞式）</p>
+            
+            <p><strong>与 [wait time] 的区别</strong>：</p>
+            <table>
+                <tr>
+                    <th>特性</th>
+                    <th>[s]</th>
+                    <th>[wait time]</th>
+                </tr>
+                <tr>
+                    <td>等待方式</td>
+                    <td>需点击</td>
+                    <td>自动</td>
+                </tr>
+                <tr>
+                    <td>阻塞性</td>
+                    <td>阻塞整行</td>
+                    <td>只阻塞当前元素</td>
+                </tr>
+                <tr>
+                    <td>适用场景</td>
+                    <td>需要用户确认</td>
+                    <td>自动播放</td>
+                </tr>
+            </table>
+
+            <h3>[a] 标签</h3>
+            <p><strong>作用</strong>：指定当前文字段落对应的音频</p>
+            
+            <p><strong>与 [wait time] 的关系</strong>：</p>
+            <ul>
+                <li><code>[a]</code> 用于配合 <code>[s]</code> 指定音频</li>
+                <li><code>[wait time]</code> 用于自动等待和序列控制</li>
+                <li>两者可以混合使用</li>
+            </ul>
+
+            <hr>
+
+            <h2 id="extension">8. 扩展语法</h2>
+
+            <h3>BGM 淡入播放</h3>
+            <div class="code-block">
+<pre>// [wait time] 后跟 BGM 名称 = 淡入播放
+bgm: "[wait time=2000]bgm1"  // 等待2秒后淡入播放 bgm1</pre>
+            </div>
+            <p><code>[wait time]</code>标签在此处将直接上位替代旧的<code>bgm wait</code>的标签。当然，你也可以继续使用旧的<code>bgm wait</code>标签。</p>
+
+            <h3>BGM 淡出停止</h3>
+            <div class="code-block">
+<pre>// bgm stop[wait time=XXX] = 淡出指定时间后停止
+bgm: "bgm stop[wait time=2000]"  // 2秒内淡出停止</pre>
+            </div>
+
+            <h3>立绘位置</h3>
+            <div class="code-block">
+<pre>[左 立绘ID]    // 左侧
+[中 立绘ID]    // 中间
+[右 立绘ID]    // 右侧</pre>
+            </div>
+
+            <h3>立绘消失</h3>
+            <div class="code-block">
+<pre>[消失 立绘ID]  // 移除指定立绘</pre>
+            </div>
+
+            <hr>
+
+            <h2 id="notes">9. 注意事项</h2>
+
+            <h3>1. 数值要求</h3>
+            <ul>
+                <li><strong>必须为正整数</strong>：0 或负数会被忽略</li>
+                <li><strong>单位为毫秒</strong>：1秒 = 1000毫秒</li>
+            </ul>
+            <div class="code-block">
+<pre>// 错误
+[wait time=0]      // 无效
+[wait time=-1000]   // 无效
+[wait time=abc]     // 无效
+
+// 正确
+[wait time=1000]    // 1秒
+[wait time=5000]    // 5秒</pre>
+            </div>
+
+            <h3>2. 空格处理</h3>
+            <div class="code-block">
+<pre>// 支持的格式
+[wait time=1000]
+[wait time =1000]
+[wait time= 1000]
+[wait time = 1000]</pre>
+            </div>
+
+            <h3>3. 异步执行理解</h3>
+            <div class="code-block">
+<pre>{
+    background: "bg1,[wait time=5000]bg2",
+    chars: "[左 lh1],[wait time=1000],[中 lh2]"
+}</pre>
+            </div>
+            <p><strong>执行顺序</strong>（视觉上）：</p>
+            <ul>
+                <li>0ms: 显示 bg1, lh1</li>
+                <li>1000ms: 显示 lh2（background 仍在等待）</li>
+                <li>5000ms: 显示 bg2（chars 早已完成）</li>
+            </ul>
+
+            <h3>4. 音频停止行为</h3>
+            <ul>
+                <li><strong>默认</strong>：音频播放完毕后自动结束</li>
+                <li><strong>显式停止</strong>：使用 <code>audio: "stop"</code> 或 <code>se: "stop"</code> 立即停止</li>
+                <li><strong>不会自动停止</strong>：进入新行不会自动停止 audio/se</li>
+            </ul>
+
+            <h3>5. 立绘持续显示</h3>
+            <ul>
+                <li>立绘显示后会一直保持</li>
+                <li>必须使用 <code>[消失 立绘ID]</code> 才能移除</li>
+                <li>不同位置的立绘可以同时存在</li>
+            </ul>
+
+            <h3>6. 点击跳过范围</h3>
+            <ul>
+                <li>点击只跳过<strong>当前的 wait</strong></li>
+                <li>不是跳过所有内容进入下一行</li>
+                <li>其他异步元素继续执行</li>
+            </ul>
+
+            <h3>7. BGM 淡入淡出</h3>
+            <ul>
+                <li><strong>淡入</strong>：<code>[wait time=XXX]bgmName</code> = 等待后淡入播放</li>
+                <li><strong>淡出</strong>：<code>bgm stop[wait time=XXX]</code> = 淡出指定时间后停止</li>
+                <li>使用 <code>requestAnimationFrame</code> 实现平滑过渡</li>
+            </ul>
+
+            <h3>8. Command 元素特性</h3>
+            <ul>
+                <li><strong>不阻塞 chars</strong>：立绘可以同时处理</li>
+                <li><strong>阻塞行</strong>：等待结束后才进入下一行</li>
+                <li><strong>可单独使用</strong>：配合空文本实现纯等待</li>
+            </ul>
+
+            <hr>
+
+            <h2 id="error">10. 错误处理</h2>
+
+            <h3>语法错误</h3>
+            <table>
+                <tr>
+                    <th>错误写法</th>
+                    <th>正确写法</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td><code>[wait time]</code></td>
+                    <td><code>[wait time=1000]</code></td>
+                    <td>必须指定数值</td>
+                </tr>
+                <tr>
+                    <td><code>[wait time=abc]</code></td>
+                    <td><code>[wait time=1000]</code></td>
+                    <td>必须是数字</td>
+                </tr>
+                <tr>
+                    <td><code>[wait time=0]</code></td>
+                    <td><code>[wait time=1000]</code></td>
+                    <td>必须是正数</td>
+                </tr>
+                <tr>
+                    <td><code>[wait time=-100]</code></td>
+                    <td><code>[wait time=100]</code></td>
+                    <td>不能是负数</td>
+                </tr>
+            </table>
+
+            <h3>常见问题</h3>
+            <div class="tip-box">
+                <strong>Q: [wait time] 没有生效？</strong><br>
+                <strong>A:</strong> 检查数值是否为正整数，以及是否有语法错误<br><br>
+                <strong>Q: 背景没有切换？</strong><br>
+                <strong>A:</strong> 检查背景 ID 是否正确，确认路径配置<br><br>
+                <strong>Q: BGM 没有淡入？</strong><br>
+                <strong>A:</strong> 确保 <code>[wait time]</code> 在 BGM 名称之前<br><br>
+                <strong>Q: 立绘同时出现而不是依次？</strong><br>
+                <strong>A:</strong> 确认 <code>[wait time]</code> 位置正确，应该在两个立绘之间<br><br>
+                <strong>Q: 音频没有停止？</strong><br>
+                <strong>A:</strong> 使用 <code>audio: "stop"</code> 或 <code>se: "stop"</code> 显式停止
+            </div>
+
+            <hr>
+
+            <h2 id="examples">11. 完整示例</h2>
+
+            <h3>示例1：复杂场景</h3>
+            <div class="code-block">
+<pre>{
+    text: "场景描述",
+    speaker: "角色A",
+    background: "bg_room,[wait time=2000]转场 bg_outside,[wait time=3000]bg_beach",
+    bgm: "[wait time=1000]bgm_peaceful,[wait time=15000]bgm stop[wait time=2000]bgm_adventure",
+    chars: "[左 lh1_normal],[中 lh2_smile],[wait time=5000],[消失 lh2_smile][中 lh2_sad],[wait time=3000],[消失 lh1_normal][左前 lh3_angry]",
+    se: "se_wind,[wait time=1000]se_birds,[wait time=1000]se_waves",
+    audio: "voice_narration"
+}</pre>
+            </div>
+
+            <h3>示例2：对话场景</h3>
+            <div class="code-block">
+<pre>// 第一段：等待后开始对话
+{
+    text: "",
+    command: "[wait time=3000]"
+}
+
+// 第二段：角色入场
+{
+    text: "",
+    speaker: null,
+    chars: "[左 lh1_stand]"
+}
+
+// 第三段：对话
+{
+    text: "终于等到你了。",
+    speaker: "角色A",
+    chars: "[左 lh1_stand],[中 lh1_smile]"
+}
+
+// 第四段：背景切换
+{
+    text: "我们去外面走走吧。",
+    speaker: "角色A",
+    background: "bg_room,[wait time=2000]转场 bg_garden",
+    chars: "[左 lh1_smile],[消失 lh1_stand]"
+}
+
+// 第五段：音效配合
+{
+    text: "（微风轻拂）",
+    speaker: null,
+    bgm: "bgm_nature,[wait time=5000]bgm soft",
+    se: "se_wind,[wait time=2000]se_birds"
+}
+
+// 第六段：结束
+{
+    text: "今天真愉快。",
+    speaker: "角色A",
+    chars: "[左 lh1_happy]",
+    bgm: "bgm soft"
+}</pre>
+            </div>
+
+        </main>
+
+        <footer>
+            <p>© 2026 Shiori Engine. 作者：月が綺麗ですね_</p>
+        </footer>
+    </div>
+</body>
+</html>
