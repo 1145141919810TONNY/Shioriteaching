@@ -17,6 +17,64 @@
             <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
 
             <div class="tip-box">
+                <strong>V2.1.1 / V1.2.4 (2026/6/14) - [wait time] 标签系统与 UI 菜单全面升级</strong><br>
+                <br>
+                <strong>【引擎核心 V2.1.1 更新内容】</strong><br>
+                <br>
+                <strong>[wait time] 标签系统</strong><br>
+                详细的标签系统说明及完整示例请查阅 <a href="wait.html">wait.html</a>。<br>
+                <br>
+                <strong>基础语法</strong><br>
+                <code>[wait time= ${number}]</code><br>
+                其中 <code>${number}</code> 是正整数，表示毫秒（1秒 = 1000毫秒）。<br>
+                <br>
+                <strong>适用元素类型</strong><br>
+                - <strong>Command 元素</strong>：作为全局计时器，等待结束后自动进入下一行<br>
+                - <strong>Background 元素</strong>：背景图片切换序列，如 <code>bg1,[wait time=1000]bg2,[wait time=2000]bg3</code><br>
+                - <strong>BGM 元素</strong>：支持淡入播放（<code>[wait time=2000]bgm1</code>）和淡出停止（<code>bgm stop[wait time=2000]</code>）<br>
+                - <strong>Audio/SE 元素</strong>：音频序列播放控制<br>
+                - <strong>Chars 元素</strong>：立绘序列显示控制<br>
+                <br>
+                <strong>核心功能</strong><br>
+                - <strong>自动等待</strong>：无需用户点击，等待指定时间后自动执行后续内容<br>
+                - <strong>点击跳过</strong>：用户可在等待期间点击屏幕立即中断当前 wait<br>
+                - <strong>异步执行</strong>：同一行中的多个元素可同时执行独立的等待序列，互不阻塞<br>
+                <br>
+                <strong>UI 菜单系统全面升级</strong><br>
+                <br>
+                <strong>SKIP 快进模式</strong><br>
+                - <strong>SKIP/1</strong>：普通快进模式，快速跳过剧情<br>
+                - <strong>SKIP/2</strong>：选项处停止模式，快进至选项时自动停止<br>
+                - 按钮集成在系统 UI 菜单中，点击即可切换对应模式<br>
+                - 点击非 UI 区域时自动停止快进<br>
+                <br>
+                <strong>菜单按钮列表</strong><br>
+                - <strong>SAVE</strong>：点击打开存档管理页面（<code>archive.html</code>）<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;- <strong>SCENES</strong>（二级菜单）：跳转到进度管理页面（<code>saves.html</code>）<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;- <strong>MAP</strong>（二级菜单）：跳转到剧本流程图页面（<code>flowchart.html</code>）<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;- <strong>STORY</strong>（二级菜单）：跳转到场景鉴赏页面（<code>story.html</code>）<br>
+                - <strong>OPTION</strong>：打开游戏设置菜单<br>
+                - <strong>LOG</strong>：查看历史对话记录（滚轮向上也可打开）<br>
+                - <strong>HELP</strong>：打开帮助界面（调用 C# 原生窗口）<br>
+                - <strong>BACK</strong>：返回主菜单（弹出确认对话框）<br>
+                - <strong>QUIT</strong>：退出游戏（调用 C# 端确认对话框）<br>
+                <br>
+                <strong>功能修复与优化</strong><br>
+                - <strong>存档系统修复</strong>：修复了 <code>archive.html</code> 中存档保存功能的严重错误<br>
+                - <strong>场景鉴赏增强</strong>：在 <code>story.html</code> 中添加返回当前页面按钮，点击可直接返回当前游玩场景<br>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">
+                <br>
+                <strong>【启动器 V1.2.4 更新内容】</strong><br>
+                <br>
+                <strong>退出确认弹窗系统</strong><br>
+                <br>
+                <strong>窗口关闭确认</strong><br>
+                - 点击窗口右上角 X 按钮时，弹出二次确认对话框<br>
+                - 防止误操作导致游戏意外退出<br>
+                - 用户取消时阻止窗口关闭<br>
+            </div>
+
+            <div class="tip-box">
                 <strong>V1.2.3 (2026/6/12) - 启动器bug修复</strong><br>
                 <br>
                 - 现在立绘指令复制失败时不会直接导致游戏闪退,尝试修复了一个可能会导致立绘指令复制失败的问题。
