@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shiori Game Manager 更新日志</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Shiori Game Manager 更新日志</h1>
+            <p>记录管理器的版本迭代与功能变更</p>
+        </header>
+
+        <main class="tutorial-content">
+            <a href="index.html" style="text-decoration: none; color: #3498db;">&larr; 返回主页</a>
+
+            <div class="tip-box">
+                <strong>V1.0.1 更新内容</strong><br>
+                <br>
+                <strong>功能新增</strong><br>
+                - 接入 <code>LEGUI</code>，现在管理器可以直接打开需要日语环境运行的游戏<br>
+                - 新增「打开文件夹」按钮，方便快速定位游戏文件所在路径<br>
+                - 新增「添加其他引擎」按钮<br>
+                &nbsp;&nbsp;- 目前已测试可正常启动 Kirikiri2 / KirikiriZ / NEKOPACK 引擎的游戏；大多数 KirikiriZ 游戏直接点击「启动」即可<br>
+                &nbsp;&nbsp;- 以下日版正版游戏已通过测试，可以正常启动（一般情况下其他的正版游戏也可以正常启动）：<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&gt; 3days（NEKOPACK）<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&gt; 少女神域∽少女天獄（Kirikiri2）<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&gt; まいてつ（Kirikiri2）<br>
+                &nbsp;&nbsp;- 需要日语环境的游戏，点击「使用日语环境打开」按钮启动；不需要的，直接点击「启动」即可<br>
+                &nbsp;&nbsp;- 定位其他引擎的游戏时，请直接定位到指定的exe，而不是文件夹。<br>
+                <br>
+                <strong>Bug 修复</strong><br>
+                - 修复拖拽排序时鼠标滚轮失效的问题<br>
+                - 修复插入位置与预览位置不一致的问题<br>
+                <br>
+                <strong>视觉优化</strong><br>
+                - 「一键清除游戏」按钮颜色改为红色，增强警示提醒<br>
+                - 现在界面的UI不会再重叠或显示不全了<br>
+            </div>
+
+            <div class="tip-box">
+                <strong>V1.0.0 发布</strong><br>
+                <br>
+                <strong>游戏管理</strong><br>
+                - 全盘扫描 — 自动搜索系统中所有 Shiori 引擎游戏并添加到管理器<br>
+                - 本地 Games 扫描 — 一键扫描管理器同目录下 <code>games/</code> 文件夹<br>
+                - 手动添加 — 手动选择游戏根目录，自动识别 Shiori 引擎<br>
+                - 拖拽排序 — 长按游戏缩略图拖动，自由调整排列顺序，自动持久化保存<br>
+                - 移除游戏 — 从管理器列表中移除入口（不删除游戏文件）<br>
+                - 一键清除 — 批量清空管理器中的所有游戏入口<br>
+                <br>
+                <strong>游戏启动</strong><br>
+                - 正式版启动 — 识别 <code>Shiori.exe</code> 并一键启动<br>
+                - 调试版启动 — 识别 <code>Shiori_debug.exe</code>，并一键启动调试版<br>
+                - 双版本检测 — 同时存在两个版本时可分别启动<br>
+                - 端口冲突处理 — 自动检测 8080 端口占用，提示并提供关闭占用进程选项<br>
+                <br>
+                <strong>版本更新</strong><br>
+                - 自动检查更新 — 启动时静默检查，发现新版本时工具栏显示红点提示<br>
+                - 手动检查更新 — 点击「检查更新」按钮，查看版本差异和更新日志<br>
+                - 一键跳转下载 — 弹窗确认后自动在浏览器打开 GitHub Releases 页面<br>
+                - 版本异常检测 — 本地版本不在官方版本列表中时发出安全警告<br>
+                <br>
+                <strong>多语言支持</strong><br>
+                - 简体中文 — 默认语言<br>
+                - 繁體中文 — 繁体中文<br>
+                - English — 英文<br>
+                - 日本語 — 日文<br>
+                <br>
+                <strong>其他功能</strong><br>
+                - 游戏详情面板 — 展示游戏名称、版本、作者、制作组、类型、简介、版权等元信息<br>
+                - 桌面快捷方式 — 一键在桌面创建管理器快捷方式<br>
+                - 版权协议弹窗 — 内置版权协议查看（多语言），第三方开源许可协议完整展示<br>
+                - 玩家指南 — 内置玩家使用帮助文档<br>
+                - 开发者注意事项 — 内置开发者技术文档<br>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2026 Shiori Engine. 作者：月が綺麗ですね_ | <a href="https://github.com/1145141919810TONNY/Shiori-manager" target="_blank">管理器 GitHub 仓库</a> | 本网页采用 MIT License 协议，与引擎本体无关</p>
+        </footer>
+    </div>
+</body>
+</html>
