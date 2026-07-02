@@ -60,6 +60,10 @@
             <div class="archive-system-doc">
                 <section class="intro">
                     <p>Shiori 引擎提供了一套完整的存档与导航系统，包含五个核心模块。这些模块采用模块化设计，既可独立运行，又能通过统一的数据源实现状态同步，为开发者提供了灵活的游戏进度管理方案。</p>
+                    <p style="color: #e74c3c; font-weight: bold; background: #fdeaea; padding: 12px 16px; border-radius: 6px; border-left: 4px solid #e74c3c; margin-top: 15px;">
+                        <span style="font-size: 16px;">重要更新：</span>
+                        所有模块已移除硬编码的场景名称映射。saves.html 的场景跳转列表、archive.html 的存档卡片、flowchart.html / flowchart_debug.html 的流程图节点，均改为自动读取对应 HTML 文件的 <code>&lt;title&gt;</code> 标签作为显示名称。flowchart 中的 <code>displayName</code> 字段变为可选——如果手动填写则使用配置值（优先级最高），否则自动从 &lt;title&gt; 获取。场景文件名不再限制以 <code>scene</code> 开头，任意 <code>.html</code> 文件放入 scenes/ 目录即可被识别，且完整支持中、日、韩等多语言 Unicode 文件名。
+                    </p>
                 </section>
 
                 <hr>
@@ -73,14 +77,21 @@
                     <h3>技术实现细节</h3>
                     <ul>
                         <li><strong>数据存储</strong>：通过 <code>localStorage.gameProgress</code> 存储游戏进度数据</li>
-                        <li><strong>场景追踪</strong>：使用 <code>sceneMarkers</code> 数组记录玩家已访问的所有场景节点</li>
-                        <li><strong>展示方式</strong>：简单的列表式展示，无复杂的UI交互和视觉效果</li>
+                        <li><strong>场景追踪</strong>：使用 <code>sceneMarkers</code> 对象记录玩家已访问的所有场景节点（兼容新旧格式）</li>
+                        <li><strong>智能文件名识别</strong>：不再限制必须以 <code>scene</code> 开头，只要是 <code>scenes/</code> 目录下的 <code>.html</code> 文件即可自动识别</li>
+                        <li><strong>动态标题获取</strong>：摒弃硬编码的场景名称映射，改为异步读取各 HTML 文件的 <code>&lt;title&gt;</code> 标签作为场景显示名称</li>
+                        <li><strong>Unicode 完全支持</strong>：使用 <code>decodeURIComponent()</code> 处理中、日、韩等所有语言的 URL 编码文件名</li>
+                        <li><strong>展示方式</strong>：卡片式展示，先显示「加载中...」再异步替换为实际标题</li>
                     </ul>
                     
                     <h3>数据结构示例</h3>
                     <div class="code-block">
 <pre>{
-  sceneMarkers: ["scene1", "scene2", "scene3"],  // 已访问场景列表
+  sceneMarkers: {
+    "scene1": { visited: 1, lastAccessTime: 1716000000000 },  // 新格式
+    "scene角色A": 1,                                            // 旧格式自动兼容
+    "scene2": { visited: 1, lastAccessTime: 1716000000000 }
+  },
   currentScene: "scene5",                         // 当前所在场景
   currentLine: 42,                                // 当前剧情行号
   timestamp: 1716000000000                        // 最后更新时间戳
@@ -137,13 +148,13 @@
                     <h2>3. 行级存档恢复（archive.html）</h2>
                     
                     <h3>功能定位</h3>
-                    <p>精细化的存档管理系统，支持精确到剧情行的保存与恢复，是玩家最常用的核心存档功能。</p>
+                    <p>精细化的存档管理系统，支持精确到剧情行的保存与恢复，是玩家最常用的核心存档功能。场景名称自动从 HTML 文件的 <code>&lt;title&gt;</code> 标签获取，无需手动配置。</p>
                     
                     <h3>核心功能</h3>
                     <ol>
                         <li><strong>完整上下文保存</strong>：
                             <ul>
-                                <li>当前场景文件名</li>
+                                <li>当前场景文件名（支持 Unicode 多语言）</li>
                                 <li>精确的剧情行号</li>
                                 <li>所有游戏变量状态（好感度、标志位、物品等）</li>
                                 <li>保存时间和自定义名称</li>
@@ -186,17 +197,18 @@
                     <h2>4. 剧本流程图（flowchart.html）- 正式版</h2>
                     
                     <h3>功能定位</h3>
-                    <p>可视化的剧本导航系统，根据玩家实际游戏进度动态解锁节点，提供沉浸式的剧情回顾体验。</p>
+                    <p>可视化的剧本导航系统，根据玩家实际游戏进度动态解锁节点。场景节点的 <code>displayName</code> 已变为可选字段，若未提供则自动从对应 HTML 文件的 <code>&lt;title&gt;</code> 标签获取显示名称。</p>
                     
                     <h3>技术实现细节</h3>
                     <h4>解锁判断逻辑</h4>
                     <div class="code-block">
-<pre>// 从 saves.html 读取已访问场景
-const visitedScenes = localStorage.gameProgress.sceneMarkers || [];
+<pre>// 从 localStorage 读取已访问场景（兼容新旧格式）
+const markers = localStorage.gameProgress.sceneMarkers || {};
 
 // 判断节点是否解锁
 function isNodeUnlocked(sceneId) {
-  return visitedScenes.includes(sceneId);
+  const value = markers[sceneId];
+  return (typeof value === 'object' && value.visited === 1) || value === 1;
 }
 
 // 渲染节点状态
@@ -207,10 +219,25 @@ if (isNodeUnlocked(node.id)) {
 }</pre>
                     </div>
                     
+                    <h4>场景名称动态获取</h4>
+                    <div class="code-block">
+<pre>// displayName 可选，未配置时自动读取 &lt;title&gt;
+{ id: "act1_start", fileName: "scene1", displayName: "初次相遇", links: [...] },
+{ id: "act1_bad",   fileName: "scene角色A",                  links: [...] },  // 无 displayName，自动获取
+
+// 预设载阶段自动异步获取标题
+scenes.forEach(s => {
+  if (!s.displayName) {
+    s.displayName = '加载中...';
+    fetchSceneTitle(s.fileName, s.id);  // 异步 fetch 解析 &lt;title&gt;
+  }
+});</pre>
+                    </div>
+                    
                     <h4>自动布局引擎</h4>
                     <ol>
                         <li><strong>垂直位置计算</strong>：根据节点 ID 的层级深度确定 Y 轴位置</li>
-                        <li><strong>水平分布调整</strong>：使用 x/y 百分比偏移微调节点位置，避免节点重叠和连线交叉</li>
+                        <li><strong>水平分布设置</strong>：使用 x/y 百分比偏移微调节点位置，避免节点重叠和连线交叉</li>
                         <li><strong>SVG 正交连线</strong>：智能绘制节点间的关系路径，采用直角折线提升可读性</li>
                     </ol>
                     
@@ -229,21 +256,28 @@ if (isNodeUnlocked(node.id)) {
                     <p>开发调试专用的完整流程图查看器，无视游戏进度限制，始终显示所有节点和连线。</p>
                     
                     <h3>技术实现细节</h3>
-                    <h4>硬编码场景数据</h4>
+                    <h4>场景节点定义（displayName 可选）</h4>
                     <div class="code-block">
-<pre>// 调试版直接使用完整的场景定义
+<pre>// 场景数组：displayName 为可选字段
 const allScenes = [
-  { id: "scene1", label: "初次相遇", connections: ["scene2", "scene3"] },
-  { id: "scene2", label: "图书馆约会", connections: ["scene4"] },
-  { id: "scene3", label: "咖啡厅闲聊", connections: ["scene4"] },
-  { id: "scene4", label: "告白场景", connections: ["ending_good", "ending_bad"] },
-  // ... 所有场景，包括测试分支和调试标记点
+  // 有 displayName → 使用手动配置的名称（优先级最高）
+  { id: "act1_intro",  fileName: "scene1",  displayName: "初次相遇", links: ["act1_bad", "act1_good"], x: 0, y: 0 },
+
+  // 无 displayName → 自动从 scene2.html 的 &lt;title&gt; 标签获取
+  { id: "act1_good",   fileName: "scene2",  links: ["act2"], x: 1, y: 0.5 },
+
+  // 同样无 displayName，自动读取 scene角色A.html 的标题
+  { id: "act1_mid",    fileName: "scene角色A", links: ["act2"], x: 1, y: -0.5 },
+  // ...
 ];
 
-// 移除解锁判断，所有节点始终可见
-function renderNode(node) {
-  renderNormalNode(node);  // 永远以正常状态渲染
-}</pre>
+// 启动时自动异步获取未配置 displayName 的场景标题
+scenes.forEach(s => {
+  if (!s.displayName) {
+    s.displayName = '加载中...';          // 临时占位
+    fetchSceneTitle(s.fileName, s.id);   // 异步获取 &lt;title&gt;
+  }
+});</pre>
                     </div>
                     
                     <h3>与正式版的详细对比</h3>
@@ -259,8 +293,13 @@ function renderNode(node) {
                             <tbody>
                                 <tr>
                                     <td><strong>数据来源</strong></td>
-                                    <td>动态读取 localStorage</td>
-                                    <td>硬编码 JavaScript 对象</td>
+                                    <td>动态读取 localStorage + 异步获取 HTML &lt;title&gt;</td>
+                                    <td>硬编码 scenes 数组 + 异步获取 HTML &lt;title&gt;</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>节点名称</strong></td>
+                                    <td>displayName 可选，未设置时自动读取 &lt;title&gt;</td>
+                                    <td>displayName 可选，未设置时自动读取 &lt;title&gt;</td>
                                 </tr>
                                 <tr>
                                     <td><strong>节点可见性</strong></td>
@@ -318,9 +357,12 @@ function renderNode(node) {
                     <h4>2. 数据互通</h4>
                     <p>共享 <code>localStorage.gameProgress</code> 作为统一数据源：</p>
                     <div class="code-block">
-<pre>// 统一的数据结构
+<pre>// 统一的数据结构（sceneMarkers 已升级为对象格式，兼容旧版数组）
 localStorage.gameProgress = {
-  sceneMarkers: ["scene1", "scene2"],  // saves.html 写入，flowchart.html 读取
+  sceneMarkers: {
+    "scene1": { visited: 1, lastAccessTime: ... },  // 新格式对象
+    "scene3": 1,                                    // 旧格式自动兼容
+  },
   currentScene: "scene5",               // archive.html 更新，flowchart.html 高亮
   currentLine: 42,                      // archive.html 保存，用于智能返回
   archives: [...],                      // archive.html 独占管理
@@ -341,7 +383,7 @@ localStorage.gameProgress = {
                     <p>所有新增功能均为纯前端实现：</p>
                     <ul>
                         <li>不引入额外依赖库（无 npm install）</li>
-                        <li>不修改核心引擎代码（engine.js 保持不变）</li>
+                        <li>不变更核心引擎代码（engine.js 保持不变）</li>
                         <li>不影响首次编译所需的文件结构</li>
                         <li>编译流程与原有项目完全兼容</li>
                     </ul>
@@ -405,7 +447,7 @@ localStorage.gameProgress = {
                     
                     <div class="faq-item">
                         <div class="faq-question">Q1: 为什么需要这么多存档系统？</div>
-                        <p><strong>A:</strong> 每个系统针对不同场景优化：<code>saves.html</code> 是底层数据接口；<code>story.html</code> 用于独立内容展示；<code>archive.html</code> 是玩家日常使用的核心存档功能；<code>flowchart.html</code> 提供可视化导航；<code>flowchart_debug.html</code> 是开发工具。</p>
+                        <p><strong>A:</strong> 每个系统针对不同场景设计：<code>saves.html</code> 是底层数据接口；<code>story.html</code> 用于独立内容展示；<code>archive.html</code> 是玩家日常使用的核心存档功能；<code>flowchart.html</code> 提供可视化导航；<code>flowchart_debug.html</code> 是开发工具。</p>
                     </div>
                     
                     <div class="faq-item">
@@ -425,7 +467,7 @@ localStorage.gameProgress = {
                     
                     <div class="faq-item">
                         <div class="faq-question">Q5: 流程图节点太多导致混乱怎么办？</div>
-                        <p><strong>A:</strong> 建议合理分组相关场景、使用偏移量微调节点位置、考虑未来扩展折叠/展开功能和颜色区分不同类型节点。可在 flowchart_debug.html 中预览完整布局后再调整。</p>
+                        <p><strong>A:</strong> 建议合理分组相关场景、使用偏移量微调节点位置、考虑未来扩展折叠/展开功能和颜色区分不同类型节点。可在 flowchart_debug.html 中预览完整布局后再设置。</p>
                     </div>
                 </section>
 
