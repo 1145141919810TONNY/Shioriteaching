@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Shiori 引擎教学中心</title>
+	<link rel="stylesheet" href="style.css">
+	<style>
+		.category-container {
+			max-width: 1200px;
+			margin: 0 auto;
+			padding: 30px 20px;
+		}
+
+		.category-section {
+			margin-bottom: 50px;
+		}
+
+		.section-header {
+			text-align: center;
+			margin-bottom: 30px;
+			position: relative;
+		}
+
+		.section-title {
+			font-size: 32px;
+			color: #8e0e00;
+			margin-bottom: 15px;
+			text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+		}
+
+		.section-divider {
+			height: 4px;
+			background: linear-gradient(to right, #8e0e00, #a52a2a);
+			width: 200px;
+			margin: 0 auto;
+			border-radius: 2px;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		}
+
+		.section-description {
+			font-size: 18px;
+			color: #555;
+			max-width: 800px;
+			margin: 20px auto 0;
+			line-height: 1.6;
+		}
+
+		.category-links {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 30px;
+			margin-top: 30px;
+		}
+
+		.category-link {
+			text-decoration: none;
+		}
+
+		.feature-card {
+			background: #fff;
+			border-radius: 12px;
+			overflow: hidden;
+			box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+			transition: all 0.3s ease;
+			width: 250px;
+			height: 180px;
+			display: flex;
+			flex-direction: column;
+			position: relative;
+		}
+
+		.feature-card:hover {
+			transform: translateY(-10px);
+			box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+		}
+
+		.feature-card .card-content {
+			padding: 25px 20px;
+			flex-grow: 1;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.feature-card .card-title {
+			font-size: 20px;
+			color: #8e0e00;
+			text-align: center;
+			margin-bottom: 15px;
+			font-weight: 600;
+		}
+
+		.feature-card .btn-primary {
+			display: inline-block;
+			background: linear-gradient(to right, #8e0e00, #a52a2a);
+			color: white;
+			padding: 10px 25px;
+			border-radius: 8px;
+			text-decoration: none;
+			font-weight: 600;
+			transition: all 0.3s ease;
+			border: none;
+			cursor: pointer;
+			text-align: center;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			margin-top: 10px;
+		}
+
+		.feature-card .btn-primary:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 7px 14px rgba(0, 0, 0, 0.15);
+			background: linear-gradient(to right, #a52a2a, #8e0e00);
+		}
+
+		/* 响应式 */
+		@media (max-width: 768px) {
+			.section-title { font-size: 28px; }
+			.category-links { gap: 20px; }
+			.feature-card { width: 100%; max-width: 300px; }
+		}
+		@media (max-width: 480px) {
+			.section-title { font-size: 24px; }
+			.section-divider { width: 150px; }
+		}
+	</style>
+</head>
+<body>
+	<section class="hero-section">
+		<h1 class="hero-title">Shiori 引擎教学中心 V2.0</h1>
+		<h2 class="hero-title">engine:V2.1.5 / exe:V1.2.6 / manager:V1.0.4 / signer:V1.0.0</h2>
+	</section>
+
+	<div class="category-container">
+		<!-- ===== 产品使用说明 ===== -->
+		<div class="category-section">
+			<div class="section-header">
+				<h2 class="section-title">产品使用说明</h2>
+				<div class="section-divider"></div>
+				<p class="section-description">Shiori 系列产品的完整使用文档，涵盖引擎、启动器、管理器与校检器的详细说明。</p>
+			</div>
+			<div class="category-links">
+				<a href="readme.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">Shiori 系列产品使用说明</h3>
+							<span class="btn-primary">查看文档</span>
+						</div>
+					</div>
+				</a>
+			</div>
+		</div>
+
+		<!-- ===== 语法教学 ===== -->
+		<div class="category-section">
+			<div class="section-header">
+				<h2 class="section-title">语法教学</h2>
+				<div class="section-divider"></div>
+				<p class="section-description">掌握 Shiori 引擎的核心脚本语法、指令规范与场景构建方法。</p>
+			</div>
+			<div class="category-links">
+				<a href="scripting.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">基础脚本语法与指令规范</h3>
+							<span class="btn-primary">查看教程</span>
+						</div>
+					</div>
+				</a>
+				<a href="background.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">背景转场系统</h3>
+							<span class="btn-primary">查看教程</span>
+						</div>
+					</div>
+				</a>
+				<a href="wait.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">[wait time] 标签系统</h3>
+							<span class="btn-primary">查看教程</span>
+						</div>
+					</div>
+				</a>
+				<a href="examples/scene_template.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">场景模板示例</h3>
+							<span class="btn-primary">查看示例</span>
+						</div>
+					</div>
+				</a>
+			</div>
+		</div>
+
+		<!-- ===== 角色立绘系统 ===== -->
+		<div class="category-section">
+			<div class="section-header">
+				<h2 class="section-title">角色立绘系统</h2>
+				<div class="section-divider"></div>
+				<p class="section-description">学习角色立绘的控制指令、位置布局与高级动画效果。</p>
+			</div>
+			<div class="category-links">
+				<a href="chars.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">立绘控制系统</h3>
+							<span class="btn-primary">查看教程</span>
+						</div>
+					</div>
+				</a>
+				<a href="charsnew.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">高级立绘系统详细教学</h3>
+							<span class="btn-primary">查看教程</span>
+						</div>
+					</div>
+				</a>
+			</div>
+		</div>
+
+		<!-- ===== 资源与系统管理 ===== -->
+		<div class="category-section">
+			<div class="section-header">
+				<h2 class="section-title">资源与系统管理</h2>
+				<div class="section-divider"></div>
+				<p class="section-description">了解资源文件配置、存档系统架构与项目管理方案。</p>
+			</div>
+			<div class="category-links">
+				<a href="assets.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">资源管理与配置指南</h3>
+							<span class="btn-primary">查看教程</span>
+						</div>
+					</div>
+				</a>
+				<a href="archive_system.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">存档系统详解</h3>
+							<span class="btn-primary">查看教程</span>
+						</div>
+					</div>
+				</a>
+			</div>
+		</div>
+
+		<!-- ===== 更新日志 ===== -->
+		<div class="category-section">
+			<div class="section-header">
+				<h2 class="section-title">更新日志</h2>
+				<div class="section-divider"></div>
+				<p class="section-description">追踪引擎、启动器与管理器的最新版本更新记录。</p>
+			</div>
+			<div class="category-links">
+				<a href="versionengine.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">引擎更新日志</h3>
+							<span class="btn-primary">查看日志</span>
+						</div>
+					</div>
+				</a>
+				<a href="versionexe.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">启动器更新日志</h3>
+							<span class="btn-primary">查看日志</span>
+						</div>
+					</div>
+				</a>
+				<a href="manager.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">Manager 更新日志</h3>
+							<span class="btn-primary">查看日志</span>
+						</div>
+					</div>
+				</a>
+				
+			</div>
+
+		<!-- ===== 使用协议 ===== -->
+		<div class="category-section">
+			<div class="section-header">
+				<h2 class="section-title">使用协议</h2>
+				<div class="section-divider"></div>
+				<p class="section-description">各组件及引擎的授权协议与使用条款。</p>
+			</div>
+			<div class="category-links">
+				<a href="MIT_LICENSE.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">教学网页使用协议</h3>
+							<span class="btn-primary">查看协议</span>
+						</div>
+					</div>
+				</a>
+				<a href="license_engine.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">引擎模板使用协议</h3>
+							<span class="btn-primary">查看协议</span>
+						</div>
+					</div>
+				</a>
+				<a href="license_manager.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">管理器使用协议</h3>
+							<span class="btn-primary">查看协议</span>
+						</div>
+					</div>
+				</a>
+				<a href="license_signer.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">校验工具使用协议</h3>
+							<span class="btn-primary">查看协议</span>
+						</div>
+					</div>
+				</a>
+			</div>
+		</div>
+
+		<!-- ===== 第三方开源协议 ===== -->
+		<div class="category-section">
+			<div class="section-header">
+				<h2 class="section-title">第三方开源协议</h2>
+				<div class="section-divider"></div>
+				<p class="section-description">各组件所依赖的第三方开源库的完整许可证文本。</p>
+			</div>
+			<div class="category-links">
+				<a href="opensource_engine.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">引擎启动器 · 开源协议</h3>
+							<span class="btn-primary">查看协议</span>
+						</div>
+					</div>
+				</a>
+				<a href="opensource_manager.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">游戏管理器 · 开源协议</h3>
+							<span class="btn-primary">查看协议</span>
+						</div>
+					</div>
+				</a>
+				<a href="opensource_signer.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">校验工具 · 开源协议</h3>
+							<span class="btn-primary">查看协议</span>
+						</div>
+					</div>
+				</a>
+			</div>
+		</div>
+
+		<div class="update-highlight">
+					<h3 class="update-title">Shiori 系列产品</h3>
+					<div class="update-content">
+						<ul class="version-list">
+							<li>Shiori 是一个基于 HTML/JS 的轻量级视觉小说引擎，具有类似 Kirikiri 的功能。本教学系统旨在帮助开发者快速上手，通过结构化的教程和代码示例，深入理解引擎的核心机制。</li>
+							<li>Shiori 教学网页在2026年7月10日全新升级为V2.0版本，重写了交互与CSS，并新增了一些页面</li>
+						</ul>
+					</div>
+				</div>
+		</div>
+	</div>
+
+	
+
+	<button id="backToTopBtn">回到顶部</button>
+
+	<footer class="site-footer">
+		<div class="footer-col">
+			<h4>开源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">引擎本体与启动器</a> · <a href="license_engine.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/license.txt" target="_blank">GitHub</a></p>
+			<p class="footer-copyright">Copyright &copy; <span class="footer-year"></span> bilibili 月が綺麗ですね_</p>
+		</div>
+		<div class="footer-col">
+			<h4>闭源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-manager" target="_blank">管理器与校检器</a></p>
+			<p><a href="license_manager.html" target="_blank">管理器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/license.txt" target="_blank">GitHub</a></p>
+                <p><a href="license_signer.html" target="_blank">校检器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/licensesigner.txt" target="_blank">GitHub</a></p>
+			<p class="footer-copyright">Copyright &copy; <span class="footer-year"></span> bilibili 月が綺麗ですね_ All Rights Reserved.</p>
+		</div>
+		<div class="footer-col">
+			<h4>第三方开源协议</h4>
+			<p><a href="opensource_engine.html" target="_blank">启动器</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_manager.html" target="_blank">管理器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES_SIGNER.txt" target="_blank">GitHub</a> | <a href="opensource_signer.html" target="_blank">校检器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a></p>
+			<p class="footer-meta">
+				<a href="MIT_LICENSE.html" target="_blank">本网页采用 MIT License 协议</a> · <a href="https://github.com/1145141919810TONNY/Shioriteaching/blob/main/LICENSE" target="_blank">GitHub</a>，与 Shiori 其他项目协议不同，详情请参照各自的协议文件<br>
+				<a href="https://1145141919810tonny.github.io/Shioriteaching/" target="_blank">GitHub Pages 在线服务</a> · <a href="https://wakudemo.cn/games/100266" target="_blank">WakuDemo 应用商店</a><br>
+				联系方式：<a href="mailto:3099637681@qq.com">QQ</a> · <a href="https://space.bilibili.com/87412647" target="_blank">bilibili</a>
+			</p>
+		</div>
+	</footer>
+	<script>document.querySelectorAll('.footer-year').forEach(function(e){e.textContent=new Date().getFullYear()})</script>
+
+	<script>
+		document.getElementById('current-year').textContent = new Date().getFullYear();
+
+		var backToTopBtn = document.getElementById('backToTopBtn');
+		window.addEventListener('scroll', function() {
+			backToTopBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
+		});
+		backToTopBtn.addEventListener('click', function() {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		});
+	</script>
+</body>
+</html>
