@@ -169,12 +169,23 @@
 
 		<!-- 最新版本内容 -->
 		<div class="accordion active">
-			<button class="accordion-header">最新版本内容 — V1.2.6</button>
+			<button class="accordion-header">最新版本内容</button>
 			<div class="accordion-content">
 				<div class="version-block">
-					<h3>V1.2.6 <span class="version-date">(2026/6/23)</span></h3>
+					<h3>V1.2.7 <span class="version-date">(2026/7/22)</span></h3>
+					<strong>1.存档文件优化</strong>
 					<ul>
-						<li>现在当8080接口被占用时，启动器不会再卡死，而是会弹出弹窗提示让用户退出游戏</li>
+						<li>1.1.现在存档文件自动创建时，会自动省略不必要的文件，以下文件大小为游戏初次运行后的大小，不含其他存档内容</li>
+						<ul>
+							<li>正式版（release）：126MB→14.4MB</li>
+							<li>测试版（debug）：252MB→14.8MB</li>
+						</ul>
+						<li>1.2.新增“清除无用缓存”按钮，在“文件”菜单中，点击后会删除所有无用文件，适用于使用了V1.2.7版本前已经生成过存档文件的用户。</li>
+					</ul>
+					<strong>2.启动流程优化</strong>
+					<li>由于首次启动时，需要数秒的时间写入存档必须文件，且后续的需求需要，现在启动器会在启动时默认显示一个遮罩层，至少持续三秒（如果必要文件生成完毕后或引擎加载完成后可鼠标点击关闭）</li>
+					<ul>
+						<li>如何修改默认遮罩层的图片：在引擎核心的路径中：..\shiori engine\assets\cg\，创建一个名为“logo”的图片，不限制格式（比如可以使用.png，.jpg等）</li>
 					</ul>
 				</div>
 			</div>
@@ -184,6 +195,13 @@
 		<div class="accordion">
 			<button class="accordion-header">V1.2.x 系列 .NET 8 LTE/C#</button>
 			<div class="accordion-content">
+
+				<div class="version-block">
+					<h3>V1.2.6 <span class="version-date">(2026/6/23)</span></h3>
+					<ul>
+						<li>现在当8080接口被占用时，启动器不会再卡死，而是会弹出弹窗提示让用户退出游戏</li>
+					</ul>
+				</div>
 
 				<div class="version-block">
 					<h3>V1.2.5 <span class="version-date">(2026/6/22)</span></h3>
