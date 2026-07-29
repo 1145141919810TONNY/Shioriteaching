@@ -203,6 +203,35 @@
 			margin-bottom: 8px;
 		}
 
+		.search-wrapper {
+			position: relative;
+			z-index: 100;
+			background: #f5f5f5;
+		}
+
+		/* 搜索框吸顶状态：保持原宽度并在内容区居中 */
+		.search-wrapper.is-fixed .search-box {
+			position: fixed;
+			top: 0;
+			left: 50%;
+			/* 内容区左侧有 86px 侧边栏，中心点相较视口中心偏移 43px */
+			transform: translateX(calc(-50% + 43px));
+			z-index: 999;
+			background: rgba(255, 255, 255, 0.97);
+			backdrop-filter: blur(6px);
+			-webkit-backdrop-filter: blur(6px);
+			margin: 0;
+			padding: 0 20px; /* 保持原始 padding */
+			width: 100%;
+			max-width: 960px;
+			box-sizing: border-box;
+			box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+		}
+
+		.search-wrapper.is-fixed .search-result {
+			margin-top: 52px; /* 为固定后的搜索框留出空间 */
+		}
+
 		.search-box {
 			max-width: 960px;
 			margin: 0 auto 25px;
@@ -210,6 +239,7 @@
 			display: flex;
 			gap: 10px;
 			align-items: center;
+			transition: background 0.3s, box-shadow 0.3s;
 		}
 
 		.search-box input {
@@ -287,6 +317,10 @@
 			}
 			.accordion:not(.active) .accordion-content {
 				padding: 0 14px;
+			}
+			.search-wrapper.is-fixed .search-box {
+				/* 移动端侧边栏 54px，中心点相较视口中心偏移 27px */
+				transform: translateX(calc(-50% + 27px));
 			}
 		}
 
@@ -378,12 +412,14 @@
 			<p>优先使用音読み（常用读音），少数使用訓読み。按五十音图分行排列。</p>
 		</div>
 
-		<div class="search-box">
-			<input type="text" id="searchInput" placeholder="搜索汉字（如：愛）或读音（如：あい）..." />
-			<button id="searchBtn">搜索</button>
-			<button id="clearSearchBtn" style="background:#555;">清除</button>
+		<div class="search-wrapper" id="searchWrapper">
+			<div class="search-box">
+				<input type="text" id="searchInput" placeholder="搜索汉字（如：愛）或读音（如：あい）..." />
+				<button id="searchBtn">搜索</button>
+				<button id="clearSearchBtn" style="background:#555;">清除</button>
+			</div>
+			<div class="search-result" id="searchResult"></div>
 		</div>
-		<div class="search-result" id="searchResult"></div>
 
         <!-- あ行（113字） -->
         <div class="accordion">
@@ -2094,6 +2130,29 @@
 				kanaItems.forEach((item, i) => {
 					item.classList.toggle('active', i === currentIndex);
 				});
+			});
+
+			// ========== 搜索框吸顶：滚动超过搜索框位置后固定在页面顶端 ==========
+			const searchWrapper = document.getElementById('searchWrapper');
+			let searchWrapperOffset = 0; // 搜索框容器相对于文档顶部的初始位置
+
+			/**
+			 * 计算搜索框容器当前距离文档顶部的偏移量
+			 */
+			function updateSearchWrapperOffset() {
+				searchWrapperOffset = searchWrapper.getBoundingClientRect().top + window.scrollY;
+			}
+			// 页面加载完成后立即计算，并在窗口大小变化时重新计算
+			updateSearchWrapperOffset();
+			window.addEventListener('resize', updateSearchWrapperOffset);
+
+			// 在滚动时判断是否需要吸顶
+			window.addEventListener('scroll', function() {
+				if (window.scrollY >= searchWrapperOffset) {
+					searchWrapper.classList.add('is-fixed');
+				} else {
+					searchWrapper.classList.remove('is-fixed');
+				}
 			});
 
 			// ========== 点击粘性标题栏：展开/收起当前区域 ==========
