@@ -121,6 +121,7 @@
         <p class="hero-subtitle">记录管理器的版本迭代与功能变更</p>
         <div class="nav-buttons">
             <a href="index.html" class="nav-button">返回主页</a>
+            <a href="dictionary.html" class="nav-button">管理器词典</a>
         </div>
     </section>
 
@@ -227,10 +228,11 @@
                     <strong>新功能：日语词典 &amp; 排序方式</strong>
                     <ul>
                         <li>接入 Kawazu（MeCab 形态素分析词典），日文游戏名称按五十音读音排序</li>
-                        <li>内置 2000+ 常用汉字读音表，词典外汉字自动回退，回退手写词典为次优先级，最高优先级为Kawazu词典</li>
+                        <li>内置 2000+ 常用汉字读音表，词典外汉字或词典因一些因素失效时会自动回退，回退手写词典为次优先级，最高优先级为Kawazu词典</li>
 						<ul>
 							<li>注意：回退词典内容为纯手打的内容，仅能识别首字的假名，不能够识别词组/特殊读音/开发者自定义发言/音训读等特殊发音。如果出现与实际读音不一致的情况，属于正常情况</li>
-							<li>如果有错误，纯属手误，敬请谅解</li>
+							<li>如果有错误，纯属手误，敬请谅解。当前版本回退日语词典所有收录词可参照<a href="dictionary.html" style="color: #d32f2f; text-decoration: none; font-weight: bold;">这个网页</a></li>
+                            <strong>特殊说明：回退词典优先使用音読み（常用读音），少数使用訓読み。汉字 → 平假名读音（优先音読み）</strong>
 							<ul>
 								<li>以下为一些词典内发音举例：</li>
 								<ul>
@@ -254,9 +256,13 @@
 								</ul>
 							</ul>
 						</ul>
+                        <li>新增「按名称排序(A→Z)」按钮，混合语言智能排序</li>
+                        <li>新增「排序规则说明」弹窗</li>
+                        <li>新增右键菜单，目前右键菜单功能仅有（置顶/取消置顶）的功能</li>
+                        <li>新增游戏名称中/日语排序的功能按钮，点击该可切换该游戏到你想让其使用中文或日文的排序词典。</li>
+                    </ul>
                     <strong>视觉/体验优化</strong>
                     <ul>
-                        <li>排序窗口右键菜单整合（置顶 / 切换CJK语言），操作更直观</li>
                         <li>排序说明弹窗自动测量文本长度并适配窗口宽度</li>
                     </ul>
                     <strong>Bug 修复</strong>
