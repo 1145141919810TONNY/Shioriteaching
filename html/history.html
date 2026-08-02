@@ -451,6 +451,45 @@
 	<script>document.querySelectorAll('.footer-year').forEach(function(e){e.textContent=new Date().getFullYear()})</script>
 
 	<script>
+		// ===== 图片灯箱 =====
+		(function() {
+			var lightbox = document.createElement('div');
+			lightbox.id = 'lightbox';
+			lightbox.className = 'lightbox-overlay';
+			lightbox.innerHTML = '<img id="lightboxImg" src="#" alt="预览"><span class="lightbox-hint">点击空白处关闭 · 滚轮缩放</span>';
+			document.body.appendChild(lightbox);
+
+			var lightboxImg = document.getElementById('lightboxImg');
+			var currentZoom = 1;
+
+			function applyZoom() {
+				lightboxImg.style.transform = 'scale(' + currentZoom + ')';
+			}
+
+			document.querySelectorAll('.image-placeholder img').forEach(function (img) {
+				img.addEventListener('click', function (e) {
+					e.stopPropagation();
+					lightboxImg.src = this.src;
+					currentZoom = 1;
+					applyZoom();
+					lightbox.classList.add('show');
+				});
+			});
+
+			lightbox.addEventListener('click', function (e) {
+				if (e.target === lightbox) {
+					lightbox.classList.remove('show');
+				}
+			});
+
+			lightbox.addEventListener('wheel', function (e) {
+				e.preventDefault();
+				var delta = e.deltaY > 0 ? -0.15 : 0.15;
+				currentZoom = Math.max(0.3, Math.min(5, currentZoom + delta));
+				applyZoom();
+			});
+		})();
+
 		// ===== Timeline sidebar =====
 		(function() {
 			var menuList = document.getElementById('menu-list');
