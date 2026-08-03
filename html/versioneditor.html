@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Shiori Editor 可视化小说编辑器 — V0.1.0（测试版）</title>
+		<title>Shiori Editor 可视化小说编辑器更新日志</title>
 		<link rel="stylesheet" href="../style.css">
 	</head>
 	<style>
@@ -275,17 +275,9 @@
 								<li>精确坐标：支持 <code>x:百分比</code> / <code>y:百分比</code> / <code>z:角度</code> 精细调节</li>
 							</ul>
 						</li>
-						<li><strong>动画效果</strong>：
-							<ul>
-								<li>渐入（fadeIn）/ 渐出（fadeOut）/ 瞬移（instant）</li>
-								<li>左渐入 / 右渐入 / 左渐出 / 右渐出</li>
-							</ul>
-						</li>
-						<li><strong>缩放控制</strong>：百分比缩放，支持负值（缩小）</li>
-						<li><strong>层级控制</strong>：前层 / 后层</li>
+						
 						<li><strong>角色标识符</strong>：支持角色名称标记，自动继承位置和缩放状态</li>
-						<li><strong>动作指令</strong>：后退、发抖（单次/持续/结束）、点头、摇头、飞入、飞出、颤抖</li>
-						<li><strong>明暗控制</strong>：明亮（bright）/ 变暗（dim/dark）亮度滤镜</li>
+						<li><strong>动作指令</strong>：后退、前进、吓一跳、发抖（单次/持续/结束）、点头、左倒、右倒、站立、得意（单次/持续/结束），共 13 种</li>
 						<li><strong>立绘指令一键生成</strong>：根据 UI 选择自动生成标准 chars 指令字符串，可一键复制到剧本中</li>
 						<li><strong>立绘指令粘贴解析</strong>：支持粘贴已有的立绘指令，编辑器自动解析并可视化展示</li>
 					</ul>
@@ -295,7 +287,7 @@
 						<li><strong>背景图片（BG）</strong>：
 							<ul>
 								<li>自动读取 <code>bg_config.js</code>，显示全部背景清单，支持一键预览</li>
-								<li>支持转场效果：淡入淡出（trans）、左滑（slide_l）、右滑（slide_r）</li>
+								<li>支持转场效果：淡入淡出（转场/fade）、左滑（slideL）、右滑（slideR）、左转场（scanL）、右转场（scanR）</li>
 							</ul>
 						</li>
 						<li><strong>BGM 音乐</strong>：
@@ -332,12 +324,13 @@
 										<li>BGM（bgm）— 下拉选择 + bgm stop / bgm wait 语法支持</li>
 										<li>立绘（chars）— 可从立绘编辑区一键导入当前立绘配置</li>
 										<li>语音（audio）/ 音效（se）/ 视频（video）— 文本输入</li>
-										<li>命令（command）— 支持 [msgoff]/[msgon]/[novel]/[lock]/[wait time=...] 等标签</li>
+										<li>命令（command）— 支持 [msgoff]/[novel]/[lock]/[wait time=...] 等标签</li>
 									</ul>
 								</li>
 							</ul>
 						</li>
 						<li><strong>动作（Action）编辑</strong>：支持选项分支（choice）和场景跳转（nextScene）两种动作类型</li>
+						<li><strong>剧本原始源码直接编辑</strong>：可直接编辑 RawSource 原始源码，带 JSON 结构校验（花括号/方括号匹配、非英文标点检查）、行号显示、Tab/Shift+Tab 快捷缩进</li>
 						<li><strong>场景保存</strong>：编辑完成后将内容物理写回磁盘上的 HTML 文件，RawSource 零损失保留原始格式和注释，非纯内存编辑</li>
 						<li><strong>场景运行</strong>：在编辑器内直接运行当前编辑的场景，即时预览效果</li>
 					</ul>
@@ -347,14 +340,10 @@
 						<li><strong>命令标签翻译</strong>：
 							<ul>
 								<li>[msgoff] ↔ 隐藏消息框</li>
-								<li>[msgon] ↔ 显示消息框</li>
-								<li>[clearname] ↔ 清除姓名</li>
 								<li>[novel] ↔ 切换全屏小说模式</li>
 								<li>[normal] ↔ 退出全屏小说模式</li>
 								<li>[lock] / [阻止] ↔ 锁定点击</li>
 								<li>[free] / [解锁] ↔ 解除点击锁定</li>
-								<li>[finish] ↔ 游戏结束（黑屏淡出）</li>
-								<li>[finishwhite] ↔ 游戏结束（白屏淡出）</li>
 							</ul>
 						</li>
 						<li><strong>立绘指令翻译</strong>：原始 chars 指令 ↔ 人可读中文描述（位置、高度、层级、动画、缩放、旋转角度、动作）</li>
@@ -368,7 +357,7 @@
 					<ul>
 						<li><strong>内置 HTTP 服务器</strong>：
 							<ul>
-								<li>端口 12089，自动启动/停止，与编辑器生命周期绑定。避开引擎核心使用的8080端口。</li>
+								<li>端口 12089，自动启动/停止，与编辑器生命周期绑定。</li>
 								<li>静态文件服务，支持 HTML/CSS/JS/图片/音频/视频等全部资源类型</li>
 								<li>Range 请求支持，视频文件可拖动进度条</li>
 								<li>资源缓存策略：图片字体缓存 24 小时，脚本 CSS 禁用缓存方便调试</li>
@@ -378,7 +367,7 @@
 						<li><strong>引擎路径自动检测</strong>：从 exe 所在目录向上逐层查找 <code>shiori engine</code> 文件夹</li>
 						<li><strong>引擎完整性验证</strong>：
 							<ul>
-								<li>启动时自动校验引擎核心文件（engine.js / system.js / style.css 等）</li>
+								<li>启动时自动校验引擎核心文件（engine.js / system.js 等）</li>
 								<li>校验文件存在性 + 内容标识（Marker）匹配</li>
 								<li>分级结果：完整 / 部分缺失 / 核心文件全无</li>
 								<li>可查看详细的校验条目列表</li>
@@ -393,7 +382,7 @@
 						<li><strong>场景文件写入</strong>：剧本编辑完成后，内容直接写回 <code>shiori engine/scenes/</code> 下的原始 .html 文件，非内存预览</li>
 						<li><strong>配置文件写入</strong>：统一管理 <code>illustration.js</code> 中的多个 JS 配置（CHAR_PATH_MAP / CHAR_DIFF_OFFSET / CHAR_DIFF_CONFIG / CHAR_CONFIG / CHAR_CONFIG_SUB），立绘编辑结果可持久化到磁盘</li>
 						<li><strong>手动保存机制</strong>：仅在使用者点击「写入配置」按钮时才物理写盘，避免频繁 I/O</li>
-						<li><strong>事务安全写入</strong>：先写 .tmp 文件 → 原子替换原文件 → 保留 .bak 备份，防止写盘中断导致文件损坏</li>
+						<li><strong>事务安全写入</strong>：先写 .tmp 文件 → 原子替换原文件，防止写盘中断导致文件损坏</li>
 						<li><strong>JS 格式美化输出</strong>：自动判断单行/多行展开，简单值对象紧凑格式，嵌套对象结构化缩进</li>
 					</ul>
 
@@ -413,7 +402,14 @@
 					<strong>八、用户体验</strong>
 					<ul>
 						<li><strong>差分结构树字号调节</strong>：滑块调节差分浏览树字体大小</li>
-						<li><strong>贴士页集成</strong>：编辑器内可导航到相关的帮助/教学页面</li>
+						<li><strong>贴士页集成</strong>：编辑器内可导航到相关的帮助/教学页面，并提供分类快捷插入按钮：
+							<ul>
+								<li>立绘动作：13 种动作指令一键插入（后退/前进/吓一跳/发抖/持续发抖/结束发抖/点头/左倒/右倒/站立/得意/持续得意/结束得意）</li>
+								<li>文本标签：\n 换行、[s] 分段、[a] 音频关联、[,] 注音标记</li>
+								<li>背景转场：fade/slideL/slideR/scanL/scanR 五种转场效果</li>
+								<li>音频/BGM：audio 语音、se 音效、bgm 背景音乐、video 视频、bgm stop 延时停止</li>
+							</ul>
+						</li>
 						<li><strong>中文友好</strong>：全部 UI 标签与指令翻译均为中文，降低使用门槛</li>
 					</ul>
 
