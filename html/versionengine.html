@@ -208,6 +208,32 @@
 		<div class="accordion active">
 			<button class="accordion-header">最新版本内容</button>
 			<div class="accordion-content">
+
+				<div class="version-block">
+					<h3>V2.1.8 <span class="version-date">(2026/8/5)</span></h3>
+					<strong>choice 跳转系统增强</strong>
+					<ul>
+						<li><strong>新增 target: "#" 支持</strong>：选项选择 <code>target: "#"</code> 时，不再进行跳转，直接执行选项之后的下一行剧情。适用于「站在原地」「不做任何事」等不改变流程的选项</li>
+						<li><strong>新增本文件内标签跳转支持</strong>：选项选择 <code>target: "标签名"</code> 时，引擎会在当前 story 数组中查找 <code>command: "[标签名]"</code> 所在行，并从该行的下一行继续执行。适用于分支剧情的选择后汇合</li>
+						<li>此前 choice 选项的 target 仅支持跳转到其他 HTML 场景文件（如 <code>"scene2.html"</code>），现已扩展为三种跳转方式：<code>"xxx.html"</code>（页面跳转）、<code>"标签名"</code>（本文件内跳转）、<code>"#"</code>（不跳转）</li>
+						<li>更新了 scripting.html 教学页面，补充了标签跳转的完整三分支写法示例</li>
+					</ul>
+					<strong>新版立绘缩放指令支持</strong>
+					<ul>
+						<li>新版分层立绘系统现已完整支持百分比缩放指令（如 <code>[30%]</code>、<code>[-20%]</code>），与旧版简单立绘保持一致</li>
+						<li>含缩放效果的动画关键词「后退」/<code>retreat</code>、「前进」/<code>forward</code>、「吓一跳」/<code>scare</code> 在新版立绘中现已完整支持</li>
+						<li>缩放同时作用于身体层（dress）和表情层（face），表情层偏移会等比例缩放，确保分层立绘始终对齐</li>
+					</ul>
+				</div>
+				
+			</div>
+		</div>
+
+		<!-- V2.1 系列 -->
+		<div class="accordion">
+			<button class="accordion-header">V2.1.x 系列</button>
+			<div class="accordion-content">
+
 				<div class="version-block">
 					<h3>V2.1.7 <span class="version-date">(2026/8/2)</span></h3>
 					<strong>优化</strong>
@@ -224,13 +250,6 @@
 						<li>目前可视化编辑器绝大部分内容已经趋于完工状态，预计于今明两日内上线V0.1.0测试版</li>
 					</ul>
 				</div>
-			</div>
-		</div>
-
-		<!-- V2.1 系列 -->
-		<div class="accordion">
-			<button class="accordion-header">V2.1.x 系列</button>
-			<div class="accordion-content">
 
 				<div class="version-block">
 					<h3>V2.1.6 <span class="version-date">(2026/7/27)</span></h3>
