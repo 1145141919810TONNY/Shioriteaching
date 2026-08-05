@@ -171,6 +171,90 @@
 }</pre>
             </div>
 
+            <h3>target 的三种跳转方式</h3>
+            <p><code>target</code> 字段支持三种不同的跳转方式，可灵活控制剧本流程：</p>
+
+            <table>
+                <thead>
+                    <tr><th>写法</th><th>行为</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>target: "xxx.html"</code></td>
+                        <td>跳转到其他场景文件</td>
+                        <td>跳转到指定的 HTML 场景页面，支持相对路径（如 <code>"scene2.html"</code>、<code>"../index.html"</code>）</td>
+                    </tr>
+                    <tr>
+                        <td><code>target: "任意标签"</code></td>
+                        <td><strong>本文件内跳转</strong>到标签位置</td>
+                        <td>在本场景的 <code>story</code> 数组中，查找 <code>command: "[标签]"</code> 所在的行，从那一行的<strong>下一行</strong>开始继续运行。标签可以是任意字符、任意语言。适用于分支剧情的选择后汇合</td>
+                    </tr>
+                    <tr>
+                        <td><code>target: "#"</code></td>
+                        <td><strong>不跳转</strong>，继续往下运行</td>
+                        <td>选择后不进行任何跳转，直接执行选项之后的下一个 <code>story</code> 数组元素。适用于「不做任何事」「再想想」等不改变流程的选项</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="tip-box">
+                <strong>标签定义方式</strong>：在一条独立的剧情对象中，使用 <code>command: "[标签名]"</code> 即可定义一个标签。标签名必须与 <code>target</code> 中的值完全一致（区分大小写）。
+            </div>
+
+            <h4>示例：本文件内标签跳转（完整三分支写法）</h4>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">action</span>: {
+        <span class="code-property">type</span>: <span class="code-string">"choice"</span>,
+        <span class="code-property">choices</span>: [
+            { <span class="code-property">text</span>: <span class="code-string">"站在原地"</span>, <span class="code-property">target</span>: <span class="code-string">"#"</span> },
+            { <span class="code-property">text</span>: <span class="code-string">"向东走"</span>, <span class="code-property">target</span>: <span class="code-string">"向东走"</span> },
+            { <span class="code-property">text</span>: <span class="code-string">"向西走"</span>, <span class="code-property">target</span>: <span class="code-string">"向西走"</span> }
+        ]
+    }
+},
+<span class="code-comment">// —— 原地分支：target="#" 不跳转，直接运行后续行 ——</span>
+{
+    <span class="code-property">text</span>: <span class="code-string">"你站在了原地等候"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">"你选择了原地等候，没有走向任何方向。"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">action</span>: { <span class="code-property">type</span>: <span class="code-string">"nextScene"</span>, <span class="code-property">target</span>: <span class="code-string">"原地等候.html"</span> }
+},
+<span class="code-comment">// —— 向东走分支：跳转到 command: "[向东走]" 的下一行 ——</span>
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[向东走]"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">"你向东走去，看到了美丽的日出。"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">action</span>: { <span class="code-property">type</span>: <span class="code-string">"nextScene"</span>, <span class="code-property">target</span>: <span class="code-string">"向东走.html"</span> }
+},
+<span class="code-comment">// —— 向西走分支 ——</span>
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[向西走]"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">"你向西走去，听到了悠扬的歌声。"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">action</span>: { <span class="code-property">type</span>: <span class="code-string">"nextScene"</span>, <span class="code-property">target</span>: <span class="code-string">"向西走.html"</span> }
+}</pre>
+            </div>
+
+            <div class="warning-box">
+                <strong>注意</strong>：标签跳转时，引擎会跳过标签所在的 <code>command: "[标签]"</code> 那一行（因为该行 <code>text</code> 为空，无实际内容），直接从标签的<strong>下一行</strong>开始运行。因此定义标签时请确保 <code>text: ""</code>。每个分支末尾通常配合 <code>nextScene</code> 跳转到对应的独立场景文件。
+            </div>
+
             <h3>保持选项页面整洁</h3>
             <p>在显示选项前，可以配合 <code>command</code> 属性隐藏文本框，使选项界面更加整洁：</p>
             <div class="code-block">
