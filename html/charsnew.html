@@ -103,8 +103,8 @@ chars=<span class="code-string">"[角色B 右 lh12345], [角色A 中 正面 服�
                 <li><code>&lt;可选修饰词&gt;</code>：位置、动作、渐变、亮度等（详见旧系统文档 <code>illustration.md</code>）。</li>
             </ul>
 
-            <div class="warning-box">
-                <strong>注意</strong>：百分比缩放指令（如 <code>[30%]</code>）和包含缩放效果的动画（<code>后退</code>/<code>retreat</code>、<code>前进</code>/<code>forward</code>、<code>吓一跳</code>/<code>scare</code>）在新版立绘中会被<strong>自动屏蔽</strong>，详见第六章。
+            <div class="tip-box">
+                <strong>新功能</strong>：百分比缩放指令（如 <code>[30%]</code>、<code>[-20%]</code>）和包含缩放效果的动画（<code>后退</code>/<code>retreat</code>、<code>前进</code>/<code>forward</code>、<code>吓一跳</code>/<code>scare</code>）在新版立绘中均已<strong>完整支持</strong>，详见第六章。
             </div>
 
             <h3>基础示例</h3>
@@ -420,53 +420,57 @@ window.CHAR_DIFF_OFFSET = { ... };
                 <li><strong>face 的位置计算</strong>：<code>face</code> 使用与 <code>dress</code> 相同的坐标系，引擎会自动计算两者差值作为层内偏移</li>
                 <li><strong>CHAR_DIFF_OFFSET 仅影响表情</strong>：此配置仅对表情层生效，不会影响身体立绘的位置</li>
                 <li><strong>可视化窗口屏蔽偏移</strong>：在可视化预览窗口中，<code>CHAR_DIFF_OFFSET</code> 会被置空，确保预览效果不受剧本偏移配置影响</li>
-                <li><strong>修饰词屏蔽</strong>：百分比缩放指令和包含缩放效果的动画已在新版立绘中自动屏蔽，详见第六章</li>
+                <li><strong>修饰词支持</strong>：百分比缩放指令和包含缩放效果的动画已在新版立绘中完整支持，详见第六章</li>
                 <li><strong>旧系统文档</strong>：关于位置修饰词、动作指令、渐变动画、亮度控制等通用功能，请参考 <code>illustration.md</code> 文档</li>
             </ul>
 
-            <h2>六、新版立绘屏蔽功能</h2>
-            <p>新版立绘系统对部分修饰词进行了<strong>自动屏蔽</strong>处理。以下是完整的屏蔽清单和行为说明：</p>
+            <h2>六、新版立绘缩放与动作支持</h2>
+            <p>新版本引擎已完整支持在新版分层立绘中使用<strong>百分比缩放指令</strong>和<strong>包含缩放效果的动作关键词</strong>，与旧版简单立绘系统保持一致。</p>
 
-            <h3>6.1 屏蔽原理</h3>
-            <p>所有屏蔽操作在指令解析阶段（<code>parseCharDiffModifiers</code> 函数）完成。被屏蔽的修饰词会被<strong>安全忽略</strong>——不会导致报错、脚本中断或异常行为，立绘渲染完全不受影响。控制台会输出 <code>[新版屏蔽]</code> 日志便于调试。</p>
+            <h3>6.1 缩放实现原理</h3>
+            <p>新版分层立绘的缩放通过 <code>updateLayeredCharScale</code> 函数实现：缩放比例同时作用于身体层（dress）和表情层（face），表情层的位置偏移也会等比例缩放，确保分层立绘的服装与表情始终保持正确对齐。</p>
 
             <div class="tip-box">
-                <strong>兼容性保障</strong>：屏蔽功能<strong>仅对新版立绘系统生效</strong>。旧版简单立绘系统中的所有修饰词保持不变，后退、前进、吓一跳动作和百分比缩放均正常可用。
+                <strong>兼容性保障</strong>：缩放功能对<strong>新旧两套立绘系统通用</strong>。旧版简单立绘中使用图片高度缩放，新版分层立绘中使用 <code>transform: scale()</code> 缩放，效果一致。
             </div>
 
             <h3>6.2 百分比缩放指令</h3>
-            <p><strong>所有百分比形式的缩放指令</strong>在渲染过程中被忽略，立绘始终保持原始大小（scale=1）。</p>
+            <p>百分比缩放指令在新版立绘中<strong>完整支持</strong>，用法与旧系统完全一致：</p>
 
             <table>
                 <thead>
-                    <tr><th>指令示例</th><th>旧系统效果</th><th>新版系统效果</th></tr>
+                    <tr><th>指令示例</th><th>效果</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td><code>[10%]</code></td><td>放大到 110%</td><td><strong>屏蔽</strong> — 保持 100%</td></tr>
-                    <tr><td><code>[-20%]</code></td><td>缩小到 80%</td><td><strong>屏蔽</strong> — 保持 100%</td></tr>
-                    <tr><td><code>[30%]</code></td><td>放大到 130%</td><td><strong>屏蔽</strong> — 保持 100%</td></tr>
-                    <tr><td><code>[0%]</code></td><td>保持 100%</td><td><strong>屏蔽</strong> — 保持 100%</td></tr>
+                    <tr><td><code>[10%]</code></td><td>放大到 110%</td></tr>
+                    <tr><td><code>[-20%]</code></td><td>缩小到 80%</td></tr>
+                    <tr><td><code>[30%]</code></td><td>放大到 130%</td></tr>
+                    <tr><td><code>[0%]</code></td><td>保持 100%（基准大小）</td></tr>
                 </tbody>
             </table>
 
-            <p>如需在新版立绘中调整大小，请使用 <code>CHAR_DIFF_CONFIG</code> 中的 <code>z</code> 参数（基准大小），或通过 <code>CHAR_PATH_MAP</code> 配置不同尺寸的资源文件。</p>
+            <p>百分比缩放的计算公式：<code>scale = 1 + (百分比值 / 100)</code>。正值为放大，负值为缩小。</p>
+
+            <div class="warning-box">
+                <strong>注意</strong>：百分比缩放是在 <code>CHAR_DIFF_CONFIG</code> 中的 <code>z</code> 参数（基准大小）基础上的额外缩放。如需调整立绘基础大小，仍建议优先使用 <code>z</code> 参数。
+            </div>
 
             <h3>6.3 包含缩放效果的动画</h3>
-            <p>以下三个涉及 <code>scale</code> 变换的动画在解析时被过滤，<code>actionType</code> 保持 <code>null</code>，动画不会被执行：</p>
+            <p>以下三个动作关键词在新版立绘中<strong>完整支持</strong>，缩放效果由 <code>updateLayeredCharScale</code> 处理，确保身体层和表情层同步缩放：</p>
 
             <table>
                 <thead>
-                    <tr><th>指令</th><th>中文/英文</th><th>屏蔽原因</th></tr>
+                    <tr><th>中文</th><th>英文</th><th>效果</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td><code>后退</code> / <code>retreat</code></td><td>retreat</td><td>涉及缩放 -10%</td></tr>
-                    <tr><td><code>前进</code> / <code>forward</code></td><td>forward</td><td>涉及缩放 +10%</td></tr>
-                    <tr><td><code>吓一跳</code> / <code>scare</code></td><td>scare</td><td>涉及缩放 ±7% 循环</td></tr>
+                    <tr><td><code>后退</code></td><td><code>retreat</code></td><td>Y轴向上偏移 +10%，缩放 -10%，层级变为「后」</td></tr>
+                    <tr><td><code>前进</code></td><td><code>forward</code></td><td>Y轴向下偏移 -10%，缩放 +10%，层级变为「前」</td></tr>
+                    <tr><td><code>吓一跳</code></td><td><code>scare</code></td><td>缩放 ±7% 循环抖动</td></tr>
                 </tbody>
             </table>
 
-            <h3>6.4 不受影响的动画</h3>
-            <p>以下不包含缩放效果的动画在新版立绘中<strong>正常可用</strong>：</p>
+            <h3>6.4 其他可用动画</h3>
+            <p>以下不包含缩放效果的动画在新版立绘中也<strong>正常可用</strong>：</p>
 
             <table>
                 <thead>
@@ -486,23 +490,18 @@ window.CHAR_DIFF_OFFSET = { ... };
                 </tbody>
             </table>
 
-            <h3>6.5 写入被屏蔽内容的行为</h3>
-            <p>如果你在剧本中编写了被屏蔽的修饰词（例如 <code>[角色A 中 正面 服装1 表情101 10% 后退]</code>），新版立绘系统会：</p>
-
-            <ol>
-                <li><strong>安全过滤</strong>：百分比 <code>10%</code> 会被忽略，立绘保持原始大小</li>
-                <li><strong>跳过动画</strong>：<code>后退</code> 动作不会被执行，立绘不产生位置/缩放变化</li>
-                <li><strong>正常渲染</strong>：其余修饰词（位置 <code>中</code>、方位 <code>正面</code>、服装 <code>服装1</code>、表情 <code>表情101</code>）照常生效</li>
-                <li><strong>控制台日志</strong>：在浏览器开发者工具的控制台中会看到类似以下的日志输出：</li>
-            </ol>
+            <h3>6.5 使用示例</h3>
+            <p>在新版立绘中混合使用缩放和动作：</p>
 
             <div class="code-block">
-<pre>[CharDiffParser] [新版屏蔽] 百分比缩放指令已过滤: <span class="code-string">'10%'</span> -> 强制保持 100% (scale=1)
-[CharDiffParser] [新版屏蔽] 包含缩放效果的动画已过滤: <span class="code-string">'后退'</span> (retreat)</pre>
+<pre>chars=<span class="code-string">"[角色A 中 正面 服装1 表情101 30%]"</span>          <span class="code-comment">// 放大到 130%</span>
+chars=<span class="code-string">"[角色A 中 正面 服装1 表情101 -15% 发抖]"</span>      <span class="code-comment">// 缩小到 85% + 发抖</span>
+chars=<span class="code-string">"[角色A 左 正面 服装1 表情101 后退]"</span>            <span class="code-comment">// 后退动作（含 -10% 缩放）</span>
+chars=<span class="code-string">"[角色A 中 正面 服装1 表情101 20% 前进]"</span>        <span class="code-comment">// 先缩放 120%，再前进 +10%</span></pre>
             </div>
 
-            <div class="tip-box">
-                <strong>无需修改现有剧本</strong>：如果你或他人习惯在指令中添加缩放修饰词，无需逐一排查。所有被屏蔽的修饰词均会被引擎自动安全处理，不会导致渲染异常或脚本错误。
+            <div class="warning-box">
+                <strong>注意</strong>：当同时指定百分比缩放和含缩放的动作时，两者的缩放效果会<strong>叠加</strong>。例如 <code>[20% 后退]</code> = 先放大到 120%，再后退缩小 -10% → 最终约 108%。
             </div>
 
         </main>
