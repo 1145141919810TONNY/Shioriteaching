@@ -1,4 +1,4 @@
-﻿/* Shiori教学网页的css基础模板来源于https://1145141919810tonny.github.io/sgsmoniqi/
+/* Shiori教学网页的css基础模板来源于https://1145141919810tonny.github.io/sgsmoniqi/
 由于使用的模板项目是《三国杀模拟器》，因此在css中可能还存在着一些残留，使用时已尽量清除
 css模板来源版权署名 Copyright © 2025-2026 bilibili 月が綺麗づすね_
 MIT License*/
@@ -127,6 +127,20 @@ footer {
 	grid-column: 1 / -1;
 	text-align: center;
 	width: 100%;
+}
+
+.footer-copyright a {
+	color: #ADD8E6;
+	text-decoration: none;
+	transition: color 0.3s;
+}
+
+.footer-copyright a:visited {
+	color: #ADD8E6;
+}
+
+.footer-copyright a:hover {
+	color: #ffd700;
 }
 
 .footer-meta {
