@@ -179,12 +179,57 @@
         <div class="nav-buttons">
             <a href="../index.html" class="nav-button">返回主页</a>
             <a href="dictionary.html" class="nav-button">管理器词典</a>
+            <a href="override-dictionary.html" class="nav-button">专用读音词库</a>
         </div>
     </section>
 
         <!-- 最新版本 -->
         <div class="accordion active">
-            <button class="accordion-header">最新版本内容 — V1.0.4 + 校验器 V1.0.0</button>
+            <button class="accordion-header">最新版本内容 — V1.0.5</button>
+            <div class="accordion-content">
+                <div class="version-block">
+                    <h3>管理器 V1.0.5 <span class="version-date">(2026/8/13)</span></h3>
+                    <strong>新功能：专用读音词库</strong>
+                    <ul>
+                        <li>新增<code>GameReadingOverride</code>专用词库，为日文游戏名提供精确的假名读音映射，优先级高于 Kawazu 形态素分析</li>
+                        <li>词库命中时直接使用词库假名进行排序，无需经过 Kawazu 或回退词典，确保读音准确性</li>
+                        <li>收录原则：仅收录首字符为 CJK 表意文字或假名的日文游戏名（含日厂中文译名），按厂商/系列分组维护</li>
+                        <li>词条的内容会将符号等特殊字符忽略，仅保留游戏名的假名读音，以及会把片假名转换为平假名，还有把一些中文翻译转换为日语假名等，比如在词库中为：</li>
+                        <ul>
+                            <li>"少女神域∽少女天獄" = "しょうじょしんいきしょうじょてんごく"</li>
+                            <li>"夏空カナタ" = "なつぞらかなた"</li>
+                            <li>"愛上火车" = "まいてつ"</li>
+                        </ul>
+                        <li>词库的内容为手动维护，可能会存在错误或不完整游戏名的读音映射。详情请参考<a href="override-dictionary.html" style="color: #d32f2f; text-decoration: none; font-weight: bold;">此页面</a>，目前仅收录了114条词条。</li>
+                    </ul>
+                    <strong>新功能：重命名与语言选择</strong>
+                    <ul>
+                        <li>重命名弹窗新增排序语言选择（中/日/英），必选项，默认为日语</li>
+                        <li>重命名后语言自动锁定，主菜单的语言切换按钮将禁用并提示「请在重命名弹窗中修改」</li>
+                        <li>重命名后游戏在列表中显示自定义名称，排序按所选语言走对应路径</li>
+                        <li>输入名称时会自动匹配专用词库内容，从游戏名与假名读音两个维度进行包含匹配，最多返回 8 条候选建议，方便快速定位正确读音</li>
+                    </ul>
+                    <strong>新功能：文件格式检测工具</strong>
+                    <ul>
+                        <li>工具栏新增「文件格式检测」按钮（位于「打开校验器」之后），点击弹出独立检测窗口</li>
+                        <li>通过分析二进制文件头（Magic Number）识别文件真实格式，支持压缩格式（ZIP/RAR/7Z/GZIP 等）、多媒体格式（PNG/JPEG/MP3/MP4 等）、文档格式（PDF/DOCX/XML 等）及游戏资源格式（XP3/Unity/KiriKiri 等）</li>
+                        <li>仅读取文件头部 128 字节，不修改原始文件</li>
+                        <li>对未知格式进行熵值分析，高熵文件提示可能为加密文件</li>
+                        <li>注意：检测结果仅供参考、仅能检测未加密文件、建议使用专用工具进一步分析等</li>
+                    </ul>
+                    <strong>优化：五十音排序</strong>
+                    <ul>
+                        <li>优化假名排序逻辑，正确处理拗音（如きゃ/しゅ/ちょ等）与促音的组合假名排序</li>
+                        <li>词库未命中时，日语侧统一走 Kawazu 整名转假名（含拗音/促音正确处理），仅在 Kawazu 初始化失败时回退到逐字符比较</li>
+                        <li>新增<code>CompareKanaStrings</code>方法，按五十音顺序逐字符比较假名字符串，支持识别 2 字符拗音组合</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- V1.0.4 -->
+        <div class="accordion">
+            <button class="accordion-header">V1.0.4 + 校验器 V1.0.0</button>
             <div class="accordion-content">
                 <div class="version-block">
                     <h3>管理器 V1.0.4 <span class="version-date">(2026/7/6)</span></h3>
