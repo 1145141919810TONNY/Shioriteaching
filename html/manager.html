@@ -183,9 +183,59 @@
         </div>
     </section>
 
-        <!-- 最新版本 -->
+        <!-- 最新版本 V1.0.6 -->
         <div class="accordion active">
-            <button class="accordion-header">最新版本内容 — V1.0.5</button>
+            <button class="accordion-header">最新版本内容 — V1.0.6</button>
+            <div class="accordion-content">
+                <div class="version-block">
+                    <h3>管理器 V1.0.6 <span class="version-date">(2026/8/17)</span></h3>
+                    <strong>新功能：月幕数据说明</strong>
+                    <ul>
+                        <li>底部「安装LEGUI」按钮组新增「月幕数据说明」按钮</li>
+                        <li>月幕游戏数据来源为月幕 Galgame 在 GitHub 公开发布的归档导出（data-export）仓库：<code><a href="https://github.com/ymgal/data-export/releases" target="_blank" rel="noopener noreferrer" style="color: #007bff;">https://github.com/ymgal/data-export/releases</a></code>，原始档案以 JSON Lines (.jsonl) 格式发布，共计31546条游戏记录</li>
+                        <li>本程序运行时不访问月幕 API，所有数据均为编译期静态嵌入</li>
+                        <li>弹窗顶部显示嵌入式数据的编译时间与收录游戏数（读取 <code>ymgal-games.json</code> 表头字段）</li>
+                        <li>协议声明：遵循 data-export 仓库自身开源协议、不修改、不重新分发月幕原始数据</li>
+                    </ul>
+                    <strong>新功能：JSON 数据排序测试弹窗</strong>
+                    <ul>
+                        <li>底部「安装LEGUI」按钮组新增「JSON数据测试」按钮，位于「月幕数据说明」按钮的左侧</li>
+                        <li>点击后弹出独立窗口，从嵌入式 <code>ymgal-games.json</code> 中随机抽取 10 条游戏记录</li>
+                        <li>弹窗含两个表格：
+                            <ul>
+                                <li><strong>乱序表</strong>（上表）：随机抽样顺序，点击「排序」按钮后走一遍 <code>HybridSortComparer</code> 排序逻辑</li>
+                                <li><strong>参考表</strong>（下表）：对同批数据用 <code>HybridSortComparer</code> 预排序，作为正确答案供对比</li>
+                            </ul>
+                        </li>
+                        <li>支持「排序」、「重新抽样」、「关闭」三个按钮，可反复验证排序与映射是否生效</li>
+                        <li>列：序号 / 游戏名 / 假名读音 / 来源（日文原名 / 中文名→日文 / extensionName / 未命中回退）</li>
+                        <li>底部状态栏显示命中/未命中数量统计</li>
+                    </ul>
+                    <strong>新功能：重命名弹窗下拉建议升级</strong>
+                    <ul>
+                        <li>输入框防抖查询现在聚合三个数据源：<strong>专用读音词库</strong>（147 条）+ <strong>月幕日文原名</strong>（约 3 万条）+ <strong>月幕中文译名</strong>（约 1.4 万条）</li>
+                        <li>每条建议显示来源徽章区分：<span style="color:#FFD700;font-weight:bold;">专用</span>（人工词库命中）、<span style="color:#4a9eff;font-weight:bold;">月幕</span>（月幕数据命中）、<span style="color:#4aff9e;font-weight:bold;">Kawazu</span>（MeCab 转换）、<span style="color:#ff6b6b;font-weight:bold;">回退</span>（逐字 KanjiReadingData）</li>
+                        <li>三库均未命中时，自动预览 Kawazu/逐字回退的降级转换结果，方便判断排序走向</li>
+                        <li>输入框新增占位提示文字，空输入时显示「输入游戏名或假名读音（专用词库 + 月幕数据）」</li>
+                        <li>无匹配时显示「无匹配建议，可继续手动输入」提示，而非直接关闭下拉</li>
+                        <li>单字符输入时月幕扫描只取少量结果（3 条/源），多字符时正常取 8 条/源，兼顾响应速度与召回率</li>
+                    </ul>
+                    <strong>词典更新：GameReadingOverride V1.0.6 新增</strong>
+                    <ul>
+                        <li>专用读音词库新增 <strong>33 条</strong>词条，涵盖 Lass、Eroge Japan、Lose、NEKO WORKs、YUZUSOFT、あざらしそふと、Leaf、Key 等厂商作品</li>
+                        <li>词库总条数由 114 条增至 147 条，详情请参考 <a href="override-dictionary.html" style="color: #d32f2f; text-decoration: none; font-weight: bold;">专用读音词库页面</a></li>
+                        <li>现在词库的收录原则新增：收录一些首字为数字或拉丁字母的游戏名，但是前提是其本身是有明确的官方日语读音，比如：</li>
+                        <ul>
+                            <li>"11eyes 罪と罰と贖いの少女" = "いれぶんあいずつみとばつとあがないのしょうじょ"</li>
+                        </ul>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- V1.0.5 -->
+        <div class="accordion">
+            <button class="accordion-header">V1.0.5</button>
             <div class="accordion-content">
                 <div class="version-block">
                     <h3>管理器 V1.0.5 <span class="version-date">(2026/8/13)</span></h3>
