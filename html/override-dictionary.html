@@ -441,9 +441,10 @@
 	<div class="content-with-sidebar">
 	<div class="accordion-container">
 		<div class="dict-intro">
-			<p>本页面收录了 Shiori manager 中 <code>GameReadingOverride</code> 专用读音词库的全部条目，共 <strong>9</strong> 行 <strong>81</strong> 组读音，覆盖 <strong>114</strong> 个游戏名。</p>
+			<p>本页面收录了 Shiori manager 中 <code>GameReadingOverride</code> 专用读音词库的全部条目，共 <strong>9</strong> 行 <strong>106</strong> 组读音，覆盖 <strong>144</strong> 个游戏名（源码 147 条，含 3 条同写法重复已合并展示）。</p>
 			<p>词库为日文游戏名提供精确的假名读音映射，优先级高于 Kawazu 形态素分析。命中时直接使用词库假名进行排序，无需经过 Kawazu 或回退词典。</p>
-			<p>收录原则：仅收录首字符为 CJK 表意文字或假名的日文游戏名（含日厂中文译名）。</p>
+			<p>收录原则：仅收录首字符为 CJK 表意文字或假名的日文游戏名（含日厂中文译名），以及一些首字为数字或拉丁字母的游戏名，但是前提是其本身是有明确的官方日语读音</p>
+			<p>V1.0.6 新增 33 条词条，涵盖 Lass、Eroge Japan、Lose、NEKO WORKs、YUZUSOFT、あざらしそふと、Leaf、Key 等厂商作品。</p>
 		</div>
 
 		<div class="search-wrapper" id="searchWrapper">
@@ -460,6 +461,10 @@
             <button class="accordion-header">あ行<span class="kanji-count">（18条）</span></button>
             <div class="accordion-content">
                 <div class="dictionary-section">
+                    <div class="reading-group">
+                        <span class="reading-label">あいかでいくの</span>
+                        <span class="reading-kanji"><span class="game-item">愛佳でいくの!! ～Leaf Amusement Soft Vol.5～</span></span>
+                    </div>
                     <div class="reading-group">
                         <span class="reading-label">あいよくのゆーすてぃあ</span>
                         <span class="reading-kanji"><span class="game-item">穢翼のユースティア</span></span>
@@ -481,8 +486,20 @@
                         <span class="reading-kanji"><span class="game-item">妖人 -あやかしびと-</span></span>
                     </div>
                     <div class="reading-group">
+                        <span class="reading-label">いのなかわでいこう</span>
+                        <span class="reading-kanji"><span class="game-item">猪名川でいこう!!</span></span>
+                    </div>
+                    <div class="reading-group">
                         <span class="reading-label">いちごばたけのうえで</span>
                         <span class="reading-kanji"><span class="game-item">苺畑の上で</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">いれぶんあいず</span>
+                        <span class="reading-kanji"><span class="game-item">11eyes CrossOver</span><span class="game-item">11eyes -Resona Forma-</span><span class="game-item">11eyes After</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">いれぶんあいずつみとばつとあがないのしょうじょ</span>
+                        <span class="reading-kanji"><span class="game-item">11eyes 罪と罰と贖いの少女</span></span>
                     </div>
                     <div class="reading-group">
                         <span class="reading-label">うつろのしょうじょ</span>
@@ -499,6 +516,10 @@
                     <div class="reading-group">
                         <span class="reading-label">おうごんのらいしん</span>
                         <span class="reading-kanji"><span class="game-item">黄金の雷霆</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">おさななじみのいるくらし</span>
+                        <span class="reading-kanji"><span class="game-item">幼馴染のいる暮らし</span></span>
                     </div>
                     <div class="reading-group">
                         <span class="reading-label">おとめはおねえさまにこいしてる</span>
@@ -518,7 +539,7 @@
 
         <!-- か行 -->
         <div class="accordion">
-            <button class="accordion-header">か行<span class="kanji-count">（16条）</span></button>
+            <button class="accordion-header">か行<span class="kanji-count">（17条）</span></button>
             <div class="accordion-content">
                 <div class="dictionary-section">
                     <div class="reading-group">
@@ -536,6 +557,10 @@
                     <div class="reading-group">
                         <span class="reading-label">きこくがい</span>
                         <span class="reading-kanji"><span class="game-item">鬼哭街</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">きみがよぶめぎどのおかで</span>
+                        <span class="reading-kanji"><span class="game-item">君が呼ぶ、メギドの丘で</span></span>
                     </div>
                     <div class="reading-group">
                         <span class="reading-label">きちくおうらんす</span>
@@ -558,8 +583,16 @@
                         <span class="reading-kanji"><span class="game-item">銀色、遥か</span></span>
                     </div>
                     <div class="reading-group">
+                        <span class="reading-label">くさり</span>
+                        <span class="reading-kanji"><span class="game-item">鎖</span></span>
+                    </div>
+                    <div class="reading-group">
                         <span class="reading-label">くれない</span>
                         <span class="reading-kanji"><span class="game-item">紅</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">こうさいとし</span>
+                        <span class="reading-kanji"><span class="game-item">虹彩都市</span></span>
                     </div>
                     <div class="reading-group">
                         <span class="reading-label">こいとせんきょとちょこれーと</span>
@@ -573,13 +606,17 @@
                         <span class="reading-label">こどものりょうぶん</span>
                         <span class="reading-kanji"><span class="game-item">子供の領分</span></span>
                     </div>
+                    <div class="reading-group">
+                        <span class="reading-label">こん</span>
+                        <span class="reading-kanji"><span class="game-item">痕</span></span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- さ行 -->
         <div class="accordion">
-            <button class="accordion-header">さ行<span class="kanji-count">（30条）</span></button>
+            <button class="accordion-header">さ行<span class="kanji-count">（27条）</span></button>
             <div class="accordion-content">
                 <div class="dictionary-section">
                     <div class="reading-group">
@@ -607,6 +644,10 @@
                         <span class="reading-kanji"><span class="game-item">死神のテスタメント</span><span class="game-item">死神のテスタメント 新装版</span></span>
                     </div>
                     <div class="reading-group">
+                        <span class="reading-label">しずく</span>
+                        <span class="reading-kanji"><span class="game-item">雫</span></span>
+                    </div>
+                    <div class="reading-group">
                         <span class="reading-label">しんけんでわたしにこいしなさい</span>
                         <span class="reading-kanji"><span class="game-item">真剣で私に恋しなさい!</span><span class="game-item">真剣で私に恋しなさい! A-1</span><span class="game-item">真剣で私に恋しなさい! A-2</span><span class="game-item">真剣で私に恋しなさい! A-3</span><span class="game-item">真剣で私に恋しなさい! A-4</span><span class="game-item">真剣で私に恋しなさい! A-5</span><span class="game-item">真剣で私に恋しなさい! S</span><span class="game-item">真剣で私に恋しなさい! M</span></span>
                     </div>
@@ -621,6 +662,38 @@
                     <div class="reading-group">
                         <span class="reading-label">しょうじょしんいきしょうじょてんごく</span>
                         <span class="reading-kanji"><span class="game-item">少女神域∽少女天獄</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうがくいん</span>
+                        <span class="reading-kanji"><span class="game-item">女装学院</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうかいきょう</span>
+                        <span class="reading-kanji"><span class="game-item">女装海峡</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうさんみゃく</span>
+                        <span class="reading-kanji"><span class="game-item">女装山脉</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうしんわ</span>
+                        <span class="reading-kanji"><span class="game-item">女装神话</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうじんじゃ</span>
+                        <span class="reading-kanji"><span class="game-item">女装神社</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうそうせいき</span>
+                        <span class="reading-kanji"><span class="game-item">女装创世纪</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうゆりばたけ</span>
+                        <span class="reading-kanji"><span class="game-item">女装百合畑</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうゆりまらし</span>
+                        <span class="reading-kanji"><span class="game-item">女装百合葻</span> <span style="color:#888;font-size:0.85em;">（即将发售）</span></span>
                     </div>
                     <div class="reading-group">
                         <span class="reading-label">じんがいまきょう</span>
@@ -660,9 +733,13 @@
 
         <!-- た行 -->
         <div class="accordion">
-            <button class="accordion-header">た行<span class="kanji-count">（23条）</span></button>
+            <button class="accordion-header">た行<span class="kanji-count">（21条）</span></button>
             <div class="accordion-content">
                 <div class="dictionary-section">
+                    <div class="reading-group">
+                        <span class="reading-label">たそがれ</span>
+                        <span class="reading-kanji"><span class="game-item">誰彼</span></span>
+                    </div>
                     <div class="reading-group">
                         <span class="reading-label">たそがれのしぇいぷしふたー</span>
                         <span class="reading-kanji"><span class="game-item">誰ソ彼のシェイプシフター</span></span>
@@ -724,6 +801,14 @@
                         <span class="reading-kanji"><span class="game-item">天ノ少女</span></span>
                     </div>
                     <div class="reading-group">
+                        <span class="reading-label">としうえかのじょ</span>
+                        <span class="reading-kanji"><span class="game-item">年上彼女</span><span class="game-item">年上彼女2</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">とししたかのじょ</span>
+                        <span class="reading-kanji"><span class="game-item">年下彼女</span></span>
+                    </div>
+                    <div class="reading-group">
                         <span class="reading-label">ともよあふたー</span>
                         <span class="reading-kanji"><span class="game-item">智代アフター ～It's a Wonderful Life～</span></span>
                     </div>
@@ -741,7 +826,7 @@
 
         <!-- な行 -->
         <div class="accordion">
-            <button class="accordion-header">な行<span class="kanji-count">（6条）</span></button>
+            <button class="accordion-header">な行<span class="kanji-count">（4条）</span></button>
             <div class="accordion-content">
                 <div class="dictionary-section">
                     <div class="reading-group">
@@ -756,13 +841,17 @@
                         <span class="reading-label">ねこにんえくすはーと</span>
                         <span class="reading-kanji"><span class="game-item">猫忍えくすはーと</span><span class="game-item">猫忍えくすはーと PLUS あまね</span><span class="game-item">猫忍えくすはーと2</span><span class="game-item">猫忍えくすはーと3</span></span>
                     </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ねこぱら</span>
+                        <span class="reading-kanji"><span class="game-item">NEKOPARA vol.1</span><span class="game-item">NEKOPARA vol.2</span><span class="game-item">NEKOPARA vol.3</span><span class="game-item">NEKOPARA vol.4</span><span class="game-item">NEKOPARA After</span><span class="game-item">NEKOPARA Extra</span></span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- は行 -->
         <div class="accordion">
-            <button class="accordion-header">は行<span class="kanji-count">（10条）</span></button>
+            <button class="accordion-header">は行<span class="kanji-count">（9条）</span></button>
             <div class="accordion-content">
                 <div class="dictionary-section">
                     <div class="reading-group">
@@ -790,6 +879,10 @@
                         <span class="reading-kanji"><span class="game-item">星織ユメミライ</span></span>
                     </div>
                     <div class="reading-group">
+                        <span class="reading-label">ほしのおうじくん</span>
+                        <span class="reading-kanji"><span class="game-item">星の王子くん</span></span>
+                    </div>
+                    <div class="reading-group">
                         <span class="reading-label">ほしのおとさんくちゅあり</span>
                         <span class="reading-kanji"><span class="game-item">星ノ音サンクチュアリ</span></span>
                     </div>
@@ -803,7 +896,7 @@
 
         <!-- ま行 -->
         <div class="accordion">
-            <button class="accordion-header">ま行<span class="kanji-count">（7条）</span></button>
+            <button class="accordion-header">ま行<span class="kanji-count">（6条）</span></button>
             <div class="accordion-content">
                 <div class="dictionary-section">
                     <div class="reading-group">
@@ -825,6 +918,10 @@
                     <div class="reading-group">
                         <span class="reading-label">まよえるふたりとせかいのすべて</span>
                         <span class="reading-kanji"><span class="game-item">迷える２人とセカイのすべて</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ものへの</span>
+                        <span class="reading-kanji"><span class="game-item">茂伸奇谈</span></span>
                     </div>
                 </div>
             </div>
@@ -852,6 +949,10 @@
             <button class="accordion-header">ら行<span class="kanji-count">（2条）</span></button>
             <div class="accordion-content">
                 <div class="dictionary-section">
+                    <div class="reading-group">
+                        <span class="reading-label">らぃむらいとれもねーどじゃむ</span>
+                        <span class="reading-kanji"><span class="game-item">橘光柠水随想曲</span></span>
+                    </div>
                     <div class="reading-group">
                         <span class="reading-label">れんあいぜろきろめーとる</span>
                         <span class="reading-kanji"><span class="game-item">恋愛0キロメートル</span><span class="game-item">恋愛0キロメートル ミニファンディスク</span></span>
