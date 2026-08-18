@@ -93,14 +93,14 @@ chars=<span class="code-string">"[角色B 右 lh12345], [角色A 中 正面 服�
 
             <h3>基本语法</h3>
             <div class="code-block">
-<pre>chars=<span class="code-string">"[&lt;角色标识&gt; &lt;方位&gt; &lt;服装标识&gt; &lt;表情标识&gt; &lt;可选修饰词...&gt;]"</span></pre>
+<pre>chars=<span class="code-string">"[&lt;角色标识&gt; &lt;可选修饰词...&gt;&lt;方位&gt; &lt;服装标识&gt; &lt;表情标识&gt; ]"</span></pre>
             </div>
             <ul>
                 <li><code>&lt;角色标识&gt;</code>：必须在 <code>CHAR_DIFF_CONFIG</code> 中配置，且必须紧跟在 <code>[</code> 右边（无空格）。</li>
                 <li><code>&lt;方位&gt;</code>：决定使用哪一组 dress/face 配置，如 <code>正面</code>、<code>侧面</code>、<code>左侧面</code> 等。此名称<strong>完全由你在配置中自定义</strong>。</li>
                 <li><code>&lt;服装标识&gt;</code>：对应配置中 <code>dress</code> 数组内某个对象的 <code>id</code>。</li>
                 <li><code>&lt;表情标识&gt;</code>：对应配置中 <code>face</code> 数组内某个对象的 <code>id</code>。</li>
-                <li><code>&lt;可选修饰词&gt;</code>：位置、动作、渐变、亮度等（详见旧系统文档 <code>illustration.md</code>）。</li>
+                <li><code>&lt;可选修饰词&gt;</code>：位置、动作、渐变、亮度等（详见旧系统文档 <code>illustration.md</code>）。修饰词必须在标识与方位之间，否则引擎将无法渲染。</li>
             </ul>
 
             <div class="tip-box">
