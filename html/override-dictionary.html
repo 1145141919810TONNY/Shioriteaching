@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>专用读音词库</title>
+	<link rel="stylesheet" href="../style.css">
+	<link rel="icon" type="image/png" href="../icon/ico16.ico">
+	<style>
+		/* 侧边栏 */
+		#kana-sidebar {
+			position: fixed;
+			left: 14px;
+			top: 50%;
+			transform: translateY(-50%);
+			width: 56px;
+			max-height: 85vh;
+			background: linear-gradient(to bottom, #8B0000, #5A0000);
+			border-radius: 12px;
+			box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+			z-index: 1000;
+			overflow-y: auto;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			padding: 12px 0;
+		}
+
+		#kana-sidebar::-webkit-scrollbar { width: 0; }
+
+		#kana-sidebar ul {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+
+		#kana-sidebar ul::before {
+			content: "";
+			position: absolute;
+			left: 50%;
+			top: 10px;
+			bottom: 10px;
+			width: 2px;
+			background: rgba(255,215,0,0.6);
+			z-index: 0;
+		}
+
+		#kana-sidebar li {
+			cursor: pointer;
+			position: relative;
+			z-index: 1;
+			padding: 6px 0;
+		}
+
+		#kana-sidebar li .kana-label {
+			display: inline-block;
+			background: #8B0000;
+			color: rgba(255,215,0,0.7);
+			font-size: 13px;
+			font-weight: bold;
+			padding: 3px 8px;
+			border-radius: 6px;
+			transition: all 0.25s;
+			min-width: 32px;
+			text-align: center;
+		}
+
+		#kana-sidebar li.active .kana-label {
+			color: #fff;
+			background: #c41a00;
+			box-shadow: 0 0 10px rgba(255,215,0,0.6);
+			transform: scale(1.1);
+		}
+
+		#kana-sidebar li .kana-label:hover {
+			color: #ffd700;
+			background: #a01000;
+		}
+
+		.content-with-sidebar {
+			margin-left: 86px;
+		}
+
+		.accordion-container {
+			max-width: 960px;
+			margin: 0 auto;
+			padding: 20px;
+			line-height: 1.6;
+			color: #333;
+		}
+
+		.accordion {
+			background: white;
+			border-radius: 8px;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+			overflow: hidden;
+			margin-bottom: 16px;
+		}
+
+		.accordion-header {
+			padding: 14px 20px;
+			background-color: #8e0e00;
+			color: #ffd700;
+			cursor: pointer;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			transition: background-color 0.3s;
+			border: none;
+			width: 100%;
+			text-align: left;
+			font-size: 17px;
+			font-weight: bold;
+			font-family: inherit;
+		}
+
+		.accordion-header:hover {
+			background-color: #6b0a00;
+		}
+
+		.accordion-header::after {
+			content: '−';
+			font-size: 22px;
+			transition: transform 0.3s;
+			color: #ffd700;
+			font-weight: bold;
+		}
+
+		.accordion:not(.active) .accordion-header::after {
+			content: '+';
+		}
+
+		.accordion-content {
+			max-height: 999999px;
+			overflow: hidden;
+			transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+			padding: 20px;
+		}
+
+		.accordion:not(.active) .accordion-content {
+			max-height: 0;
+			padding: 0 20px;
+		}
+
+		.kanji-count {
+			font-size: 14px;
+			font-weight: normal;
+			opacity: 0.85;
+			margin-left: 8px;
+		}
+
+		.dictionary-section {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 6px 12px;
+		}
+
+		.reading-group {
+			display: flex;
+			align-items: flex-start;
+			margin-bottom: 10px;
+			width: 100%;
+			border-bottom: 1px dashed #eee;
+			padding-bottom: 10px;
+		}
+
+		.reading-group:last-child {
+			border-bottom: none;
+			margin-bottom: 0;
+		}
+
+		.reading-label {
+			min-width: 120px;
+			max-width: 220px;
+			font-weight: bold;
+			color: #8e0e00;
+			font-size: 14px;
+			flex-shrink: 0;
+			padding-top: 1px;
+			word-break: break-all;
+		}
+
+		.reading-kanji {
+			flex: 1;
+			font-size: 16px;
+			color: #333;
+			word-break: break-all;
+			letter-spacing: 0.03em;
+			line-height: 1.8;
+		}
+
+		.reading-kanji .game-item {
+			display: inline-block;
+			background: #f8f0f0;
+			border: 1px solid #e8d0d0;
+			border-radius: 4px;
+			padding: 2px 8px;
+			margin: 2px 4px 2px 0;
+			font-size: 15px;
+		}
+
+		.dict-intro {
+			max-width: 960px;
+			margin: 0 auto 20px;
+			padding: 0 20px;
+			color: #555;
+			font-size: 14px;
+			line-height: 1.7;
+		}
+
+		.dict-intro p {
+			margin-bottom: 8px;
+		}
+
+		.search-wrapper {
+			position: relative;
+			z-index: 100;
+			background: #f5f5f5;
+		}
+
+		.search-wrapper.is-fixed .search-box {
+			position: fixed;
+			top: 0;
+			left: 50%;
+			transform: translateX(calc(-50% + 43px));
+			z-index: 999;
+			background: rgba(255, 255, 255, 0.97);
+			backdrop-filter: blur(6px);
+			-webkit-backdrop-filter: blur(6px);
+			margin: 0;
+			padding: 0 20px;
+			width: 100%;
+			max-width: 960px;
+			box-sizing: border-box;
+			box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+		}
+
+		.search-wrapper.is-fixed .search-result {
+			margin-top: 52px;
+		}
+
+		.search-box {
+			max-width: 960px;
+			margin: 0 auto 25px;
+			padding: 0 20px;
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			transition: background 0.3s, box-shadow 0.3s;
+		}
+
+		.search-box input {
+			flex: 1;
+			padding: 10px 16px;
+			border: 2px solid #ddd;
+			border-radius: 8px;
+			font-size: 16px;
+			outline: none;
+			transition: border-color 0.3s;
+		}
+
+		.search-box input:focus {
+			border-color: #8e0e00;
+		}
+
+		.search-box button {
+			padding: 10px 20px;
+			background: #8e0e00;
+			color: #ffd700;
+			border: none;
+			border-radius: 8px;
+			font-size: 15px;
+			font-weight: bold;
+			cursor: pointer;
+			transition: background 0.3s;
+		}
+
+		.search-box button:hover {
+			background: #6b0a00;
+		}
+
+		.search-result {
+			max-width: 960px;
+			margin: 0 auto 15px;
+			padding: 0 20px;
+			font-size: 14px;
+			color: #8e0e00;
+		}
+
+		.no-match {
+			color: #999;
+			text-align: center;
+			padding: 20px;
+		}
+
+		@media (max-width: 768px) {
+			#kana-sidebar {
+				width: 42px;
+				left: 4px;
+				border-radius: 8px;
+			}
+			#kana-sidebar li .kana-label {
+				font-size: 11px;
+				padding: 2px 5px;
+				min-width: 26px;
+			}
+			.content-with-sidebar {
+				margin-left: 54px;
+			}
+			.reading-label {
+				min-width: 80px;
+				max-width: 120px;
+				font-size: 12px;
+			}
+			.reading-kanji {
+				font-size: 14px;
+			}
+			.reading-kanji .game-item {
+				font-size: 13px;
+				padding: 2px 6px;
+			}
+			.accordion-header {
+				font-size: 15px;
+				padding: 12px 16px;
+			}
+			.accordion-content {
+				padding: 14px;
+			}
+			.accordion:not(.active) .accordion-content {
+				padding: 0 14px;
+			}
+			.search-wrapper.is-fixed .search-box {
+				transform: translateX(calc(-50% + 27px));
+			}
+		}
+
+		@media (max-width: 480px) {
+			.reading-label {
+				min-width: 70px;
+				max-width: 100px;
+				font-size: 11px;
+			}
+			.reading-kanji {
+				font-size: 13px;
+			}
+		}
+
+		.float-btn {
+			position: fixed;
+			right: 20px;
+			padding: 10px 20px;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			z-index: 999;
+			font-size: 14px;
+			outline: none;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+			font-weight: 600;
+			transition: background-color 0.3s, transform 0.3s;
+		}
+		.float-btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+		}
+		.float-btn:active {
+			transform: translateY(1px);
+		}
+
+		#backToTopBtn {
+			bottom: 60px;
+			background-color: #3498db;
+		}
+		#backToTopBtn:hover {
+			background-color: #2980b9;
+		}
+
+		#scrollToBottomBtn {
+			bottom: 20px;
+			background-color: #e67e22;
+		}
+		#scrollToBottomBtn:hover {
+			background-color: #d35400;
+		}
+
+		#backToTopBtn, #scrollToBottomBtn {
+			display: none;
+		}
+
+		#floatExpandBtn {
+			bottom: 140px;
+			background-color: #27ae60;
+			display: block;
+		}
+		#floatExpandBtn:hover {
+			background-color: #219a52;
+		}
+
+		#floatCollapseBtn {
+			bottom: 100px;
+			background-color: #8e44ad;
+			display: block;
+		}
+		#floatCollapseBtn:hover {
+			background-color: #7d3c98;
+		}
+	</style>
+</head>
+<body>
+	<div id="stickyHeader" class="sticky-header"></div>
+
+	<section class="hero-section">
+		<h1 class="hero-title">专用读音词库一览表</h1>
+		<div class="nav-buttons">
+			<a href="../index.html" class="nav-button">返回主页</a>
+            <a href="manager.html" class="nav-button">返回管理器更新日志</a>
+            <a href="dictionary.html" class="nav-button">管理器词典</a>
+			<button id="expandAllBtn" class="nav-button">全部展开</button>
+			<button id="collapseAllBtn" class="nav-button">全部收起</button>
+		</div>
+	</section>
+
+	<nav id="kana-sidebar">
+		<ul id="kana-list">
+			<li data-target="accordion-0"><span class="kana-label">あ</span></li>
+			<li data-target="accordion-1"><span class="kana-label">か</span></li>
+			<li data-target="accordion-2"><span class="kana-label">さ</span></li>
+			<li data-target="accordion-3"><span class="kana-label">た</span></li>
+			<li data-target="accordion-4"><span class="kana-label">な</span></li>
+			<li data-target="accordion-5"><span class="kana-label">は</span></li>
+			<li data-target="accordion-6"><span class="kana-label">ま</span></li>
+			<li data-target="accordion-7"><span class="kana-label">や</span></li>
+			<li data-target="accordion-8"><span class="kana-label">ら</span></li>
+		</ul>
+	</nav>
+
+	<div class="content-with-sidebar">
+	<div class="accordion-container">
+		<div class="dict-intro">
+			<p>本页面收录了 Shiori manager 中 <code>GameReadingOverride</code> 专用读音词库的全部条目，共 <strong>9</strong> 行 <strong>106</strong> 组读音，覆盖 <strong>144</strong> 个游戏名（源码 147 条，含 3 条同写法重复已合并展示）。</p>
+			<p>词库为日文游戏名提供精确的假名读音映射，优先级高于 Kawazu 形态素分析。命中时直接使用词库假名进行排序，无需经过 Kawazu 或回退词典。</p>
+			<p>收录原则：仅收录首字符为 CJK 表意文字或假名的日文游戏名（含日厂中文译名），以及一些首字为数字或拉丁字母的游戏名，但是前提是其本身是有明确的官方日语读音</p>
+			<p>V1.0.6 新增 33 条词条，涵盖 Lass、Eroge Japan、Lose、NEKO WORKs、YUZUSOFT、あざらしそふと、Leaf、Key 等厂商作品。</p>
+		</div>
+
+		<div class="search-wrapper" id="searchWrapper">
+			<div class="search-box">
+				<input type="text" id="searchInput" placeholder="搜索游戏名（如：月姫）或读音（如：つきひめ）..." />
+				<button id="searchBtn">搜索</button>
+				<button id="clearSearchBtn" style="background:#555;">清除</button>
+			</div>
+			<div class="search-result" id="searchResult"></div>
+		</div>
+
+        <!-- あ行 -->
+        <div class="accordion">
+            <button class="accordion-header">あ行<span class="kanji-count">（18条）</span></button>
+            <div class="accordion-content">
+                <div class="dictionary-section">
+                    <div class="reading-group">
+                        <span class="reading-label">あいかでいくの</span>
+                        <span class="reading-kanji"><span class="game-item">愛佳でいくの!! ～Leaf Amusement Soft Vol.5～</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">あいよくのゆーすてぃあ</span>
+                        <span class="reading-kanji"><span class="game-item">穢翼のユースティア</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">あかつきのごえい</span>
+                        <span class="reading-kanji"><span class="game-item">暁の護衛</span><span class="game-item">暁の護衛 ～プリンシパルたちの休日～</span><span class="game-item">暁の護衛 ～罪深き終末論～</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">あおのかなたのふぉーりずむ</span>
+                        <span class="reading-kanji"><span class="game-item">蒼の彼方のフォーリズム</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">あおとそうのしずく</span>
+                        <span class="reading-kanji"><span class="game-item">青と蒼のしずく</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">あやかしびと</span>
+                        <span class="reading-kanji"><span class="game-item">妖人 -あやかしびと-</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">いのなかわでいこう</span>
+                        <span class="reading-kanji"><span class="game-item">猪名川でいこう!!</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">いちごばたけのうえで</span>
+                        <span class="reading-kanji"><span class="game-item">苺畑の上で</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">いれぶんあいず</span>
+                        <span class="reading-kanji"><span class="game-item">11eyes CrossOver</span><span class="game-item">11eyes -Resona Forma-</span><span class="game-item">11eyes After</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">いれぶんあいずつみとばつとあがないのしょうじょ</span>
+                        <span class="reading-kanji"><span class="game-item">11eyes 罪と罰と贖いの少女</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">うつろのしょうじょ</span>
+                        <span class="reading-kanji"><span class="game-item">虚ノ少女</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">えにしのそら</span>
+                        <span class="reading-kanji"><span class="game-item">縁の空</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">おうぞく</span>
+                        <span class="reading-kanji"><span class="game-item">王賊</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">おうごんのらいしん</span>
+                        <span class="reading-kanji"><span class="game-item">黄金の雷霆</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">おさななじみのいるくらし</span>
+                        <span class="reading-kanji"><span class="game-item">幼馴染のいる暮らし</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">おとめはおねえさまにこいしてる</span>
+                        <span class="reading-kanji"><span class="game-item">乙女はお姉さまに恋してる</span><span class="game-item">乙女はお姉さまに恋してる 2人のエルダー</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">おとめりろんとそのしゅうへん</span>
+                        <span class="reading-kanji"><span class="game-item">乙女理論とその周辺</span><span class="game-item">乙女理論とその後の周辺</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">おもいでのかなた</span>
+                        <span class="reading-kanji"><span class="game-item">想い出の彼方</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- か行 -->
+        <div class="accordion">
+            <button class="accordion-header">か行<span class="kanji-count">（17条）</span></button>
+            <div class="accordion-content">
+                <div class="dictionary-section">
+                    <div class="reading-group">
+                        <span class="reading-label">かないもうと</span>
+                        <span class="reading-kanji"><span class="game-item">加奈～いもうと～</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">からのしょうじょ</span>
+                        <span class="reading-kanji"><span class="game-item">殻ノ少女</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">かんどりあるけみーますたー</span>
+                        <span class="reading-kanji"><span class="game-item">神採りアルケミーマイスター</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">きこくがい</span>
+                        <span class="reading-kanji"><span class="game-item">鬼哭街</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">きみがよぶめぎどのおかで</span>
+                        <span class="reading-kanji"><span class="game-item">君が呼ぶ、メギドの丘で</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">きちくおうらんす</span>
+                        <span class="reading-kanji"><span class="game-item">鬼畜王ランス</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">きてふれてこいをして</span>
+                        <span class="reading-kanji"><span class="game-item">来て、触れて、恋をして</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">きゅうけつきのりびるど</span>
+                        <span class="reading-kanji"><span class="game-item">吸血姫のリビルド</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">きゅうけつせんきゔぇどごにあ</span>
+                        <span class="reading-kanji"><span class="game-item">吸血殲鬼ヴェドゴニア</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ぎんいろはるか</span>
+                        <span class="reading-kanji"><span class="game-item">銀色、遥か</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">くさり</span>
+                        <span class="reading-kanji"><span class="game-item">鎖</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">くれない</span>
+                        <span class="reading-kanji"><span class="game-item">紅</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">こうさいとし</span>
+                        <span class="reading-kanji"><span class="game-item">虹彩都市</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">こいとせんきょとちょこれーと</span>
+                        <span class="reading-kanji"><span class="game-item">恋と選挙とチョコレート</span><span class="game-item">恋と選挙とチョコレート ELECTRON</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">こいひめむそう</span>
+                        <span class="reading-kanji"><span class="game-item">恋姫†無双</span><span class="game-item">恋姫†無双 ～ドキッ☆乙女だらけの三国志演義～</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">こどものりょうぶん</span>
+                        <span class="reading-kanji"><span class="game-item">子供の領分</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">こん</span>
+                        <span class="reading-kanji"><span class="game-item">痕</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- さ行 -->
+        <div class="accordion">
+            <button class="accordion-header">さ行<span class="kanji-count">（27条）</span></button>
+            <div class="accordion-content">
+                <div class="dictionary-section">
+                    <div class="reading-group">
+                        <span class="reading-label">さいはてのいま</span>
+                        <span class="reading-kanji"><span class="game-item">最果てのイマ フルボイス版</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">さのばうぃっち</span>
+                        <span class="reading-kanji"><span class="game-item">魔女的夜宴</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">さばえのおう</span>
+                        <span class="reading-kanji"><span class="game-item">蝿声の王</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">さやのうた</span>
+                        <span class="reading-kanji"><span class="game-item">沙耶の唄</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">しえいのそなーにる</span>
+                        <span class="reading-kanji"><span class="game-item">紫影のソナーニル</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">しにがみのてすためんと</span>
+                        <span class="reading-kanji"><span class="game-item">死神のテスタメント</span><span class="game-item">死神のテスタメント 新装版</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">しずく</span>
+                        <span class="reading-kanji"><span class="game-item">雫</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">しんけんでわたしにこいしなさい</span>
+                        <span class="reading-kanji"><span class="game-item">真剣で私に恋しなさい!</span><span class="game-item">真剣で私に恋しなさい! A-1</span><span class="game-item">真剣で私に恋しなさい! A-2</span><span class="game-item">真剣で私に恋しなさい! A-3</span><span class="game-item">真剣で私に恋しなさい! A-4</span><span class="game-item">真剣で私に恋しなさい! A-5</span><span class="game-item">真剣で私に恋しなさい! S</span><span class="game-item">真剣で私に恋しなさい! M</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">しんこいひめむそう</span>
+                        <span class="reading-kanji"><span class="game-item">真・恋姫†無双</span><span class="game-item">真・恋姫†無双 ～乙女繚乱☆三国志演義～</span><span class="game-item">真・恋姫†英雄譚</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">しゅくふくのかんぱねら</span>
+                        <span class="reading-kanji"><span class="game-item">祝福のカンパネラ</span><span class="game-item">祝福のカンパネラ ぱすてる</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">しょうじょしんいきしょうじょてんごく</span>
+                        <span class="reading-kanji"><span class="game-item">少女神域∽少女天獄</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうがくいん</span>
+                        <span class="reading-kanji"><span class="game-item">女装学院</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうかいきょう</span>
+                        <span class="reading-kanji"><span class="game-item">女装海峡</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうさんみゃく</span>
+                        <span class="reading-kanji"><span class="game-item">女装山脉</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうしんわ</span>
+                        <span class="reading-kanji"><span class="game-item">女装神话</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうじんじゃ</span>
+                        <span class="reading-kanji"><span class="game-item">女装神社</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうそうせいき</span>
+                        <span class="reading-kanji"><span class="game-item">女装创世纪</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうゆりばたけ</span>
+                        <span class="reading-kanji"><span class="game-item">女装百合畑</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じょうそうゆりまらし</span>
+                        <span class="reading-kanji"><span class="game-item">女装百合葻</span> <span style="color:#888;font-size:0.85em;">（即将发售）</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">じんがいまきょう</span>
+                        <span class="reading-kanji"><span class="game-item">塵骸魔京</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">すばらしきひび</span>
+                        <span class="reading-kanji"><span class="game-item">素晴らしき日々</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">せんごくらんす</span>
+                        <span class="reading-kanji"><span class="game-item">戦国ランス</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">せんのじんとうとうかぞめのこうき</span>
+                        <span class="reading-kanji"><span class="game-item">千の刃濤、桃花染の皇姫</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">せんれんまんか</span>
+                        <span class="reading-kanji"><span class="game-item">千恋＊万花</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">せんめがみ</span>
+                        <span class="reading-kanji"><span class="game-item">戦女神</span><span class="game-item">戦女神ヴァルティニア</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">そうこうあっきむらまさ</span>
+                        <span class="reading-kanji"><span class="game-item">装甲悪鬼村正</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">そうこくのあてりあ</span>
+                        <span class="reading-kanji"><span class="game-item">創刻のアテリア</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- た行 -->
+        <div class="accordion">
+            <button class="accordion-header">た行<span class="kanji-count">（21条）</span></button>
+            <div class="accordion-content">
+                <div class="dictionary-section">
+                    <div class="reading-group">
+                        <span class="reading-label">たそがれ</span>
+                        <span class="reading-kanji"><span class="game-item">誰彼</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">たそがれのしぇいぷしふたー</span>
+                        <span class="reading-kanji"><span class="game-item">誰ソ彼のシェイプシフター</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">たんしょくかれし</span>
+                        <span class="reading-kanji"><span class="game-item">単色カレシ</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">だいあくす</span>
+                        <span class="reading-kanji"><span class="game-item">大悪司</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">だいとしょかんのひつじかい</span>
+                        <span class="reading-kanji"><span class="game-item">大図書館の羊飼い</span><span class="game-item">大図書館の羊飼い ～放課後しっぽデイズ～</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ちょうこうしんきえくしーる</span>
+                        <span class="reading-kanji"><span class="game-item">超昂神騎エクシール</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ちょうこうせんにんはるか</span>
+                        <span class="reading-kanji"><span class="game-item">超昂閃忍ハルカ</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ちょうこうてんしえすかれいやー</span>
+                        <span class="reading-kanji"><span class="game-item">超昂天使エスカレイヤー</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ついのすてら</span>
+                        <span class="reading-kanji"><span class="game-item">終のステラ</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">つきひめ</span>
+                        <span class="reading-kanji"><span class="game-item">月姫</span><span class="game-item">月姫 -A Piece of Blue Glass Moon-</span><span class="game-item">月姫 -A Piece of Blue Glass Moon- 語り部編</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">つきによりそうおとめのさほう</span>
+                        <span class="reading-kanji"><span class="game-item">月に寄りそう乙女の作法</span><span class="game-item">月に寄りそう乙女の作法2</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">てむすいきゃっするまいすたー</span>
+                        <span class="reading-kanji"><span class="game-item">天結いキャッスルマイスター</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">てんしそうそう</span>
+                        <span class="reading-kanji"><span class="game-item">天使☆騒々♪ NOCTURNE</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">てんしのいないじゅうにがつ</span>
+                        <span class="reading-kanji"><span class="game-item">天使のいない十二月</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">てんじんらんまん</span>
+                        <span class="reading-kanji"><span class="game-item">天神乱蛮</span><span class="game-item">天神乱蛮 -LUCKY or UNLUCKY!?-</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">てんのしょうじょ</span>
+                        <span class="reading-kanji"><span class="game-item">天ノ少女</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">としうえかのじょ</span>
+                        <span class="reading-kanji"><span class="game-item">年上彼女</span><span class="game-item">年上彼女2</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">とししたかのじょ</span>
+                        <span class="reading-kanji"><span class="game-item">年下彼女</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ともよあふたー</span>
+                        <span class="reading-kanji"><span class="game-item">智代アフター ～It's a Wonderful Life～</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">どうきょにん</span>
+                        <span class="reading-kanji"><span class="game-item">同居人～ある二人の Idol住人～</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">どうせいあい</span>
+                        <span class="reading-kanji"><span class="game-item">同棲愛</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- な行 -->
+        <div class="accordion">
+            <button class="accordion-header">な行<span class="kanji-count">（4条）</span></button>
+            <div class="accordion-content">
+                <div class="dictionary-section">
+                    <div class="reading-group">
+                        <span class="reading-label">なつぞらかなた</span>
+                        <span class="reading-kanji"><span class="game-item">夏空カナタ</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">なつのこんせき</span>
+                        <span class="reading-kanji"><span class="game-item">夏の痕跡</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ねこにんえくすはーと</span>
+                        <span class="reading-kanji"><span class="game-item">猫忍えくすはーと</span><span class="game-item">猫忍えくすはーと PLUS あまね</span><span class="game-item">猫忍えくすはーと2</span><span class="game-item">猫忍えくすはーと3</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ねこぱら</span>
+                        <span class="reading-kanji"><span class="game-item">NEKOPARA vol.1</span><span class="game-item">NEKOPARA vol.2</span><span class="game-item">NEKOPARA vol.3</span><span class="game-item">NEKOPARA vol.4</span><span class="game-item">NEKOPARA After</span><span class="game-item">NEKOPARA Extra</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- は行 -->
+        <div class="accordion">
+            <button class="accordion-header">は行<span class="kanji-count">（9条）</span></button>
+            <div class="accordion-content">
+                <div class="dictionary-section">
+                    <div class="reading-group">
+                        <span class="reading-label">はなさきわーくすぷりんぐ</span>
+                        <span class="reading-kanji"><span class="game-item">花咲ワークスプリング！</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">はなさくおとめとこいのまどうしょ</span>
+                        <span class="reading-kanji"><span class="game-item">花咲く乙女と恋の魔導書</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">はなののにさくうたかたの</span>
+                        <span class="reading-kanji"><span class="game-item">花の野に咲くうたかたの</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">びしょうじょまんげきょう</span>
+                        <span class="reading-kanji"><span class="game-item">美少女万華鏡</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ふうかんのぐらせすた</span>
+                        <span class="reading-kanji"><span class="game-item">封緘のグラセスタ</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ほしおりゆめみらい</span>
+                        <span class="reading-kanji"><span class="game-item">星織ユメミライ</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ほしのおうじくん</span>
+                        <span class="reading-kanji"><span class="game-item">星の王子くん</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ほしのおとさんくちゅあり</span>
+                        <span class="reading-kanji"><span class="game-item">星ノ音サンクチュアリ</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ほしぞらのめもりあ</span>
+                        <span class="reading-kanji"><span class="game-item">星空のメモリア</span><span class="game-item">星空のメモリア -Wish upon a shooting star-</span><span class="game-item">星空のメモリア Eternal Heart</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ま行 -->
+        <div class="accordion">
+            <button class="accordion-header">ま行<span class="kanji-count">（6条）</span></button>
+            <div class="accordion-content">
+                <div class="dictionary-section">
+                    <div class="reading-group">
+                        <span class="reading-label">まいてつ</span>
+                        <span class="reading-kanji"><span class="game-item">愛上火车</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">まじょのこいにっき</span>
+                        <span class="reading-kanji"><span class="game-item">魔女のこいにっき</span><span class="game-item">魔女のこいにっき a loaf of bread</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">まどうこうかく</span>
+                        <span class="reading-kanji"><span class="game-item">魔導巧殻</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">まほうつかいのよる</span>
+                        <span class="reading-kanji"><span class="game-item">魔法使いの夜</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">まよえるふたりとせかいのすべて</span>
+                        <span class="reading-kanji"><span class="game-item">迷える２人とセカイのすべて</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">ものへの</span>
+                        <span class="reading-kanji"><span class="game-item">茂伸奇谈</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- や行 -->
+        <div class="accordion">
+            <button class="accordion-header">や行<span class="kanji-count">（2条）</span></button>
+            <div class="accordion-content">
+                <div class="dictionary-section">
+                    <div class="reading-group">
+                        <span class="reading-label">よあけまえよりるりいろな</span>
+                        <span class="reading-kanji"><span class="game-item">夜明け前より瑠璃色な</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">よじょうはんぷりんせす</span>
+                        <span class="reading-kanji"><span class="game-item">四畳半プリンセス</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ら行 -->
+        <div class="accordion">
+            <button class="accordion-header">ら行<span class="kanji-count">（2条）</span></button>
+            <div class="accordion-content">
+                <div class="dictionary-section">
+                    <div class="reading-group">
+                        <span class="reading-label">らぃむらいとれもねーどじゃむ</span>
+                        <span class="reading-kanji"><span class="game-item">橘光柠水随想曲</span></span>
+                    </div>
+                    <div class="reading-group">
+                        <span class="reading-label">れんあいぜろきろめーとる</span>
+                        <span class="reading-kanji"><span class="game-item">恋愛0キロメートル</span><span class="game-item">恋愛0キロメートル ミニファンディスク</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+	</div>
+	</div>
+
+	<button id="scrollToBottomBtn" class="float-btn">滚到底部</button>
+	<button id="backToTopBtn" class="float-btn">回到顶部</button>
+	<button id="floatCollapseBtn" class="float-btn">全部收起</button>
+	<button id="floatExpandBtn" class="float-btn">全部展开</button>
+
+	<footer class="site-footer">
+		<div class="footer-col">
+			<h4>开源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">引擎本体与启动器</a> · <a href="html/license_engine.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/license.txt" target="_blank">GitHub</a></p>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-editor" target="_blank">可视化编辑器</a> · <a href="html/license_editor.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/license.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>闭源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-manager" target="_blank">管理器与校检器</a></p>
+			<p><a href="html/license_manager.html" target="_blank">管理器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/license.txt" target="_blank">GitHub</a></p>
+                <p><a href="html/license_signer.html" target="_blank">校检器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/licensesigner.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>第三方开源协议</h4>
+			<p><a href="html/opensource_engine.html" target="_blank">启动器</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="html/opensource_manager.html" target="_blank">管理器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES_SIGNER.txt" target="_blank">GitHub</a> <br/>
+				<a href="html/opensource_signer.html" target="_blank">校检器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="html/opensource_editor.html" target="_blank">编辑器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a></p>
+			
+		</div>
+		<p class="footer-copyright" style="text-align:center"><a href="html/MIT_LICENSE.html" target="_blank">本网页采用 MIT License 协议</a> · <a href="https://github.com/1145141919810TONNY/Shioriteaching/blob/main/LICENSE" target="_blank">GitHub</a>，与 Shiori 其他项目协议不同，详情请参照各自的协议文件<br>
+			<a href="https://1145141919810tonny.github.io/Shioriteaching/" target="_blank">GitHub Pages 在线服务</a> · <a href="https://wakudemo.cn/games/100266" target="_blank">WakuDemo 应用商店</a>
+				&nbsp;&nbsp;&nbsp;&nbsp;联系方式：<a href="mailto:3099637681@qq.com">QQ</a> · <a href="https://space.bilibili.com/87412647" target="_blank">bilibili</a><br>
+			Copyright &copy; <span class="footer-year"></span> bilibili 月が綺麗ですね_ All Rights Reserved.</p>
+	</footer>
+	
+	<script>document.querySelectorAll('.footer-year').forEach(function(e){e.textContent=new Date().getFullYear()})</script>
+
+	<script>
+		// ===== Accordion toggle =====
+		document.querySelectorAll('.accordion-header').forEach(function(header) {
+			header.addEventListener('click', function() {
+				this.parentElement.classList.toggle('active');
+				updateSidebar();
+			});
+		});
+
+		// ===== Expand / Collapse All =====
+		var expandAllBtn = document.getElementById('expandAllBtn');
+		var collapseAllBtn = document.getElementById('collapseAllBtn');
+		var allAccordions = document.querySelectorAll('.accordion');
+
+		if (expandAllBtn) {
+			expandAllBtn.addEventListener('click', function() {
+				allAccordions.forEach(function(acc) { acc.classList.add('active'); });
+				updateSidebar();
+			});
+		}
+		if (collapseAllBtn) {
+			collapseAllBtn.addEventListener('click', function() {
+				allAccordions.forEach(function(acc) { acc.classList.remove('active'); });
+				updateSidebar();
+			});
+		}
+
+		// ===== Kana sidebar navigation =====
+		var kanaItems = document.querySelectorAll('#kana-list li');
+		kanaItems.forEach(function(item) {
+			item.addEventListener('click', function() {
+				var targetIdx = parseInt(this.getAttribute('data-target').split('-')[1]);
+				if (allAccordions[targetIdx]) {
+					allAccordions[targetIdx].classList.add('active');
+					allAccordions[targetIdx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+				}
+			});
+		});
+
+		// ===== Sidebar active highlight on scroll =====
+		function updateSidebar() {
+			var activeIdx = -1;
+			allAccordions.forEach(function(acc, i) {
+				var rect = acc.getBoundingClientRect();
+				if (rect.top <= window.innerHeight * 0.5 && acc.classList.contains('active')) {
+					activeIdx = i;
+				}
+			});
+			kanaItems.forEach(function(item) {
+				var idx = parseInt(item.getAttribute('data-target').split('-')[1]);
+				item.classList.toggle('active', idx === activeIdx);
+			});
+		}
+
+		window.addEventListener('scroll', updateSidebar);
+
+		// ===== Search =====
+		var searchInput = document.getElementById('searchInput');
+		var searchBtn = document.getElementById('searchBtn');
+		var clearSearchBtn = document.getElementById('clearSearchBtn');
+		var searchResult = document.getElementById('searchResult');
+
+		function doSearch() {
+			var query = searchInput.value.trim();
+			if (!query) { searchResult.innerHTML = ''; return; }
+
+			// Expand all to search
+			allAccordions.forEach(function(acc) { acc.classList.add('active'); });
+
+			// Gather all reading groups
+			var results = [];
+			document.querySelectorAll('.reading-group').forEach(function(group) {
+				var kanji = group.querySelector('.reading-kanji');
+				var label = group.querySelector('.reading-label');
+				if (kanji && label) {
+					var kText = kanji.textContent;
+					var lText = label.textContent;
+					if (kText.includes(query) || lText.includes(query)) {
+						var surrounding = kanji.textContent.trim().substring(0, 80);
+						results.push('<strong>' + lText.trim() + '</strong>: ' + surrounding);
+					}
+				}
+			});
+
+			if (results.length > 0) {
+				searchResult.innerHTML = '<p>找到 ' + results.length + ' 条结果：</p>' +
+					results.map(function(r) { return '<p>' + r + '</p>'; }).join('');
+			} else {
+				searchResult.innerHTML = '<p style="color:#999;">未找到匹配的游戏名或读音</p>';
+			}
+		}
+
+		if (searchBtn) {
+			searchBtn.addEventListener('click', doSearch);
+			searchInput.addEventListener('keydown', function(e) {
+				if (e.key === 'Enter') doSearch();
+			});
+		}
+		if (clearSearchBtn) {
+			clearSearchBtn.addEventListener('click', function() {
+				searchInput.value = '';
+				searchResult.innerHTML = '';
+			});
+		}
+
+		// ===== Sticky header + All float buttons =====
+		var stickyHeader = document.getElementById('stickyHeader');
+		var backToTopBtn = document.getElementById('backToTopBtn');
+		var scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+		var floatExpandBtn = document.getElementById('floatExpandBtn');
+		var floatCollapseBtn = document.getElementById('floatCollapseBtn');
+		var searchWrapper = document.getElementById('searchWrapper');
+		var searchWrapperTop = searchWrapper ? searchWrapper.offsetTop : 0;
+
+		window.addEventListener('scroll', function() {
+			// 搜索栏吸顶
+			if (searchWrapper) {
+				if (window.scrollY > searchWrapperTop) {
+					searchWrapper.classList.add('is-fixed');
+				} else {
+					searchWrapper.classList.remove('is-fixed');
+				}
+			}
+
+			var box = document.querySelector('.hero-section');
+			if (stickyHeader && box) {
+				var rect = box.getBoundingClientRect();
+				if (rect.bottom < 0) {
+					stickyHeader.style.display = 'block';
+					stickyHeader.textContent = document.title;
+				} else {
+					stickyHeader.style.display = 'none';
+				}
+			}
+
+			var nearTop = window.scrollY <= 300;
+			if (backToTopBtn) backToTopBtn.style.display = nearTop ? 'none' : 'block';
+
+			if (scrollToBottomBtn) {
+				var scrollY = window.scrollY || window.pageYOffset;
+				var docHeight = document.documentElement.scrollHeight;
+				var winHeight = window.innerHeight;
+				var pageScrollable = docHeight > winHeight + 10;
+				var atBottom = (scrollY + winHeight) >= docHeight - 50;
+				scrollToBottomBtn.style.display = (pageScrollable && !atBottom) ? 'block' : 'none';
+			}
+		});
+
+		if (backToTopBtn) {
+			backToTopBtn.addEventListener('click', function() {
+				window.scrollTo({ top: 0, behavior: 'smooth' });
+			});
+		}
+
+		if (scrollToBottomBtn) {
+			scrollToBottomBtn.addEventListener('click', function() {
+				window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+			});
+		}
+
+		if (floatExpandBtn) {
+			floatExpandBtn.addEventListener('click', function() {
+				allAccordions.forEach(function(acc) { acc.classList.add('active'); });
+				updateSidebar();
+			});
+		}
+
+		if (floatCollapseBtn) {
+			floatCollapseBtn.addEventListener('click', function() {
+				allAccordions.forEach(function(acc) { acc.classList.remove('active'); });
+				updateSidebar();
+			});
+		}
+	</script>
+</body>
+</html>
