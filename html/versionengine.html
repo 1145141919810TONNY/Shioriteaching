@@ -194,6 +194,72 @@
 			display: none;
 		}
 
+		/* 图片灯箱 */
+		.image-placeholder {
+			text-align: center;
+			margin: 30px auto;
+			padding: 20px;
+			background: rgba(255, 215, 0, 0.04);
+			border: 2px dashed #8B0000;
+			border-radius: 12px;
+			max-width: 600px;
+		}
+
+		.image-placeholder img {
+			max-width: 100%;
+			height: auto;
+			display: block;
+			margin: 0 auto;
+			border-radius: 6px;
+			cursor: pointer;
+			transition: transform 0.2s ease;
+		}
+
+		.image-placeholder img:hover {
+			transform: scale(1.02);
+		}
+
+		.lightbox-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.85);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 9999;
+			opacity: 0;
+			visibility: hidden;
+			transition: opacity 0.3s ease, visibility 0.3s ease;
+			cursor: pointer;
+		}
+
+		.lightbox-overlay.show {
+			opacity: 1;
+			visibility: visible;
+		}
+
+		.lightbox-overlay img {
+			max-width: 90vw;
+			max-height: 90vh;
+			border-radius: 8px;
+			box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+			transition: transform 0.15s ease;
+		}
+
+		.lightbox-hint {
+			position: absolute;
+			bottom: 24px;
+			left: 50%;
+			transform: translateX(-50%);
+			color: rgba(255, 255, 255, 0.5);
+			font-size: 13px;
+			pointer-events: none;
+			user-select: none;
+		}
+
 </style>
 	<body>
 		<div id="stickyHeader" class="sticky-header"></div>
@@ -277,17 +343,29 @@
 					<strong>开发中预告</strong>
 					<ul>
 						<li>目前正在开发C++版启动器，预计能够将release+debug共计约530MB大小的完整启动器体积缩小为800KB（release）与4000KB（debug）</li>
-						<li><img src="../img/10.png"></li>
+						<li>
+							<div class="image-placeholder">
+								<img src="../img/10.png">
+							</div>
+						</li>
 						<p>如图所示，ShioriC++.exe/ShioridebugC++.exe是正在研发中的c++版本启动器，体积大小已经在图片中展示。此版本为正在开发中的版本，具体体积大小还未确定，请以发布为准。</p>
 						<li>
 							<ul>
-							<li><img src="../img/7.png"></li>
+							<li>
+								<div class="image-placeholder">
+									<img src="../img/7.png">
+								</div>
+							</li>
 							
 							</ul>
 						</li>
 						<li>目前正在开发C#版可视化编辑器，上线时间未定，目前样式可以参考下图，上图的ShioriEditor.exe正是正在研发中的可视化编辑器，未来的可视化编辑器将不仅仅是做到立绘可视化，还将支持剧本可视化编辑，以及其他的功能。</li>
 						<ul>
-							<li><img src="../img/8.png"></li>
+							<li>
+								<div class="image-placeholder">
+									<img src="../img/8.png">
+								</div>
+							</li>
 								<p>如图所示，立绘部分被暂时删除，因版权问题不适用被公开展示，目前已经将立绘可视化部分完全迁移并适配。以及在启动器中未实装的旧版立绘可视化在此处可以正常使用。</p>
 						</ul>
 					</ul>
@@ -1014,6 +1092,46 @@
 				window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
 			});
 		}
+
+		// ===== 图片灯箱 =====
+		(function() {
+			var lightbox = document.createElement('div');
+			lightbox.id = 'lightbox';
+			lightbox.className = 'lightbox-overlay';
+			lightbox.innerHTML = '<img id="lightboxImg" src="#" alt="预览"><span class="lightbox-hint">点击空白处关闭 · 滚轮缩放</span>';
+			document.body.appendChild(lightbox);
+
+			var lightboxImg = document.getElementById('lightboxImg');
+			var currentZoom = 1;
+
+			function applyZoom() {
+				lightboxImg.style.transform = 'scale(' + currentZoom + ')';
+			}
+
+			document.querySelectorAll('.image-placeholder img').forEach(function (img) {
+				img.style.cursor = 'pointer';
+				img.addEventListener('click', function (e) {
+					e.stopPropagation();
+					lightboxImg.src = this.src;
+					currentZoom = 1;
+					applyZoom();
+					lightbox.classList.add('show');
+				});
+			});
+
+			lightbox.addEventListener('click', function (e) {
+				if (e.target === lightbox) {
+					lightbox.classList.remove('show');
+				}
+			});
+
+			lightbox.addEventListener('wheel', function (e) {
+				e.preventDefault();
+				var delta = e.deltaY > 0 ? -0.15 : 0.15;
+				currentZoom = Math.max(0.3, Math.min(5, currentZoom + delta));
+				applyZoom();
+			});
+		})();
 	</script>
 </body>
 </html>
