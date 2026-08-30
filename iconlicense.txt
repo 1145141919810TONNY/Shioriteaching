@@ -7,7 +7,7 @@ Shiori teaching 教学网页（以下简称本网页）所使用的icon图标版
 您被禁止的行为：
 禁止将本网页的图标用于任何形式的违法行为；
 禁止将本网页的图标进行任何形式的二次创作；
-禁止使用本网页的图标以进行任何有关官方背书的行为。
+禁止使用本网页的图标以进行任何有关官方背书或授权的行为。
 本网页的icon图标将统一使用至Shiori生态全系列，以下为各组件的SPDX标识：
 Shiori 引擎核心、Shiori 引擎启动器：SPDX-License-Identifier: LicenseRef-Shiori-Engine
 Shiori 游戏管理器：SPDX-License-Identifier: LicenseRef-Shiori-Manager
