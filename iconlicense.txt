@@ -1,0 +1,19 @@
+icon特殊协议
+Copyright © 2026 bilibili 月が綺麗づすね_ All Rights Reserved.
+Shiori teaching 教学网页（以下简称本网页）所使用的icon图标版权归本人所有，您可根据以下协议进行使用：
+您允许的行为：
+允许您将本网页的图标用于任何形式的（包括商业会非商业）的使用，若您不想使用，可自由将其替换为其他图标或删除；
+允许您将本网页的图标作为友情链接放在你的网页或其他软件上，但请注明来源；（如果您觉得16*16的尺寸较小，可前往引擎核心仓库获取最大256*256尺寸的icon图标）。
+您被禁止的行为：
+禁止将本网页的图标用于任何形式的违法行为；
+禁止将本网页的图标进行任何形式的二次创作；
+禁止使用本网页的图标以进行任何有关官方背书的行为。
+本网页的icon图标将统一使用至Shiori生态全系列，以下为各组件的SPDX标识：
+Shiori 引擎核心、Shiori 引擎启动器：SPDX-License-Identifier: LicenseRef-Shiori-Engine
+Shiori 游戏管理器：SPDX-License-Identifier: LicenseRef-Shiori-Manager
+Shiori 校检器：SPDX-License-Identifier: LicenseRef-Shiori-Signer
+Shiori 可视化编辑器：SPDX-License-Identifier: LicenseRef-Shiori-Editor
+详情请参阅各自的使用协议
+本协议的最终解释权归作者所有，作者有权随时对本协议进行修改。
+本协议的协议文件为iconlicense.txt，若您对本协议有任何疑问，请通过本网页的页尾联系作者。
+本协议对icon图标的约束对引擎生态内其他组件均有效。
