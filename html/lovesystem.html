@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shiori 好感度系统详解</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="icon" type="image/png" href="../icon/ico16.ico">
+    <style>
+        .love-system-doc {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .module-section {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .comparison-table {
+            margin: 30px 0;
+        }
+
+        .faq-item {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+
+        .faq-question {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        .highlight-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning-box {
+            background-color: #fff5e6;
+            border-left: 4px solid #e67e22;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .danger-box {
+            background-color: #fdeaea;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        #scrollToBottomBtn {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            padding: 10px 20px;
+            background-color: #e67e22;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 999;
+            font-size: 14px;
+            outline: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        #scrollToBottomBtn:hover {
+            background-color: #d35400;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+        }
+        #scrollToBottomBtn:active {
+            transform: translateY(1px);
+        }
+
+        #backToTopBtn {
+            position: fixed;
+            right: 20px;
+            bottom: 60px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 999;
+            font-size: 14px;
+            outline: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        #backToTopBtn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+        }
+        #backToTopBtn:active {
+            transform: translateY(1px);
+        }
+
+        #scrollToBottomBtn, #backToTopBtn {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Shiori 好感度系统详解</h1>
+            <a href="../index.html" class="nav-button">返回主页</a>
+        </header>
+
+        <main class="tutorial-content">
+
+            <div class="love-system-doc">
+                <section class="intro">
+                    <p>Shiori 引擎内置了一套完整的好感度系统，基于 <code>VarSpace.f.*</code> 命名空间实现。该系统支持数值增减、条件分支路由、跨场景继承、存档持久化，并提供可选的 <strong>+X / -X 飘动动画</strong> 演出。本教程将完整讲解使用方式、与首页 <code>index.html</code> 的 <code>sf.clear</code> 联动（入口门禁）、<code>system.js</code> 的 F2 变量观察面板硬编码列表、底层原理、存档 JSON 结构以及常见问题。</p>
+
+                    <div class="highlight-box">
+                        <strong>教学约定：</strong>
+                        为便于通用教学，本文示例统一使用 <strong>角色A / 角色B</strong> 作为占位角色名，好感度变量示例为 <code>f.aff_a</code>（角色A好感度）、<code>f.aff_b</code>（角色B好感度）、<code>f.flag_a</code>（角色A路线标记）等。引擎不限制变量命名，接入你自己的项目时，请把示例中的角色与变量名整体替换为你的实际命名（如 <code>f.love</code>、<code>f.affA</code> 这类缩写都只是开发者自己的约定）。<br>
+                        <strong>请注意：</strong>所有的示例<code>Var...</code>类均不要出现在实际的剧本中，在剧本中必须使用剧本的json格式。这些API接口仅能用于开发者调试阶段使用。
+                    </div>
+                </section>
+
+                <hr>
+
+                <section class="module-section">
+                    <h2>1. 核心概念与原理</h2>
+
+                    <h3>变量分层</h3>
+                    <p>Shiori 的变量系统借鉴 KAG / kirikiri 的命名空间语义，分为三层：</p>
+                    <div class="comparison-table">
+                        <table style="width:100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background:#f1f3f5;">
+                                    <th style="padding:10px; border:1px solid #dee2e6;">命名空间</th>
+                                    <th style="padding:10px; border:1px solid #dee2e6;">用途</th>
+                                    <th style="padding:10px; border:1px solid #dee2e6;">持久化</th>
+                                    <th style="padding:10px; border:1px solid #dee2e6;">是否进存档槽</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>f.</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">游戏变量（好感度、本局进度、本局标志位）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">sessionStorage 运行时镜像 + 存档槽</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">是</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>sf.</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">系统变量（通关解锁、跨周目标记）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">localStorage（跨会话留存）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">否</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>tf.</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">临时变量（页面级缓存）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">纯内存</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">否</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>好感度的本质</h3>
+                    <p>好感度本质上就是 <code>f.</code> 命名空间下的普通数值变量。约定俗成的命名格式：<code>f.aff_a</code>（角色A好感度）、<code>f.aff_b</code>（角色B好感度）、<code>f.flag_a</code>（角色A路线标记）等。引擎不限制变量名，开发者可以自由命名。</p>
+
+                    <div class="code-block">
+<pre>// 在剧本中直接读写
+VarSpace.set('f.aff_a', 10);              // 设置
+VarSpace.get('f.aff_a');                  // 读取
+VarSpace.f.aff_a = 10;                    // Proxy 语法糖
+VarSpace.f.aff_a += 5;                    // 增量修改</pre>
+                    </div>
+
+                    <h3>state.affinity 同步</h3>
+                    <p>为兼容旧版调试面板（F1），引擎在 <code>applyAffinity()</code> 中将 <code>f.&lt;flag&gt;</code> 同步到 <code>state.affinity[flag]</code>。两者数值始终一致，F1 面板读 <code>state.affinity</code>，剧本逻辑读 <code>f.</code>，互不冲突。</p>
+                </section>
+
+                <section class="module-section">
+                    <h2>2. 集成方式：choice / nextScene / affinityChange / vars</h2>
+
+                    <p>好感度系统提供四种在剧本中触发变量变化的途径：<strong>选项跳转（choice）</strong>、<strong>场景跳转（nextScene）</strong>、<strong>独立好感度变化行（affinityChange）</strong> 与 <strong>剧本内直接操作变量（vars 动作）</strong>。前两者可携带 <code>flag</code> 与 <code>add</code> 字段，引擎会在跳转前自动累加好感度。</p>
+
+                    <h3>方式一：选项跳转（choice）</h3>
+                    <p>选项跳转是玩家可见的分支选择。每个选项可携带 <code>flag</code>（变量名，不含 <code>f.</code> 前缀）和 <code>add</code>（变化值，可为负数）字段：</p>
+                    <div class="code-block">
+<pre>{
+    text: "",
+    command: "[msgoff]",
+    action: {
+        type: "choice",
+        choices: [
+            { text: "和角色A聊天",     target: "聊天", flag: "aff_a", add: 3 },
+            { text: "无视角色A",       target: "无视", flag: "aff_a", add: -2 }
+        ]
+    }
+}</pre>
+                    </div>
+                    <p>玩家点击选项后，引擎按顺序执行：</p>
+                    <ol>
+                        <li>调用 <code>applyAffinity(flag, add)</code> → 累加到 <code>f.aff_a</code></li>
+                        <li>同步到 <code>state.affinity[flag]</code></li>
+                        <li>跳转到 <code>target</code> 指定的同文件标签（如 <code>[聊天]</code>）</li>
+                        <li>从标签下一行继续执行</li>
+                    </ol>
+
+                    <div class="highlight-box">
+                        <strong>说明：</strong>
+                        <ul>
+                            <li><code>target</code> 不含 <code>.html</code> 或 <code>/</code> 时视为<strong>同文件标签</strong>，调用 <code>jumpToLabel()</code></li>
+                            <li><code>target</code> 含 <code>.html</code> 或 <code>/</code> 时视为<strong>跨文件场景</strong>，调用 <code>goToScene()</code></li>
+                            <li><code>flag</code> 和 <code>add</code> 均为可选；不写则只跳转不增减好感度</li>
+                        </ul>
+                    </div>
+
+                    <h3>方式二：场景跳转（nextScene）</h3>
+                    <p>场景跳转通常用于剧情推进到下一个场景。同样支持携带 <code>flag</code> 和 <code>add</code>：</p>
+                    <div class="code-block">
+<pre>{
+    text: "（路线 A）aff_a 为真 → 此分支命中，并已 +10 好感度。",
+    speaker: "系统"
+},
+{
+    text: "",
+    action: { type: "nextScene", target: "scene2.html", flag: "aff_a", add: 10 }
+}</pre>
+                    </div>
+                    <p>引擎执行顺序：</p>
+                    <ol>
+                        <li>调用 <code>applyAffinity(flag, add)</code> → 累加到 <code>f.aff_a</code></li>
+                        <li>若 <code>target</code> 是跨文件场景（含 .html 或 /）：
+                            <ul>
+                                <li>调用 <code>VarSpace.flushF()</code> 立即将 <code>f.</code> 写入 sessionStorage</li>
+                                <li>调用 <code>writeSceneEntrySnapshot()</code> 写入场景入口快照到 localStorage</li>
+                                <li>设置 <code>shiori_next_scene_target</code> 信号</li>
+                                <li>调用 <code>goToScene()</code> 跳转</li>
+                            </ul>
+                        </li>
+                        <li>若 <code>target</code> 是同文件标签，调用 <code>jumpToLabel()</code></li>
+                    </ol>
+
+                    <h3>方式三：独立好感度变化行（affinityChange）</h3>
+                    <p>除跳转外，还可以在任意行独立触发好感度变化，不带跳转：</p>
+                    <div class="code-block">
+<pre>{
+    text: "",
+    action: { type: "affinityChange", flag: "flag_a", add: 1 }
+},
+{
+    text: "已写入 VarSpace.f.flag_a = 1，用于触发静默分支的第二条路径。",
+    speaker: "系统"
+}</pre>
+                    </div>
+                    <p>执行后引擎自动推进下一行，不阻塞剧情。</p>
+
+                    <div class="warning-box">
+                        <strong>注意：</strong>
+                        <ul>
+                            <li><code>affinityChange</code> 也会触发动画演出（+X / -X 飘动），可在 vars.js 顶部用 <code>AFFINITY_ANIM_ENABLED = false</code> 关闭</li>
+                            <li><code>add = 0</code> 时视为无变化，直接推进，不播放动画</li>
+                        </ul>
+                    </div>
+
+                    <h3>方式四：剧本内直接操作变量（vars 动作）</h3>
+                    <p>当需要<strong>静默赋值</strong>（不播动画、不跳转）时，可以用 <code>vars</code> 动作直接在剧本行内读写变量。这是引擎 <code>engine.js</code> 内置的桥接动作，支持五种操作（<code>op</code>）：</p>
+                    <div class="code-block">
+<pre>// setF：写入 f.&lt;name&gt;（好感度 / 本局标志）
+{ text: "", action: { type: "vars", op: "setF", name: "aff_a", value: 10 } }
+
+// setSF：写入 sf.&lt;name&gt;（通关解锁等系统标记）
+{ text: "", action: { type: "vars", op: "setSF", name: "clear", value: 1 } }
+
+// setTF：写入 tf.&lt;name&gt;（临时缓存）
+{ text: "", action: { type: "vars", op: "setTF", name: "tmp", value: "x" } }
+
+// clearF：清空全部 f.*（保留 sf.*，等价于「开始新游戏」）
+{ text: "", action: { type: "vars", op: "clearF" } }
+
+// resetSystem：清空全部 sf.*（含 sf.clear，慎用）
+{ text: "", action: { type: "vars", op: "resetSystem" } }</pre>
+                    </div>
+                    <div class="warning-box">
+                        <strong>vars 与 affinityChange 的区别：</strong>
+                        <ul>
+                            <li><code>affinityChange</code>：走 <code>applyAffinity</code>，会同步 <code>state.affinity</code> 并播放 +X / -X 动画</li>
+                            <li><code>vars</code>：只写 <code>VarSpace</code>，静默、无演出；适合初始化变量、标记路线、通关写 <code>sf.clear</code> 等场景</li>
+                            <li>引擎自带的测试剧本（<code>scenes/scene_affinity_test.html</code>）里，就是用 <code>vars</code> 动作直接初始化多个好感度变量（即 <code>system.js</code> 中 <code>WATCHED_F_VARS</code> 清单那 5 个演示命名，见第 8 节），方便在 F2 面板里观察</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="module-section">
+                    <h2>3. 条件分支路由</h2>
+
+                    <p>基于 <code>f.</code> 变量做条件分支，引擎支持两种方式：显式选择支 + 隐式静默分支。</p>
+
+                    <h3>静默分支（text 全空 = 自动判定）</h3>
+                    <p>当 <code>choices</code> 的 <code>text</code> 字段为空字符串时，引擎按 <code>if / else-if / else</code> 语义自动判定，首个命中即跳转：</p>
+                    <div class="code-block">
+<pre>{
+    text: "",
+    command: "[msgoff]",
+    action: {
+        type: "choice",
+        choices: [
+            { text: "", target: "路线A", flag: "aff_a", add: 10 },  // 条件1
+            { text: "", target: "路线B", flag: "flag_a" },          // 条件2
+            { text: "", target: "路线C", flag: "#" }                 // 兜底
+        ]
+    }
+}</pre>
+                    </div>
+
+                    <h3>条件判定规则</h3>
+                    <ul>
+                        <li><code>flag: "aff_a"</code> → 命中条件：<code>f.aff_a !== 0 &amp;&amp; f.aff_a !== false &amp;&amp; f.aff_a !== undefined &amp;&amp; f.aff_a !== null</code></li>
+                        <li><code>flag: "#"</code> → 兜底分支，永远命中</li>
+                        <li><code>add</code> 可选，命中时可附带数值变化</li>
+                        <li>按数组顺序判定，首个命中即跳转，后续不再检查</li>
+                    </ul>
+
+                    <h3>任意表达式判定（when）</h3>
+                    <p>除「非零即真」的 <code>flag</code> 判定外，<code>choices</code> 条目还支持 <code>when</code> 字段，直接写任意表达式（如 <code>f.aff_a &gt;= 20</code>、<code>sf.clear == 1</code>），由 <code>VarSpace.checkCondition()</code> 求值。注意：<code>when</code> 与 <code>flag</code> 是两种互斥的判定方式——某条目写了 <code>when</code> 就按表达式求值；<strong>兜底条目请用 <code>flag: "#"</code></strong>（恒真），不要写成 <code>when: "#"</code>：</p>
+                    <div class="code-block">
+<pre>{
+    text: "",
+    action: {
+        type: "choice",
+        choices: [
+            { text: "", target: "好感高",   when: "f.aff_a >= 20" },
+            { text: "", target: "好感普通", when: "f.aff_a >= 10 && f.mood > 0" },
+            { text: "", target: "好感低",   flag: "#" }   // 兜底：恒真
+        ]
+    }
+}</pre>
+                    </div>
+
+                    <div class="highlight-box">
+                        <strong>幂等设计建议：</strong> 推荐使用 <code>flag</code> 标记（set true）而非数值累加。例如用 <code>f.routeA_cleared = 1</code> 表示通关某路线，避免循环剧本重复触发导致数值异常累加。
+                    </div>
+                </section>
+
+                <section class="module-section">
+                    <h2>4. 跨场景继承原理</h2>
+
+                    <h3>跨文件跳转的完整流程</h3>
+                    <ol>
+                        <li>在 A.html 中触发 <code>nextScene</code> 或 <code>choice</code> 跨文件跳转</li>
+                        <li>引擎调用 <code>applyAffinity()</code> 累加好感度</li>
+                        <li><code>goToScene()</code> 中检测目标是否为系统页面（index.html / html/ 目录）：
+                            <ul>
+                                <li><strong>非系统页面</strong>（游戏场景）：
+                                    <ol>
+                                        <li>调用 <code>VarSpace.flushF()</code> → 立即写入 <code>sessionStorage.shiori_f_runtime</code>（绕过 150ms 防抖）</li>
+                                        <li>设置 <code>sessionStorage.shiori_next_scene_target</code> 信号</li>
+                                    </ol>
+                                </li>
+                                <li><strong>系统页面</strong>：不写信号，f. 不继承（避免回到主菜单时残留旧值）</li>
+                            </ul>
+                        </li>
+                        <li>调用 <code>saveStateSnapshot()</code> 写入 <code>sessionStorage.gameStateSnapshot</code>（含 fVars 字段）</li>
+                        <li>触发 <code>window.location.href</code> 跳转</li>
+                    </ol>
+
+                    <h3>B 页面加载时的继承流程</h3>
+                    <ol>
+                        <li><code>vars.js</code> 的 <code>init()</code> 检测 sessionStorage 信号：
+                            <ul>
+                                <li>有 <code>shiori_next_scene_target</code> 或 <code>archiveLoadTarget</code> → <strong>继承</strong> <code>shiori_f_runtime</code></li>
+                                <li>无信号（直接打开 URL / 启动器加载文件）→ <strong>清零</strong> f.，并清除旧镜像</li>
+                            </ul>
+                        </li>
+                        <li><code>engine.js</code> 的 <code>init()</code> 检测信号：
+                            <ul>
+                                <li>有 <code>shiori_next_scene_target</code> → 消费信号，不使用场景入口快照（f. 已由 vars.js 继承）</li>
+                                <li>有 <code>shiori_scene_entry_jump</code>（saves.html / flowchart.html 设置）→ 从 <code>localStorage.shiori_scene_entry_&lt;scene&gt;</code> 恢复 f.</li>
+                                <li>无信号 → f. 保持清零</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <div class="highlight-box">
+                        <strong>设计要点：</strong>
+                        <ul>
+                            <li>sessionStorage 标签页关闭即消失，避免跨会话残留</li>
+                            <li><code>flushF()</code> 绕过防抖立即落盘，不依赖 <code>beforeunload</code>（WebView2 中可能不可靠）</li>
+                            <li>系统页面跳转不设信号 → 回主菜单后 f. 自然清零</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="module-section">
+                    <h2>5. 存档 JSON 结构与存储键名</h2>
+
+                    <p>F5 快速存档或手动存档时，引擎会把当前 <code>f.</code> 全量深拷贝写入存档 JSON。读档时通过 <code>VarSpace.restoreF()</code> 恢复。</p>
+
+                    <h3>存档槽结构</h3>
+                    <p>所有存档存储在 <code>localStorage.galgame_archives</code> 中，是一个 JSON 数组：</p>
+                    <div class="code-block">
+<pre>localStorage.galgame_archives = [
+  {
+    "id": "1716000000000",
+    "saveName": "存档 1",
+    "sceneFile": "scene_demo_act.html",
+    "lineIndex": 42,
+    "previewText": "角色A微微一笑：「和你聊天总是很愉快呢。」",
+    "timestamp": 1716000000000,
+    "formattedTime": "2024-05-20 12:00:00",
+    "thumbnail": { /* 缩略图数据：背景图 + 立绘 URL */ },
+    "snapshot": {
+      "pageUrl": "http://localhost:8080/scenes/scene_demo_act.html",
+      "pagePath": "/scenes/scene_demo_act.html",
+      "currentLine": 42,
+      "previewText": "...",
+      "skipMode": 0,
+      "autoModeEnabled": false,
+      "autoDelaySeconds": 3,
+      "lastActiveBgm": "bgm1",
+      "lastActiveBg": "bg_001_00_00.png",
+      "lastActiveChars": [...],
+      "novelMode": false,
+      "povActive": false,
+      "isClickLocked": false,
+      "activeChars": [...],
+      "affinity": { "aff_a": 13, "flag_a": 1 },
+      "fVars": {
+        "aff_a": 13,
+        "flag_a": 1
+      },
+      "gameVersion": "V2.1.10",
+      "nearestLabel": "聊天",
+      "nearestLabelLine": 244,
+      "completedScenes": ["scene1", "scene2"],
+      "timestamp": 1716000000000
+    }
+  }
+]</pre>
+                    </div>
+
+                    <h3>关键字段说明</h3>
+                    <div class="comparison-table">
+                        <table style="width:100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background:#f1f3f5;">
+                                    <th style="padding:10px; border:1px solid #dee2e6;">字段</th>
+                                    <th style="padding:10px; border:1px solid #dee2e6;">用途</th>
+                                    <th style="padding:10px; border:1px solid #dee2e6;">读档时是否使用</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>sceneFile</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">目标场景文件名（示例为引擎自带测试剧本 <code>scene_affinity_test.html</code> 所在目录的占位写法，请改成你自己的场景名）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">是，决定跳转到哪个场景</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>lineIndex</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">存档时的剧情行号</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">是，作为 URL 参数 <code>?startLine=N</code></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>snapshot.fVars</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">好感度等 f. 变量快照</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">是，调用 <code>VarSpace.restoreF()</code></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>snapshot.affinity</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">旧版好感度同步镜像</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">是，同步到 <code>state.affinity</code></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>snapshot.gameVersion</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">存档时的引擎版本号</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">检测剧本更新兼容性</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>snapshot.nearestLabel</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">最近经过的标签锚点</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">lineIndex 失效时兜底定位</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>持久化键名一览</h3>
+                    <p>整个变量与存档系统依赖以下几个存储键（均为引擎 <code>vars.js</code> / <code>engine.js</code> 中的硬编码常量，注意不要与自己的代码冲突）：</p>
+                    <div class="comparison-table">
+                        <table style="width:100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background:#f1f3f5;">
+                                    <th style="padding:10px; border:1px solid #dee2e6;">键名</th>
+                                    <th style="padding:10px; border:1px solid #dee2e6;">存储区</th>
+                                    <th style="padding:10px; border:1px solid #dee2e6;">内容</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>shiori_sf</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">localStorage</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">全部 <code>sf.*</code>（含 <code>sf.clear</code> 解锁标记），跨会话留存</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>shiori_f_runtime</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">sessionStorage</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">当前 <code>f.*</code> 运行时镜像，仅跨文件跳转 / 读档时继承</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>galgame_archives</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">localStorage</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">存档槽 JSON 数组</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>shiori_next_scene_target</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">sessionStorage</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">跨文件跳转信号，触发 f. 继承</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>archiveLoadTarget</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">sessionStorage</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">读档跳转信号（archive 页写入）</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>gameStateSnapshot</code></td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">sessionStorage</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">跳转 / 读档用的完整状态快照（含 fVars）</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>shiori_scene_entry_jump</code>（sessionStorage）/ <code>shiori_scene_entry_&lt;scene&gt;</code>（localStorage）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">sessionStorage / localStorage</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">saves.html / flowchart.html / story.html 跳入场景时恢复 f. 用的信号（sessionStorage）与该场景的入口快照（localStorage，<strong>每个场景文件只保留一条</strong>）</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>场景入口快照：每个剧本文件在存档中只会记录一条 f.</h3>
+                    <p><code>localStorage['shiori_scene_entry_&lt;sceneFile&gt;']</code> 记录的是「该场景<strong>最近一次经正常剧本流程进入</strong>时那一刻的 <code>f.</code>」，由 <code>engine.js</code> 的 <code>writeSceneEntrySnapshot()</code> 统一维护。规则如下：</p>
+                    <ul>
+                        <li><strong>只会记录一次：</strong>键以场景文件名（<code>&lt;sceneFile&gt;</code>）区分，同一个剧本 html 文件只有一份入口快照，后写的覆盖先写的，不存在多条历史。</li>
+                        <li><strong>只在正常流程写入：</strong>写入点收口在 <code>goToScene()</code> 的跨文件跳转分支——<code>nextScene</code> / <code>choice</code> / 静默分支最终都汇聚到这里，跳转前把当前 <code>f.</code> 记入<strong>目标场景</strong>的快照。直接打开 URL、从启动器「加载指定文件」等非正常流程<strong>不会写、也不会读</strong>它。</li>
+                        <li><strong>下次正常进入时的幂等比较：</strong>再次经正常流程进入同一场景，会先做一次键序无关的深比较：
+                            <ul>
+                                <li>本次 <code>f.</code> 与已存记录<strong>相同</strong> → 不改变存档，保留原记录（同一路径重复进入不产生脏更新）；</li>
+                                <li>本次 <code>f.</code> 与已存记录<strong>不同</strong> → 覆盖更新（可视为从不同选项 / 分支进入）。</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <div class="code-block">
+<pre>// localStorage['shiori_scene_entry_scene_demo_next.html']（示意，一个场景文件一条）
+{
+  "fVars": { "aff_a": 13, "flag_a": 1 },   // 进入该场景那一刻的 f.，供后续从场景开头播放时接续
+  "fromScene": "scene_demo_act.html",      // 从哪个场景进入
+  "fromLine": 76,                          // 离开上一场景时的行号
+  "timestamp": 1716000000000,
+  "gameVersion": "V2.1.10"
+}</pre>
+                    </div>
+
+                    <p>这条记录的写入方与消费方如下：</p>
+                    <div class="comparison-table">
+                        <table style="width:100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background:#f1f3f5;">
+                                    <th style="padding:10px; border:1px solid #dee2e6;">角色</th>
+                                    <th style="padding:10px; border:1px solid #dee2e6;">位置</th>
+                                    <th style="padding:10px; border:1px solid #dee2e6;">动作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">写入</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">engine.js <code>writeSceneEntrySnapshot(targetScene)</code>（<code>goToScene()</code> 内、跳非系统页前调用）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">把 <code>shiori_scene_entry_&lt;sceneFile&gt;</code> 更新为目标场景的最新入口 f.；本次 f. 与旧记录相同则跳过不写</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">设信号</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">saves.html / flowchart.html / story.html 的 <code>jumpToScene()</code>（点击「从该场景开头播放」类卡片）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">清除残留的 <code>shiori_next_scene_target</code>，设置 <code>sessionStorage.shiori_scene_entry_jump = '1'</code>，再跳 <code>../scenes/&lt;sceneFile&gt;</code></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">恢复</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">engine.js init()（非读档分支）检测到该信号</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>loadSceneEntryFvars()</code> 读取快照 → <code>VarSpace.restoreF()</code> 恢复 f. 并同步 <code>state.affinity</code> → 从该场景第 0 行播放</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p>这套入口快照与 <code>archive.html</code> 的行级读档（<code>archiveLoadTarget</code> + <code>snapshot.fVars</code>）相互独立：行级读档精确恢复到存档时的 <code>lineIndex</code>；场景入口快照用于「从场景开头播放但变量接续」。无论哪种入口，从启动器直接加载场景文件都因缺少信号而不会被这份快照污染（f. 保持清零）。</p>
+
+                    <h3>读档恢复流程</h3>
+                    <ol>
+                        <li>archive.html 把存档写入 <code>sessionStorage.archiveLoadTarget</code>，跳转到 <code>../scenes/&lt;sceneFile&gt;?startLine=&lt;lineIndex&gt;</code></li>
+                        <li>场景页 <code>vars.js init()</code> 检测到 <code>archiveLoadTarget</code> → 继承 sessionStorage f. 镜像</li>
+                        <li><code>engine.js init()</code>：
+                            <ul>
+                                <li>读取 <code>archiveLoadTarget.snapshot</code> 作为快照</li>
+                                <li>路径匹配 → <code>isArchiveLoad = true</code></li>
+                                <li><strong>lineIndex 有效性检测</strong>：
+                                    <ul>
+                                        <li>有效且版本一致 → 精确恢复到 <code>lineIndex</code></li>
+                                        <li>越界或版本不一致 → 用 <code>nearestLabel</code> 兜底（跳到标签下一行）</li>
+                                    </ul>
+                                </li>
+                                <li>调用 <code>VarSpace.restoreF(snapshot.fVars)</code> 恢复 f.</li>
+                                <li>恢复 AUTO / SKIP / 立绘 / BGM 等状态</li>
+                                <li>调用 <code>buildStateFromHistory()</code> 从 0..startLine-1 重建 BGM/BG/立绘</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <div class="warning-box">
+                        <strong>lineIndex 与 nearestLabel 的关系：</strong>
+                        <ul>
+                            <li><code>lineIndex</code> 是首选，精确到行</li>
+                            <li><code>nearestLabel</code> 仅作兜底 —— 当 lineIndex 越界（剧本删减）或 gameVersion 不一致（剧本可能变更）时启用</li>
+                            <li>正常情况下读档会精确恢复到存档时的行，不会回退到最近标签</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="module-section">
+                    <h2>6. 动画开关</h2>
+
+                    <p>好感度变化时的 <strong>+X / -X 飘动动画</strong>（金色向上 / 红色向下）可在 <code>vars.js</code> 顶部全局开关：</p>
+
+                    <div class="code-block">
+<pre>// ★ 好感度加减动画开关（true=显示 +X/-X 飘动动画，false=关闭动画直接推进）
+// 修改此常量即可全局控制，无需改动 engine.js
+var AFFINITY_ANIM_ENABLED = true;</pre>
+                    </div>
+
+                    <p>设为 <code>false</code> 后：</p>
+                    <ul>
+                        <li><code>affinityUpShow</code> / <code>affinityDownShow</code> 直接调用 <code>nextLine()</code></li>
+                        <li>跳过音效、动画、1 秒等待</li>
+                        <li>好感度数值仍正常累加（由 <code>applyAffinity</code> 处理，不受影响）</li>
+                    </ul>
+
+                    <p>运行时也可通过 API 切换：</p>
+                    <div class="code-block">
+<pre>VarSpace.setAffinityAnimEnabled(false);  // 关闭动画
+VarSpace.isAffinityAnimEnabled();         // 查询当前状态</pre>
+                    </div>
+                </section>
+
+                <section class="module-section">
+                    <h2>7. 系统变量 sf.clear、通关解锁与入口门禁</h2>
+
+                    <p>好感度体系里最常与 <code>f.</code> 配合使用的系统变量就是 <code>sf.clear</code>（通关标记）。它由 <code>vars.js</code> 顶部的 <strong>GATED_PAGES 硬编码</strong> 与首页 <code>index.html</code> 联动，控制「鉴赏页 / 特典页」等功能的解锁显示。</p>
+
+                    <h3>7.1 硬编码配置：GATED_PAGES（vars.js 第 53~59 行）</h3>
+                    <p><code>vars.js</code> 中维护着一张「受管控的功能页面」清单，<strong>仅在通关一次（<code>sf.clear == 1</code>）后</strong>，这些页面才会在首页按钮中显示。该清单本身是硬编码数组，位于 <code>vars.js</code> 顶部：</p>
+                    <div class="code-block">
+<pre>// ---------- 入口门禁：受 sf.clear 管控的功能页面（相对站点根目录，小写）----------
+// 仅在「通关一次（sf.clear == 1）」后，这些页面才会在首页按钮中显示。
+var GATED_PAGES = [
+    'html/bgm.html',    // BGM鉴赏
+    'html/video.html',  // 视频鉴赏
+    'html/cg.html',     // CG鉴赏
+    'html/story.html'   // 小故事
+];</pre>
+                    </div>
+                    <p>接入你自己的项目时：</p>
+                    <ul>
+                        <li>路径写法为<strong>相对站点根目录、小写</strong>，不含前导 <code>./</code>；</li>
+                        <li>需要新增 / 移除受管控页面，<strong>直接增删此数组即可</strong>，无需改动 <code>index.html</code> 的按钮属性；</li>
+                        <li>由数组自动派生出 <code>GATED_BASENAMES</code> 集合，用于「直接访问管控页时的重定向」判断。</li>
+                    </ul>
+
+                    <h3>7.2 与首页 index.html 的联动流程</h3>
+                    <p>整套门禁逻辑全部封装在 <code>vars.js</code> 的 <code>applyPageGating()</code> 中，页面 DOM 就绪后自动执行，分两步：</p>
+                    <ol>
+                        <li><strong>扫描入口链接</strong>：遍历页面中所有 <code>&lt;a href&gt;</code>，若命中 <code>GATED_PAGES</code>，则 <code>sf.clear == 1</code> 时显示、否则 <code>display:none</code> 隐藏（首页上的鉴赏按钮即由此控制）；</li>
+                        <li><strong>管控页守卫</strong>：若当前页自身就是受管控页且未解锁，直接重定向回 <code>index.html</code>，防止绕过首页直达。</li>
+                    </ol>
+
+                    <p>与此同时，<code>index.html</code>（引擎根目录首页）里的<strong>「开始游戏」按钮</strong>点击时，会调用 <code>VarSpace.clearF()</code> 清空 <code>f.*</code>（好感度等本局变量），但<strong>保留 <code>sf.*</code></strong>（通关解锁不因开新周目而丢失）。对应代码位于 <code>index.html</code> 中：</p>
+                    <div class="code-block">
+<pre>// 「开始游戏」按钮桥接：清空 f. 变量（新游戏）
+// 不影响存档——存档独立存储在自己的槽位里
+// sf. 不清，保留通关解锁等跨周目标记
+// 开发者可自由修改按钮 href 指向任意场景，本逻辑只监听 id
+var newGameBtn = document.getElementById('new-game-btn');
+if (newGameBtn) {
+    newGameBtn.addEventListener('click', function (e) {
+        if (typeof VarSpace !== 'undefined' && VarSpace && VarSpace.clearF) {
+            VarSpace.clearF();
+            console.log('[NewGame] VarSpace.f.* cleared (sf.* preserved)');
+        }
+        // 不阻止默认跳转，让 href 正常生效
+    });
+}</pre>
+                    </div>
+
+                    <h3>7.3 剧本侧如何写入 sf.clear（通关收尾）</h3>
+                    <p>通关解锁标记通常放在「最终幕」的收尾行。两种等价写法，任选其一：</p>
+                    <div class="code-block">
+<pre>// 写法一：剧本 vars 动作（无演出、静默写入，推荐用于剧本文件）
+{
+    text: "——通关！此后 BGM / CG 鉴赏等入口将解锁。",
+    speaker: "系统"
+},
+{
+    text: "",
+    action: { type: "vars", op: "setSF", name: "clear", value: 1 }
+}
+
+// 写法二：直接调用 API（用于 .js 初始化 / 调试）
+VarSpace.setSF('clear', 1);      // 或 VarSpace.sf.clear = 1
+VarSpace.setSF('bgm_all', 1);    // 可按需细分更多解锁标记</pre>
+                    </div>
+                    <p>引擎自带的测试剧本 <code>scenes/scene_affinity_test.html</code> 结尾即用写法一写入 <code>sf.clear = 1</code>（模拟通关），回到首页后受控按钮就会显示。也可为周目制解锁拆分更细的标记，如 <code>VarSpace.setSF('cg_routeA', 1)</code>。</p>
+
+                    <h3>7.4 清除与重置的边界</h3>
+                    <table style="width:100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background:#f1f3f5;">
+                                <th style="padding:10px; border:1px solid #dee2e6;">操作</th>
+                                <th style="padding:10px; border:1px solid #dee2e6;">入口</th>
+                                <th style="padding:10px; border:1px solid #dee2e6;">影响范围</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding:10px; border:1px solid #dee2e6;"><code>VarSpace.clearF()</code></td>
+                                <td style="padding:10px; border:1px solid #dee2e6;">index「开始游戏」、剧本 vars 动作</td>
+                                <td style="padding:10px; border:1px solid #dee2e6;">只清 <code>f.*</code>（好感度清零），<strong>保留 <code>sf.clear</code></strong></td>
+                            </tr>
+                            <tr>
+                                <td style="padding:10px; border:1px solid #dee2e6;"><code>VarSpace.resetSystem()</code></td>
+                                <td style="padding:10px; border:1px solid #dee2e6;">剧本 vars 动作、宿主「清除所有存档」</td>
+                                <td style="padding:10px; border:1px solid #dee2e6;">清空全部 <code>sf.*</code>（含 <code>sf.clear</code>），入口重新隐藏</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:10px; border:1px solid #dee2e6;">子页面「重置进度」（saves 等）</td>
+                                <td style="padding:10px; border:1px solid #dee2e6;">游戏内菜单</td>
+                                <td style="padding:10px; border:1px solid #dee2e6;">只清游戏进度，<strong>不碰 <code>sf.clear</code></strong> 系统解锁变量</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="warning-box">
+                        <strong>C# 启动器「清除所有存档」：</strong>
+                        <code>vars.js</code> 同时包装了宿主通信：当检测到 C# 启动器清档（WebView2 <code>postMessage</code> 的 <code>clearAllSaves</code> 类信号，或 <code>alert</code> 弹窗中的清档关键词）时，自动调用 <code>resetSystem()</code> 并同步清掉 <code>localStorage.shiori_sf</code> 与存档槽，随后刷新首页门禁显示。因此<strong>「清除所有存档」会连 <code>sf.clear</code> 一起重置</strong>，而普通的读档 / 开新周目不会。
+                    </div>
+                </section>
+
+                <section class="module-section">
+                    <h2>8. F2 变量观察面板与 WATCHED_F_VARS（system.js 第 35~41 行）</h2>
+
+                    <p>按 F2 打开的变量观察面板（右侧）由 <code>system.js</code> 的 <code>createVarsPanel() / updateVarsInfo()</code> 实现。它<strong>并不是自动显示全部变量</strong>，而是先遍历一份<strong>硬编码的观察名单 <code>WATCHED_F_VARS</code></strong>（位于 <code>system.js</code> 第 35~41 行），把名单里的每个 <code>f.&lt;name&gt;</code> 当前值逐行显示出来。<code>system.js</code> 中的默认名单一共有 <strong>5 个变量</strong>（<code>yn</code> / <code>yn2</code> / <code>yr</code> / <code>trust</code> / <code>mood</code>），取自引擎自带的测试剧本，仅为演示用途、并无特殊含义——变量命名完全自由：</p>
+
+                    <div class="code-block">
+<pre>// 硬编码：需要观察的 f. 变量名列表（只写名字，不含 f. 前缀）
+// 面板会遍历此数组，读取 VarSpace.f.&lt;name&gt; 的当前值并显示
+// —— 以下为 system.js 第 35~41 行的完整默认清单（测试剧本演示用，可按需增删）——
+WATCHED_F_VARS: [
+    'yn',    // 角色A好感度
+    'yn2',   // 角色A好感度（次级标记）
+    'yr',    // 角色B好感度
+    'trust', // 信任度
+    'mood'   // 心情值
+],</pre>
+                    </div>
+
+                    <h3>面板的显示规则（updateVarsInfo 的行为）</h3>
+                    <ul>
+                        <li><strong>f. 变量区</strong>：按 <code>WATCHED_F_VARS</code> 顺序列出对应 <code>f.&lt;name&gt;</code> 的值；尚未定义的变量显示灰色「(未定义)」。</li>
+                        <li><strong>自动补全</strong>：名单之外的 <code>f.</code> 变量若已被写入，会归入面板底部的「— 其他 f. 变量 —」区（灰色弱化显示），因此<strong>不会漏看任何变量</strong>。</li>
+                        <li><strong>sf. 变量区</strong>：<code>sf.clear</code> <strong>恒常显示</strong>（0 = 未通关，1 = 通关）；其余 <code>sf.</code> 变量仅当非零 / 非空时才显示。</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <strong>接入自己的项目：</strong>
+                        把清单里的示例变量换成你游戏里的真实命名即可。例如前面章节采用的教学约定命名 <code>aff_a</code>（角色A好感度） / <code>flag_a</code>（角色A路线标记） / <code>aff_b</code>（角色B好感度）：
+                        <pre>WATCHED_F_VARS: [
+    'aff_a',  // 角色A好感度
+    'flag_a', // 角色A路线标记
+    'aff_b',  // 角色B好感度
+    'trust',  // 信任度
+    'mood'    // 心情值
+],</pre>
+                        想让某个新变量<strong>置顶显示</strong>就加进数组；不登记也会出现在「其他 f. 变量」区，只是排在下面、颜色较暗。
+                    </div>
+
+                    <div class="warning-box">
+                        <strong>提示：</strong>F2 面板的开关状态会经 <code>localStorage</code>（键 <code>galgame_vars_panel</code>）持久化——上次开着面板，下次进游戏会自动弹出。若调试时不需要，按 F2 关闭即可。
+                    </div>
+                </section>
+
+                <section class="module-section">
+                    <h2>9. 完整使用示例</h2>
+
+                    <p>以下示例展示一个完整的分支剧情：选项 → 好感度增减 → 条件分支 → 跨场景跳转 → 通关解锁。其中角色名均为占位（角色A / 角色B），变量名为教学约定，可直接套用。</p>
+
+                    <div class="code-block">
+<pre>// scene_demo_act.html（示例场景）
+const sceneData = {
+    story: [
+        // 对话铺垫
+        { text: "角色A正在窗边看书。", speaker: "旁白" },
+
+        // 显式选项（方式一 choice）
+        {
+            text: "",
+            command: "[msgoff]",
+            action: {
+                type: "choice",
+                choices: [
+                    { text: "上前搭话",   target: "聊天", flag: "aff_a", add: 3 },
+                    { text: "默默走开",   target: "无视", flag: "aff_a", add: -2 }
+                ]
+            }
+        },
+
+        // 聊天分支落点
+        { text: "", command: "[聊天]" },
+        { text: "角色A微微一笑：「和你聊天总是很愉快呢。」", speaker: "角色A" },
+        {
+            text: "",
+            command: "[msgoff]",
+            action: {
+                type: "choice",
+                choices: [
+                    { text: "（继续）", target: "选项后汇合" }
+                ]
+            }
+        },
+
+        // 无视分支落点
+        { text: "", command: "[无视]" },
+        { text: "角色A的脸上掠过一丝失望：「……算了，没关系。」", speaker: "角色A" },
+        {
+            text: "",
+            command: "[msgoff]",
+            action: {
+                type: "choice",
+                choices: [
+                    { text: "（继续）", target: "选项后汇合" }
+                ]
+            }
+        },
+
+        // 汇合点
+        { text: "", command: "[选项后汇合]" },
+        { text: "选项测试结束。角色A好感度 = " + VarSpace.f.aff_a, speaker: "系统" },
+
+        // 静默分支（方式三）—— 按 f.aff_a 自动路由
+        {
+            text: "",
+            command: "[msgoff]",
+            action: {
+                type: "choice",
+                choices: [
+                    { text: "", target: "路线A", flag: "aff_a", add: 10 },  // aff_a 非 0 命中
+                    { text: "", target: "路线C", flag: "#" }                 // 兜底
+                ]
+            }
+        },
+
+        // 路线 A：跨场景跳转（方式二 nextScene）
+        { text: "", command: "[路线A]" },
+        { text: "aff_a 为真 → 跳转到下一场景，并 +10 好感度。", speaker: "系统" },
+        {
+            text: "",
+            action: { type: "nextScene", target: "scene_demo_next.html", flag: "aff_a", add: 10 }
+        },
+
+        // ……（最终幕收尾时）……
+        // 通关：写入 sf.clear = 1，解锁鉴赏类功能页入口
+        { text: "", action: { type: "vars", op: "setSF", name: "clear", value: 1 } }
+    ]
+};</pre>
+                    </div>
+
+                    <p>若要在 <code>scene_demo_next.html</code> 里做数值门槛分流（类似 <code>when: "f.aff_a &gt;= 20"</code> 的组合判定），可参考本文第 3 节的 <code>when</code> 写法。</p>
+                </section>
+
+                <section class="module-section">
+                    <h2>10. 常见问题</h2>
+
+                    <div class="faq-item">
+                        <div class="faq-question">Q1：为什么从启动器"加载指定文件"后好感度没有继承？</div>
+                        <p>这是设计如此。直接打开 URL 或从启动器加载文件时，<code>vars.js</code> 检测不到 <code>shiori_next_scene_target</code> 信号，会清零 f. 以避免残留。只有通过游戏内的 <code>nextScene</code> 或 <code>choice</code> 跨文件跳转，或通过 saves.html / flowchart.html 显式跳入（设置 <code>shiori_scene_entry_jump</code> 信号），才会继承好感度。</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">Q2：为什么读档后回到了最近标签而不是存档行？</div>
+                        <p>检查控制台日志。若出现 <code>nearestLabel "xxx" located at line N</code>，说明 lineIndex 越界或 gameVersion 不一致触发了兜底机制。正常情况下应该看到 <code>lineIndex=N valid, precise restore</code>，会精确恢复到存档行。</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">Q3：如何关闭 +X / -X 飘动动画？</div>
+                        <p>在 <code>vars.js</code> 顶部将 <code>AFFINITY_ANIM_ENABLED</code> 改为 <code>false</code>，或运行时调用 <code>VarSpace.setAffinityAnimEnabled(false)</code>。关闭后好感度数值仍正常变化，只是不显示动画。</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">Q4：循环剧本重复触发会导致好感度异常累加吗？</div>
+                        <p>会。如果剧本逻辑是 <code>add: 10</code> 数值累加，重复触发会叠加。推荐使用<strong>幂等设计</strong>：用 <code>flag</code> 标记（set true）而非累加。例如通关某路线时写 <code>VarSpace.f.routeA_cleared = 1</code>，下次判定时检查 <code>f.routeA_cleared</code> 是否为 true 即可。</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">Q5：sf.clear 是什么？它如何控制首页入口？</div>
+                        <p><code>sf.clear</code> 是系统级通关标记，属于 <code>sf.</code> 命名空间（跨会话留存，不进存档槽）。它和 <code>vars.js</code> 顶部 GATED_PAGES 硬编码清单、首页「开始游戏」按钮的 <code>clearF()</code> 联动，决定 BGM/CG/视频/小故事等鉴赏页入口是否在首页显示。完整机制见<strong>第 7 节</strong>。</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">Q6：如何查看当前好感度？</div>
+                        <p>三种方式：
+                            <ul>
+                                <li><strong>F1 调试面板</strong>：显示 <code>state.affinity</code>（与 <code>f.</code> 同步）</li>
+                                <li><strong>F2 变量观察面板</strong>：f. 区按 <code>system.js</code> 的 <code>WATCHED_F_VARS</code> 名单置顶显示，其余 f. 变量自动补在「其他 f. 变量」区；sf. 区的 <code>sf.clear</code> 恒常显示</li>
+                                <li><strong>F12 控制台</strong>：输入 <code>VarSpace.dump()</code>、<code>VarSpace.log()</code> 或 <code>VarSpace.f.aff_a</code> / <code>VarSpace.getAffinity('aff_a')</code></li>
+                            </ul>
+                        </p>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">Q7：为什么点击「开始游戏」后好感度归零了？</div>
+                        <p>这是正确行为。首页「开始游戏」按钮（<code>#new-game-btn</code>）会调用 <code>VarSpace.clearF()</code>——新游戏只清 <code>f.*</code>（含好感度），但保留 <code>sf.clear</code> 等通关解锁。若想接续剧情，请走读档而非开始游戏。</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">Q8：F2 面板怎么没显示我新加的变量？</div>
+                        <p>把变量名加入 <code>system.js</code> 顶部的 <code>WATCHED_F_VARS</code> 数组即可置顶显示；不加也会出现在「— 其他 f. 变量 —」区（颜色较暗），不会真的漏掉。注意该数组只写名字、不含 <code>f.</code> 前缀。</p>
+                    </div>
+                </section>
+
+                <section class="module-section">
+                    <h2>11. 关键文件、硬编码设置位置与核心 API</h2>
+
+                    <h3>文件清单</h3>
+                    <ul>
+                        <li><code>shiori engine/vars.js</code> —— 变量系统核心（f. / sf. / tf. 存储、持久化、入口门禁 GATED_PAGES、动画开关）</li>
+                        <li><code>shiori engine/engine.js</code> —— 引擎核心（applyAffinity、affinityChange、choice、nextScene、vars 动作、saveStateSnapshot、loadSceneEntryFvars）</li>
+                        <li><code>shiori engine/system.js</code> —— F1/F2 调试面板（F2 面板按 WATCHED_F_VARS 观察变量）</li>
+                        <li><code>shiori engine/index.html</code> —— 首页（「开始游戏」按钮绑定 clearF、受管控入口链接）</li>
+                        <li><code>shiori engine/scenes/scene_affinity_test.html</code> —— 引擎官方好感度测试剧本</li>
+                    </ul>
+
+                    <h3>硬编码设置位置速查表</h3>
+                    <div class="comparison-table">
+                        <table style="width:100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background:#f1f3f5;">
+                                    <th style="padding:10px; border:1px solid #dee2e6;">要改什么</th>
+                                    <th style="padding:10px; border:1px solid #dee2e6;">文件与位置</th>
+                                    <th style="padding:10px; border:1px solid #dee2e6;">默认值 / 含义</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">好感度动画开关</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>vars.js</code> 顶部（约第 49 行）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>AFFINITY_ANIM_ENABLED = true</code></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">入口门禁页面清单</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>vars.js</code> 顶部（第 53~59 行）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>GATED_PAGES = ['html/bgm.html', …]</code></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">F2 面板置顶观察的 f. 变量</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>system.js</code>（第 35~41 行）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>WATCHED_F_VARS: ['aff_a', …]</code></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">「开始游戏」清档桥接</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>index.html</code>（<code>new-game-btn</code> 监听）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">点击后 <code>VarSpace.clearF()</code></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">持久化 / 镜像键名</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>vars.js</code> 顶部（第 40~45 行）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>shiori_sf</code> / <code>shiori_f_runtime</code> 等</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">剧本内 vars 动作支持的操作</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;"><code>engine.js</code>（<code>case 'vars'</code>）</td>
+                                    <td style="padding:10px; border:1px solid #dee2e6;">op: <code>setF / setSF / setTF / clearF / resetSystem</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>核心 API</h3>
+                    <div class="code-block">
+<pre>// 读写
+VarSpace.set('f.aff_a', 10);
+VarSpace.get('f.aff_a');
+VarSpace.f.aff_a = 10;                    // Proxy 语法糖
+VarSpace.has('f.aff_a');                  // 是否存在
+
+// 好感度数值（写走 applyAffinity，同步 state.affinity；读含动画无关）
+VarSpace.applyAffinity('aff_a', 3);       // 累加并同步 F1 面板
+VarSpace.getAffinity('aff_a');            // 读取（未定义返回 0）
+
+// 条件判定
+VarSpace.checkCondition('f.aff_a >= 20'); // 求值任意表达式
+VarSpace.resolveBranch(choices);          // 解析静默分支（返回命中 target）
+VarSpace.eval('f.aff_a + sf.clear');      // 低层求值
+
+// 存档相关
+VarSpace.serializeF();                  // 导出 f. 深拷贝（写入存档时）
+VarSpace.restoreF(obj);                 // 从存档恢复 f.
+VarSpace.clearF();                      // 新游戏：清空 f.，保留 sf.
+VarSpace.flushF();                      // 立即写入 sessionStorage（跨文件跳转前）
+
+// 系统变量
+VarSpace.getSF('clear');
+VarSpace.setSF('clear', 1);
+VarSpace.resetSystem();                 // 清除所有存档时重置 sf.
+VarSpace.refreshGating();               // sf.clear 变化后重扫首页入口
+
+// 动画开关
+VarSpace.isAffinityAnimEnabled();
+VarSpace.setAffinityAnimEnabled(false);
+
+// 调试
+VarSpace.dump();                        // 打印 f. / sf. / tf. 全量
+VarSpace.log();                         // 控制台输出</pre>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <button id="backToTopBtn">回到顶部</button>
+
+        <footer class="site-footer">
+            <div class="footer-col">
+                <h4>开源项目</h4>
+                <p><a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">引擎本体与启动器</a> · <a href="html/license_engine.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/license.txt" target="_blank">GitHub</a></p>
+                <p><a href="https://github.com/1145141919810TONNY/Shiori-editor" target="_blank">可视化编辑器</a> · <a href="html/license_editor.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/license.txt" target="_blank">GitHub</a></p>
+            </div>
+            <div class="footer-col">
+                <h4>闭源项目</h4>
+                <p><a href="https://github.com/1145141919810TONNY/Shiori-manager" target="_blank">管理器与校检器</a></p>
+                <p><a href="html/license_manager.html" target="_blank">管理器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/license.txt" target="_blank">GitHub</a></p>
+                <p><a href="html/license_signer.html" target="_blank">校检器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/licensesigner.txt" target="_blank">GitHub</a></p>
+            </div>
+            <div class="footer-col">
+                <h4>第三方开源协议</h4>
+                <p><a href="html/opensource_engine.html" target="_blank">启动器</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="html/opensource_manager.html" target="_blank">管理器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES_SIGNER.txt" target="_blank">GitHub</a> <br/>
+                    <a href="html/opensource_signer.html" target="_blank">校检器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="html/opensource_editor.html" target="_blank">编辑器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a></p>
+            </div>
+            <p class="footer-copyright" style="text-align:center"><a href="html/MIT_LICENSE.html" target="_blank">本网页采用 MIT License 协议</a> · <a href="https://github.com/1145141919810TONNY/Shioriteaching/blob/main/LICENSE" target="_blank">GitHub</a>，与 Shiori 其他项目协议不同，详情请参照各自的协议文件<br>
+                <a href="https://1145141919810tonny.github.io/Shioriteaching/" target="_blank">GitHub Pages 在线服务</a> · <a href="https://wakudemo.cn/games/100266" target="_blank">WakuDemo 应用商店</a>
+                &nbsp;&nbsp;&nbsp;&nbsp;联系方式：<a href="mailto:3099637681@qq.com">QQ</a> · <a href="https://space.bilibili.com/87412647" target="_blank">bilibili</a><br>
+                Copyright &copy; <span class="footer-year"></span> bilibili 月が綺麗ですね_ All Rights Reserved.</p>
+        </footer>
+    </div>
+
+    <script>document.querySelectorAll('.footer-year').forEach(function(e){e.textContent=new Date().getFullYear()})</script>
+
+    <script>
+        var backToTopBtn = document.getElementById('backToTopBtn');
+        var scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+
+        window.addEventListener('scroll', function() {
+            if (backToTopBtn) backToTopBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
+
+            if (scrollToBottomBtn) {
+                var scrollY = window.scrollY || window.pageYOffset;
+                var docHeight = document.documentElement.scrollHeight;
+                var winHeight = window.innerHeight;
+                var atBottom = (scrollY + winHeight) >= docHeight - 50;
+                scrollToBottomBtn.style.display = (docHeight > winHeight + 10 && !atBottom) ? 'block' : 'none';
+            }
+        });
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        if (scrollToBottomBtn) {
+            scrollToBottomBtn.addEventListener('click', function() {
+                window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+            });
+        }
+    </script>
+</body>
+</html>
