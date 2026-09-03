@@ -277,13 +277,15 @@
 			<div class="accordion-content">
 
 				<div class="version-block">
-					<h3>V2.1.10 <span class="version-date">(2026/8/29)</span> 系统补丁更新</h3>
+					<h3>V2.2.0 <span class="version-date">(2026/9/4)</span> 历史遗留问题——好感度系统补全</h3>
 					<ul>
-						<li>移除 progress_api.js 中所有硬编码场景列表，改为自动检测 scenes/ 目录下的 HTML 文件</li>
-						<li>修复非 scenes/ 目录内的页面（如 CG.html）被错误写入进度 API 的问题</li>
-						<li>存档页面新增背景缩略图，保存时自动捕获当前剧本画面（背景 + 立绘）</li>
-						<li>存档页面新增背景遮罩拖拽条（0-100%，默认 50%），持久化保存</li>
+						<li>现在完整的补齐了历史遗留问题，好感度系统在旧版本时有严重的bug完全无法正常使用，现已修复，详情语法请参照<code><a href="lovesystem.html" target="_blank" rel="noopener noreferrer" style="color: #007bff;">好感度系统详解页面</a></code></li>
+						<li>借鉴了kirikiri的“f./sf./tf.”变量体系，用于集成在好感度系统中。其中“sf.clear”为系统级变量，用于记录是否通关</li>
+						<li>在index中，功能页面已支持使用“sf.clear”变量来决定是否在主页面显示，请在<code>vars.js</code>的硬编码目录中进行修改</li>
+						<li>更多详细的内容请参照好感度系统详解页面，因内容过多此处不再过多介绍</li>
+						<li>修复了右键不能打开上下文菜单的问题</li>
 					</ul>
+					<p>注：由于好感度系统可能尚未完全稳定（至少在我这看来），需要再更多的进行测试，因此并未同步至可视化编辑器中。此功能目前建议有一定js基础的用户以直接修改json的方式使用。</p>
 				</div>
 				
 			</div>
@@ -293,6 +295,16 @@
 		<div class="accordion">
 			<button class="accordion-header">V2.1.x 系列</button>
 			<div class="accordion-content">
+
+				<div class="version-block">
+					<h3>V2.1.10 <span class="version-date">(2026/8/29)</span> 系统补丁更新</h3>
+					<ul>
+						<li>移除 progress_api.js 中所有硬编码场景列表，改为自动检测 scenes/ 目录下的 HTML 文件</li>
+						<li>修复非 scenes/ 目录内的页面（如 CG.html）被错误写入进度 API 的问题</li>
+						<li>存档页面新增背景缩略图，保存时自动捕获当前剧本画面（背景 + 立绘）</li>
+						<li>存档页面新增背景遮罩拖拽条（0-100%，默认 50%），持久化保存</li>
+					</ul>
+				</div>
 
 				<div class="version-block">
 					<h3>V2.1.9 <span class="version-date">(2026/8/18)</span></h3>
