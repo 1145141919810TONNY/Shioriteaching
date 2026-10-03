@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KS 宏与 DSL 语法指南 - Shiori 引擎</title>
+    <link rel="stylesheet" href="../style.css">
+	<link rel="icon" type="image/png" href="../icon/ico16.ico">
+<style>
+	#scrollToBottomBtn {
+		position: fixed;
+		right: 20px;
+		bottom: 20px;
+		padding: 10px 20px;
+		background-color: #e67e22;
+		color: white;
+		border: none;
+		border-radius: 5px;
+		cursor: pointer;
+		z-index: 999;
+		font-size: 14px;
+		outline: none;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		font-weight: 600;
+		transition: background-color 0.3s, transform 0.3s;
+	}
+	#scrollToBottomBtn:hover {
+		background-color: #d35400;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+	}
+	#scrollToBottomBtn:active {
+		transform: translateY(1px);
+	}
+
+	#backToTopBtn {
+		position: fixed;
+		right: 20px;
+		bottom: 60px;
+		padding: 10px 20px;
+		background-color: #3498db;
+		color: white;
+		border: none;
+		border-radius: 5px;
+		cursor: pointer;
+		z-index: 999;
+		font-size: 14px;
+		outline: none;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		font-weight: 600;
+		transition: background-color 0.3s, transform 0.3s;
+	}
+	#backToTopBtn:hover {
+		background-color: #2980b9;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+	}
+	#backToTopBtn:active {
+		transform: translateY(1px);
+	}
+
+	#scrollToBottomBtn, #backToTopBtn {
+		display: none;
+	}
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>KS 宏与 DSL 语法指南</h1>
+            <p>归纳 Shiori 引擎当前实际实现的指令词面、媒体指令、宏定义源与 DSL 双轨机制<br>本页面所书写的版本号均为示例版本号，后续更新不做更改</p>
+            <a href="../index.html" class="nav-button">返回主页</a>
+        </header>
+
+        <main class="tutorial-content">
+
+            <h2>目录</h2>
+            <ol>
+                <li><a href="#overview">1. 总览与双轨机制</a></li>
+                <li><a href="#surface">2. 两种词面与解析规则</a></li>
+                <li><a href="#line">3. 一行剧本的编译顺序</a></li>
+                <li><a href="#builtin">4. 内置指令（Schema）</a></li>
+                <li><a href="#common">5. 通用参数块 CommonParams</a></li>
+                <li><a href="#media">6. 媒体类指令详解（bgm / se / voice / background / off）</a>
+                    <ul>
+                        <li><a href="#media-audio">6.1 音频三兄弟</a> · <a href="#media-bgmode">6.2 background 两种模式</a> · <a href="#media-bgparams">6.3 参数全表</a></li>
+                        <li><a href="#media-math">6.4 Ssize / size / zoom 换算与演算</a> · <a href="#media-path">6.5 资源路径解析</a></li>
+                        <li><a href="#media-layer">6.6 图层生命周期与继承</a> · <a href="#media-off">6.7 off 与 xxx.off 简写</a></li>
+                    </ul>
+                </li>
+                <li><a href="#char">7. 立绘指令与未注册指令简写</a></li>
+                <li><a href="#quake">8. 震动指令与发抖宏</a></li>
+                <li><a href="#builtinmacro">9. 内置宏</a></li>
+                <li><a href="#ks">10. .ks 宏定义源语法</a></li>
+                <li><a href="#expand">11. 宏展开与参数绑定规则</a></li>
+                <li><a href="#load">12. 宏的装载、合并与页面注入</a></li>
+                <li><a href="#json">13. JSON manifest 宏</a></li>
+                <li><a href="#nativejs">14. 原生 JS 宏注册（__reg）</a></li>
+                <li><a href="#runtime">15. DSL 运行期 API 与宿主注入</a></li>
+                <li><a href="#lower">16. 指令到动作的降级映射</a></li>
+                <li><a href="#examples">17. 完整示例</a></li>
+                <li><a href="#notes">18. 注意事项与错误对照</a></li>
+            </ol>
+
+            <hr>
+
+            <h2 id="overview">1. 总览与双轨机制</h2>
+            <p>Shiori 的指令系统有两条并行的执行路径。引擎在解析 / 执行入口用 <code>typeof window.__shiori === 'object'</code> 做探测：</p>
+            <ul>
+                <li><strong>DSL 路径</strong>：存在 <code>window.__shiori.dsl</code> 时，调用 <code>dsl.compile(command).nodes</code> 得到节点，再经 <code>dsl.executeDslNode(node, this)</code> 执行。</li>
+                <li><strong>旧正则回退路径</strong>：探测不到时，用 <code>command.split(',')</code> 切分，逐个 <code>parseCommand</code> 后交给 <code>handleAction</code>。</li>
+            </ul>
+            <p>DSL 运行期版本号 <code>window.__shiori.dsl.version</code> 为 <code>DSL1.0</code>（<code>shiori_dsl.js</code> 中的 <code>SHIORI_DSL_VERSION</code>），宏展开深度不设上限（循环嵌套检测保留）。</p>
+            <p>指令分两类处理：</p>
+            <ul>
+                <li><strong>有 impl 的指令</strong>：<code>char</code>、<code>bgm</code>、<code>se</code>、<code>voice</code>、<code>background</code>、<code>off</code>、<code>quake</code>、<code>quake-stop</code> 由 <code>macro/</code> 下的原生 JS 实现处理。</li>
+                <li><strong>无 impl 的指令</strong>：经 <code>lowerToAction</code> 转成统一的 <code>action</code> 对象后交给引擎 <code>handleAction</code>。</li>
+            </ul>
+            <div class="tip-box">
+                <strong>相关文档：</strong>运行期对象的完整参数与返回值请见 <a href="API.html" target="_blank">引擎对外 API 参考</a>；本页只讲“剧本里怎么写”。
+            </div>
+
+            <hr>
+
+            <h2 id="surface">2. 两种词面与解析规则</h2>
+            <p>同一个指令有两种书写词面，解析器（<code>parseField</code>）会分别处理：</p>
+            <div class="code-block">
+<pre>[wait time=1000]        ; bracket 词面
+@pov 角色A              ; at 词面</pre>
+            </div>
+
+            <h3>切分规则</h3>
+            <ul>
+                <li><strong>bracket</strong>：从 <code>[</code> 开始，找到配对的 <code>]</code>，括号内为指令体；找不到 <code>]</code> 时按行尾截断。</li>
+                <li><strong>at</strong>：从 <code>@</code> 之后的第一个字符开始，直到遇到 <code>[</code>、<code>@</code> 或 <code>,</code> 结束。</li>
+                <li><strong>不按逗号劈开指令体</strong>：<code>,</code> 只在字段层作为分隔 / 空白被跳过（<code>skipWsComma</code>）。</li>
+            </ul>
+
+            <h3>指令体结构（<code>parseCallBody</code>）</h3>
+            <ul>
+                <li>第一个 token（<code>parts[0]</code>）始终是命令名。</li>
+                <li><code>key=value</code> 形式写入 <code>kv</code>；另有两种等价写法：<code>key = value</code>（等号独立成 token）与 <code>key =value</code>（等号粘在后一个 token 头部）。</li>
+                <li>其余 token 按顺序写入 <code>args</code>（位置参数）。</li>
+            </ul>
+
+            <h3>分词与取值（<code>splitWsQuoted</code> / <code>coerce</code>）</h3>
+            <ul>
+                <li><code>"..."</code> 与 <code>'...'</code> 为字符串，支持反斜杠转义，内部空白不会被切断。</li>
+                <li>其余 token 按空白或逗号截断。</li>
+                <li>取值会被 <code>coerce</code> 转换：纯整数 → <code>parseInt</code>；<code>true</code> / <code>false</code> → 布尔；其余保持字符串。<b>注意</b>：想传字符串 <code>"true"</code> 是做不到的，它一定变成布尔值；同理 <code>time=0100</code> 会被转成整数 100。</li>
+                <li>转换只发生在<strong>最终取值</strong>阶段，宏体内的 <code>%name|默认值</code> 模板字符串不参与转换（默认值可解析为整数时才存成数字）。</li>
+            </ul>
+
+            <h3>行内文本切分（<code>splitInline</code>）</h3>
+            <p>文本字段中的 <code>[s]</code>（等待点）、<code>[a]</code>（点击点）与 <code>&lt;ruby&gt;汉字&lt;rt&gt;注音&lt;/rt&gt;&lt;/ruby&gt;</code> 会被切分为 run 序列，其余部分为普通文本。</p>
+
+            <hr>
+
+            <h2 id="line">3. 一行剧本的编译顺序</h2>
+            <p>宿主编译整场景时，每个 <code>story</code> 行按固定顺序产出节点（<code>Compiler.CompileLine</code>）：</p>
+            <ol>
+                <li>行上的 <code>background</code> / <code>bgm</code> / <code>se</code> / <code>videos</code> 字段 → 资源节点；</li>
+                <li><code>ops</code> 数组（结构化指令，每项含 <code>cmd</code> 与其余 kv）；</li>
+                <li><code>chars</code> 字段（其中未注册的名字会被改写为立绘指令）；</li>
+                <li><code>command</code> 字段（本页主要讲解对象）；</li>
+                <li><code>text</code> 字段 → 文本节点；</li>
+                <li><code>action</code> 对象 → 分支节点。</li>
+            </ol>
+            <p>运行期侧，<code>resolveDslNodes</code> 会优先复用 <code>line._dsl.nodes</code> 缓存，没有缓存时才调用 <code>dsl.compile(command)</code>。</p>
+
+            <hr>
+
+            <h2 id="builtin">4. 内置指令（Schema）</h2>
+            <p>下表取自 C# 端 <code>BuiltinCommands</code> 与运行期 <code>seedBuiltin</code>，两端登记结果一致。</p>
+            <table>
+                <tr>
+                    <th>指令</th>
+                    <th>别名</th>
+                    <th>位置参数</th>
+                    <th>命名参数</th>
+                    <th>说明</th>
+                </tr>
+                <tr><td><code>wait</code></td><td>—</td><td><code>click</code>(flag,可选)</td><td><code>time</code>(int)</td><td>等待。有 time 为定时，否则等待点击</td></tr>
+                <tr><td><code>pov</code></td><td>—</td><td><code>name</code>(str,可选)</td><td>—</td><td>视角指示</td></tr>
+                <tr><td><code>char</code></td><td>—</td><td><code>who</code>(char,必需)</td><td><code>pos</code>(str)</td><td>立绘</td></tr>
+                <tr><td><code>quake</code></td><td>—</td><td>—</td><td><code>who</code>(char)、<code>level</code>(str,默认"中")、<code>chan</code>(str)</td><td>震动</td></tr>
+                <tr><td><code>quake-stop</code></td><td>—</td><td>—</td><td><code>who</code>(char)、<code>chan</code>(str)</td><td>停止震动</td></tr>
+                <tr><td><code>s</code></td><td>—</td><td>—</td><td>—</td><td>点击等待</td></tr>
+                <tr><td><code>msgoff</code></td><td>—</td><td>—</td><td>—</td><td>隐藏消息框</td></tr>
+                <tr><td><code>msgon</code></td><td>—</td><td>—</td><td>—</td><td>显示消息框</td></tr>
+                <tr><td><code>clearname</code></td><td><code>clear</code></td><td>—</td><td>—</td><td>清除姓名</td></tr>
+                <tr><td><code>fadeout</code></td><td>—</td><td>—</td><td><code>time</code>、<code>color</code>(str)</td><td>淡出</td></tr>
+                <tr><td><code>fadein</code></td><td>—</td><td>—</td><td><code>time</code>、<code>color</code>(str)</td><td>淡入</td></tr>
+                <tr><td><code>finish</code></td><td>—</td><td>—</td><td><code>time</code>、<code>bgcolor</code>(str)</td><td>黑屏结束</td></tr>
+                <tr><td><code>finishwhite</code></td><td>—</td><td>—</td><td><code>time</code>、<code>bgcolor</code>(str)</td><td>白屏结束</td></tr>
+                <tr><td><code>novel</code></td><td>—</td><td>—</td><td>—</td><td>切换全屏小说模式</td></tr>
+                <tr><td><code>normal</code></td><td>—</td><td>—</td><td>—</td><td>退出全屏小说模式</td></tr>
+                <tr><td><code>lock</code></td><td><code>阻止</code></td><td>—</td><td>—</td><td>锁定点击</td></tr>
+                <tr><td><code>free</code></td><td><code>解锁</code></td><td>—</td><td>—</td><td>解除点击锁定</td></tr>
+                <tr><td><code>bgm</code></td><td>—</td><td><code>op</code>(str,可选，play / stop)</td><td><code>storage</code>、<code>time</code>、<code>vol</code></td><td>背景音乐</td></tr>
+                <tr><td><code>se</code></td><td>—</td><td><code>op</code>(str,可选)</td><td><code>storage</code>、<code>time</code>、<code>vol</code></td><td>音效</td></tr>
+                <tr><td><code>voice</code></td><td>—</td><td><code>op</code>(str,可选)</td><td><code>storage</code>、<code>time</code>、<code>vol</code></td><td>语音</td></tr>
+                <tr><td><code>background</code></td><td>—</td><td>透明度可写位置参数</td><td><code>storage</code>、<code>time</code>、<code>layer</code>、<code>size</code>、<code>Ssize</code>、<code>x</code>、<code>y</code>（运行期另支持 <code>zoom</code>）</td><td>背景图，全部参数语义见 <a href="#media-bgparams">§6.3</a></td></tr>
+                <tr><td><code>off</code></td><td>—</td><td>—</td><td><code>storage</code>(str)</td><td>移除<b>背景图层</b>，不停止音频</td></tr>
+            </table>
+            <div class="tip-box">
+                指令名大小写不敏感（注册表按忽略大小写折叠）。未登记的指令按 <code>unknownPolicy</code> 处理：运行期默认 <code>'warn'</code>，C# 端 <code>UnknownCommandPolicy</code> 默认 <code>Warn</code>（可选 <code>Ignore</code> / <code>Warn</code> / <code>Error</code>）。
+            </div>
+
+            <hr>
+
+            <h2 id="common">5. 通用参数块 CommonParams</h2>
+            <p><code>CommonParams</code> 定义了通用参数的名字与类型，供指令复用：</p>
+            <table>
+                <tr><th>参数</th><th>类型</th><th>说明</th><th>实际使用者</th></tr>
+                <tr><td><code>time</code></td><td>int</td><td>毫秒</td><td>wait / fadeout / fadein / finish / finishwhite / bgm / se / voice / background</td></tr>
+                <tr><td><code>vol</code></td><td>num</td><td>音量</td><td>bgm / se / voice</td></tr>
+                <tr><td><code>layer</code></td><td>str</td><td>层级</td><td>background</td></tr>
+                <tr><td><code>cond</code></td><td>expr</td><td>条件表达式</td><td>当前内置指令未消费</td></tr>
+                <tr><td><code>nowait</code></td><td>flag</td><td>不等待标志</td><td>当前内置指令未消费</td></tr>
+                <tr><td><code>ease</code></td><td>str</td><td>缓动</td><td>当前内置指令未消费</td></tr>
+                <tr><td><code>persist</code></td><td>flag</td><td>持久标志</td><td>当前内置指令未消费</td></tr>
+            </table>
+
+            <hr>
+
+            <h2 id="media">6. 媒体类指令详解（bgm / se / voice / background / off）</h2>
+            <p>这五条指令由 <code>macro/media_impl.js</code> 提供实现，是 DSL 路径下真正做出效果的一组指令。C# Schema 只声明参数名，真正的数值解析全部在 JS 侧完成。</p>
+
+            <h3 id="media-audio">6.1 音频三兄弟：bgm / se / voice</h3>
+            <div class="code-block">
+<pre>[BGM play storage=bgm1.ogg vol=80% time=1000]
+[SE play storage=SE001.ogg vol=100%]
+[Voice play storage=voice001.ogg vol=100%-&gt;20% time=2000]
+[BGM stop time=800]
+[BGM off]                 ; 等价写法，见 6.7</pre>
+            </div>
+            <table>
+                <tr><th>参数</th><th>说明</th></tr>
+                <tr><td><code>op</code>（位置参数）</td><td>第一个位置参数。<code>stop</code> → 停止；<code>play</code> 或其它值 → 播放。<b>省略位置参数且未给 <code>storage</code> 时同样按停止处理</b>（光秃秃的 <code>[BGM]</code> 就是停止）。<b>stop 优先</b>：写了 <code>stop</code> 时 <code>storage</code> 会被忽略</td></tr>
+                <tr><td><code>storage</code></td><td>资源名。含 <code>/</code> 或 <code>\</code> 视为完整路径直接使用；否则查场景映射表（<code>sceneData.bgm / se / audio</code>）→ 音效额外走引擎 <code>resolveSEPath</code> → 兜底目录 <code>../assets/bgm/</code>、<code>../assets/se/</code>、<code>../assets/audio/</code>。查表时先按原名、再去扩展名重试一次</td></tr>
+                <tr><td><code>vol</code></td><td>相对音量。支持 <code>80%</code>、<code>0.8</code>、<code>80</code>（&gt;1 且 ≤100 视为百分数；&gt;100 一律封顶到 100%）。<b>渐变写法</b> <code>100%-&gt;20%</code> 表示从 100% 渐变到 20%，<b>必须同时给 <code>time&gt;0</code> 才会真的渐变</b>，否则直接落到终点值</td></tr>
+                <tr><td><code>time</code></td><td>毫秒。<b>停止</b>：&gt;0 为淡出后暂停并归零；=0 时 BGM 走引擎 <code>stopBGM()</code>、SE 与 Voice 直接 pause 并归零。<b>播放</b>：&gt;0 且未写渐变时从 0 淡入；写了渐变时为渐变时长</td></tr>
+            </table>
+            <ul>
+                <li><strong>每通道只有一个播放器</strong>：<code>bgm</code> / <code>se</code> / <code>voice</code> 各对应一个 <code>&lt;audio&gt;</code>，新的播放直接替换 <code>src</code>，<b>无法叠加播放两路 BGM 或两路 SE</b>，后一条会打断前一条。</li>
+                <li>最终音量 = 主音量 × 通道音量 × 指令相对音量（取自 <code>systemModule.currentVolume</code> 与 <code>bgmVolume / seVolume / voiceVolume</code>）。</li>
+                <li><code>bgm</code> 自动循环播放，<code>se</code> / <code>voice</code> 不循环。</li>
+                <li>浏览器自动播放策略拒绝 <code>play()</code> 时异常会被静默吞掉，不会中断剧情。</li>
+            </ul>
+
+            <h3 id="media-bgmode">6.2 background：两种模式</h3>
+            <div class="code-block">
+<pre>[background storage=bg_002_00_00.png]                       ; 简单模式：替换底层背景
+[background storage=panorama.png size=5339*3300 Ssize=1980*1080 layer=1 50% y=10% x=10% zoom=100%]
+[background storage=panorama.png time=3000 90% y=50% x=50% zoom=50%]
+[panorama.png off]                                          ; 移除该图层</pre>
+            </div>
+            <table>
+                <tr><th>模式</th><th>触发条件</th><th>行为</th></tr>
+                <tr><td><strong>简单模式</strong></td><td><code>size</code>、<code>x</code>、<code>y</code>、<code>zoom</code>、透明度位置参数、<code>time&gt;0</code>、<code>layer</code> <b>一个都没出现</b></td><td>调用引擎 <code>setBackground(path)</code> 直接替换底层背景，不创建图层。开销最小</td></tr>
+                <tr><td><strong>图层模式</strong></td><td>上述任一项出现</td><td>按 <code>storage</code> 名创建 / 复用一个绝对定位图层，写入尺寸、位置、透明度与过渡</td></tr>
+            </table>
+            <div class="warning-box">
+                <strong>只写 <code>layer</code> 也会进图层模式。</strong><code>[background storage=a.png layer=1]</code> 没有任何变换，但因为给了 <code>layer</code>，它仍然新建一个图层<b>叠在</b>底层背景之上，而不是替换底层背景。
+            </div>
+
+            <h3 id="media-bgparams">6.3 background 参数全表</h3>
+            <table>
+                <tr><th>参数</th><th>写法</th><th>作用</th></tr>
+                <tr><td><code>storage</code></td><td>字符串</td><td>资源名。<b>省略时沿用上一次的背景</b>（<code>state.mediaLastBg</code>），所以后续几行只改变换时可以不再重复写资源名</td></tr>
+                <tr><td><code>size</code></td><td><code>宽*高</code></td><td>图片的<b>固有像素尺寸</b>。它决定图层最终显示的<b>宽高比</b>——图层用 <code>background-size:100% 100%</code> 强制铺满，所以 <code>size</code> 的宽高比必须等于原图真实宽高比，否则画面会被拉变形</td></tr>
+                <tr><td><code>Ssize</code></td><td><code>宽*高</code>，默认 <code>1920*1080</code></td><td><b>基准分辨率（Screen size）</b>：说明上面这组 <code>size</code> 数字是在多大的屏幕上量出来的。换算<b>只取宽</b>：<code>scale = 背景容器宽 ÷ Ssize宽</code>。详见 6.4</td></tr>
+                <tr><td><code>zoom</code></td><td><code>50%</code> / <code>150%</code> / <code>0.5</code> / <code>2</code></td><td>缩放倍率。带 <code>%</code> 直接除以 100（<code>150%</code>→1.5）；裸数字 <b>&lt;10 视为倍率</b>（<code>2</code>→2 倍、<code>0.5</code>→0.5 倍），<b>≥10 视为百分数</b>（<code>50</code>→0.5）。缺省沿用上次，首次为 1</td></tr>
+                <tr><td><code>x</code> / <code>y</code></td><td><code>10%</code> / <code>0.1</code> / <code>10</code></td><td>图层<b>左上角</b>相对背景容器的位置，对应 CSS <code>left</code> / <code>top</code>。<b>不是中心点，也不自动居中</b>——要居中得自己算：<code>x =（容器宽 − 显示宽）÷ 2 ÷ 容器宽</code>。缺省沿用上次，首次为 0</td></tr>
+                <tr><td>透明度</td><td>位置参数 <code>50%</code> / <code>0.5</code> / <code>50</code></td><td>取<b>第一个能解析成百分比的位置参数</b>作为 <code>opacity</code>。缺省沿用上次，首次为 1（完全不透明）</td></tr>
+                <tr><td><code>layer</code></td><td>整数</td><td>图层的 <code>z-index</code>，缺省 0。<b>图层模式下后续调用若不写 <code>layer</code>，<code>z-index</code> 会被重置为 0</b></td></tr>
+                <tr><td><code>time</code></td><td>毫秒</td><td>&gt;0 时给 <code>left / top / opacity / width / height</code> 加 CSS 过渡，并向调度器返回 <code>{ type:'mediaAnim', duration }</code>——<b>这段动画会阻塞剧情推进</b>；=0 时立即定位</td></tr>
+            </table>
+            <ul>
+                <li>尺寸分隔符支持 <code>*</code>、<code>x</code>、<code>X</code>、<code>×</code> 四种：<code>5339*3300</code> 与 <code>5339x3300</code> 完全等价。</li>
+                <li>百分比解析规则（<code>x</code> / <code>y</code> / 透明度 / <code>vol</code> 共用）：带 <code>%</code> 除以 100；裸数字 &gt;1 且 ≤100 也除以 100；&gt;100 一律封顶到 100%；负数和 ≤1 的裸小数原样使用。</li>
+                <li>图层元素带 <code>pointer-events:none</code>，不会挡住鼠标点击。</li>
+            </ul>
+
+            <h3 id="media-math">6.4 Ssize / size / zoom 的换算与演算</h3>
+            <div class="code-block">
+<pre>scale   = 背景容器宽 ÷ Ssize宽          <span class="code-comment">; 只取宽，高不参与换算</span>
+显示宽  = (给了 size ? size宽 × scale : 容器宽) × zoom
+显示高  = (给了 size ? size高 × scale : 容器高) × zoom
+left    = x × 100 %
+top     = y × 100 %</pre>
+            </div>
+            <p><strong>Ssize 到底管什么：</strong><code>size</code> 回答"这张图有多少像素"，<code>Ssize</code> 回答"这组像素数是在多大的屏幕下量出来的"。引擎据此把设计稿尺寸等比换算到当前窗口，因此<b>换分辨率时不需要改 <code>size</code></b>。</p>
+            <p>把示例第一行逐项算一遍（设背景容器为 1920×1080）：</p>
+            <div class="code-block">
+<pre>[background storage=panorama.png size=5339*3300 Ssize=1980*1080 layer=1 50% y=10% x=10% zoom=100%]
+
+scale   = 1920 ÷ 1980        = 0.9697
+显示宽  = 5339 × 0.9697 × 1.0 ≈ 5177 px
+显示高  = 3300 × 0.9697 × 1.0 = 3200 px
+left=10%   top=10%   opacity=0.5   z-index=1</pre>
+            </div>
+            <p>紧接着的第二行只改了变换，其余全部沿用：</p>
+            <div class="code-block">
+<pre>[background storage=panorama.png time=3000 90% y=50% x=50% zoom=50%]
+
+Ssize 沿用 1980*1080 → scale 仍为 0.9697
+size  沿用 5339*3300
+zoom  = 50% → 0.5
+显示宽  = 5339 × 0.9697 × 0.5 ≈ 2589 px
+显示高  = 3300 × 0.9697 × 0.5 = 1600 px
+left=50%   top=50%   opacity=0.9   3 秒过渡（返回 mediaAnim，阻塞 3 秒）
+z-index：本行没写 layer → 被重置为 0</pre>
+            </div>
+            <div class="tip-box">
+                <strong>为什么要有继承规则：</strong><code>Ssize</code> / <code>size</code> / <code>zoom</code> / <code>x</code> / <code>y</code> / 透明度在同图层的后续调用中都沿用上一次的值。若不做继承，第二行缺省 <code>Ssize</code> 会回退默认 1920，scale 从 0.9697 跳到 1.0，动画开始的瞬间画面会先跳变约 3% 再开始动。
+            </div>
+
+            <h3 id="media-path">6.5 背景资源路径解析</h3>
+            <ol>
+                <li>含 <code>/</code> 或 <code>\</code> → 视为完整路径直接使用；</li>
+                <li>查场景映射表 <code>sceneData.background</code>（先按原名、再去扩展名）；</li>
+                <li>查全局配置表 <code>BG_CONFIG_SUB</code>（<code>bg\</code> 目录）；</li>
+                <li>查全局配置表 <code>CG_CONFIG_SUB</code>（<code>cg\</code> 目录）——背景同时兼容 <code>bg\</code> 与 <code>cg\</code> 两个文件夹；</li>
+                <li>兜底 <code>../assets/bg/</code> + 资源名。</li>
+            </ol>
+
+            <h3 id="media-layer">6.6 图层生命周期与继承</h3>
+            <ul>
+                <li><strong>以 <code>storage</code> 名为唯一键</strong>：<code>state.mediaLayers</code> 里同名资源只会有一个图层。重复 <code>background</code> 同一张图是<b>复用同一个元素</b>，因此<b>做不到"同一张图同时出现在两个位置"</b>——需要复制成不同的文件名。</li>
+                <li>图层元素带 <code>class="shiori-bg-layer"</code>、<code>data-storage="资源名"</code>、<code>background-size:100% 100%</code>、<code>pointer-events:none</code>，可在自定义 CSS 里按类名统一处理。</li>
+                <li><strong>窗口 resize 会自动重排</strong>：按当前容器尺寸重算所有已存在图层的像素宽高，保证可见比例不变（用 rAF 节流，同一帧只重排一次）。</li>
+                <li><code>off</code> 移除图层后 <code>state.mediaLastBg</code> <b>不会</b>被清空，下一次省略 <code>storage</code> 的 <code>background</code> 仍会沿用这张图。</li>
+                <li><strong>底层背景与图层是两套东西</strong>：简单模式改的是底层背景，图层模式叠的是图层，互不影响。已建好图层后再用简单模式换背景，图层仍然留在上面。</li>
+            </ul>
+            <div class="warning-box">
+                <strong>已知行为（resize 重排）：</strong>重算时 <code>x</code> / <code>y</code> 会被再乘一次 100（<code>_mediaSpec</code> 中保存的已是 <code>x×100</code> 之后的值），导致 <code>left</code> / <code>top</code> 被放大到原值的 100 倍。规避办法：需要自适应时自行监听 <code>resize</code> 并重新下发一次带完整 <code>x</code> / <code>y</code> 的 <code>background</code> 指令，不要依赖引擎的自动重排。
+            </div>
+
+            <h3 id="media-off">6.7 off 与 xxx.off 简写</h3>
+            <ul>
+                <li><code>[off storage=资源名]</code>：移除<b>背景图层</b>并清理缓存记录。<b>不会停止音频</b>——停 BGM / SE / Voice 要用各自的 <code>stop</code>。</li>
+                <li><code>storage</code> 为空或图层不存在时静默无事发生。</li>
+                <li><code>[资源名 off]</code>：当指令名<b>包含英文句点</b>且第一个位置参数是 <code>off</code> 时，会被改写为 <code>off storage=资源名</code>，例如 <code>[panorama.png off]</code>。<code>[panorama off]</code>（不含句点）<b>不会</b>触发改写。</li>
+                <li>改写发生在宏展开<b>之后</b>、降级之前，且<b>优先于"未注册指令 → 立绘"的兜底</b>，所以 <code>[bgm1.ogg off]</code> 不会被当成角色名。</li>
+            </ul>
+
+            <hr>
+
+            <h2 id="char">7. 立绘指令与未注册指令简写</h2>
+            <p><code>char</code> 的实现把参数拼成一条立绘标签后转发给引擎 <code>renderChars</code>：</p>
+            <table>
+                <tr><th>写法</th><th>实际转发</th></tr>
+                <tr><td><code>[char who=角色A 正面 服装1 表情101]</code></td><td><code>[角色A 正面 服装1 表情101]</code></td></tr>
+                <tr><td><code>[char 角色A 正面]</code>（位置参数）</td><td><code>[角色A 正面]</code></td></tr>
+                <tr><td><code>[char who=角色A pos=左]</code></td><td><code>[角色A 左]</code>（<code>pos</code> 追加在末尾）</td></tr>
+            </table>
+            <ul>
+                <li>拼装顺序固定为 <b>who → 位置参数（按书写顺序）→ pos</b>，因此 <code>pos</code> 永远排在最后。位置参数在运行时位于 <code>p._args</code>。</li>
+                <li>三个部分全空时返回空对象 <code>{}</code>，引擎 <code>handleAction</code> 会记录“未知动作类型”，即这条指令等于没写。</li>
+            </ul>
+            <div class="warning-box">
+                <strong>未注册指令的兜底规则：</strong>如果一个名字既不是已注册指令、也不是宏，<b>并且带了位置参数</b>，它会被改写成 <code>char</code> 指令——原名字成为第一个位置参数。这就是 <code>[角色A 正面 服装1 表情101]</code> 这类“角色名开头”的写法能生效的原因。该规则对 <code>command</code> 与 <code>chars</code> 两个字段同时生效。<br>
+                反过来说：<b>不带位置参数的未注册指令不会变成立绘</b>，只会按 <code>unknownPolicy</code> 产生一条“未注册指令”诊断。<br>
+                <b>判定顺序</b>：<code>wait</code> / <code>s</code> → <code>xxx.off</code> 改写 → 立绘兜底。也就是说 <code>[bgm1.ogg off]</code> 走的是 off，不会被当成角色名。
+            </div>
+            <p>立绘修饰词（位置、缩放、动作、连续动作等）的完整语法见 <a href="chars.html" target="_blank">立绘控制系统</a> 与 <a href="charsnew.html" target="_blank">高级立绘系统详细教学</a>。</p>
+
+            <hr>
+
+            <h2 id="quake">8. 震动指令与发抖宏</h2>
+            <p><code>quake</code> / <code>quake-stop</code> 由 <code>macro/quake_impl.js</code> 实现。</p>
+            <div class="code-block">
+<pre>[quake who=角色A level=中 chan=allchar]
+[quake level=大]                ; 不写 chan 时默认震 stage / ev / allchar
+[quake-stop who=角色A]
+[quake-stop]                    ; 停止全部震动</pre>
+            </div>
+
+            <h3>参数</h3>
+            <table>
+                <tr><th>参数</th><th>说明</th></tr>
+                <tr><td><code>who</code></td><td>角色名，目标元素为 <code>id="char-&lt;who&gt;"</code> 的立绘元素</td></tr>
+                <tr><td><code>level</code></td><td>强度：<code>极小/極小</code>=8px、<code>小</code>=16px、<code>中</code>=32px（缺省）、<code>大</code>=56px、<code>极大/極大</code>=80px；未知值按“中”处理</td></tr>
+                <tr><td><code>chan</code></td><td>通道，可用逗号或空白分隔多个：<code>stage</code>=角色舞台与立绘容器、<code>ev</code>=对话框、<code>allchar</code>=页面上所有立绘。<b>规则</b>：显式指定则按指定；未指定但给了 <code>who</code> 则只震该角色；两者都没给则默认 <code>stage ev allchar</code></td></tr>
+            </table>
+
+            <h3>停止的匹配策略（quake-stop）</h3>
+            <ol>
+                <li>既无 <code>who</code> 也无 <code>chan</code> → 停止全部震动；</li>
+                <li><code>who + chan</code> 组合与记录键完全一致 → 停止该条；</li>
+                <li>只给了 <code>who</code> → 停止所有 <code>who</code> 相同的记录（忽略 <code>chan</code>）。</li>
+            </ol>
+            <ul>
+                <li>立绘类元素优先走引擎原生的 <code>applyShakeAction</code> / <code>stopShakeAction</code>，其余元素注入 CSS 关键帧动画（只注入一次，样式 id 为 <code>shiori-quake-style</code>）。</li>
+                <li>相同 <code>who + chan</code> 再次触发时先清理旧震动，避免动画叠加。</li>
+                <li>引擎 <code>init</code> 与读档 <code>loadStateSnapshot</code> 前会自动清除所有残留震动。</li>
+            </ul>
+
+            <hr>
+
+            <h2 id="builtinmacro">9. 内置宏</h2>
+            <p>运行期 <code>seedBuiltin</code> 与 C# <code>BuiltinCommands</code> 各登记了两个宏，定义完全一致。</p>
+
+            <h3>发抖</h3>
+            <table>
+                <tr><th>形参</th><th>类型</th><th>默认值</th></tr>
+                <tr><td><code>who</code></td><td>char</td><td>空</td></tr>
+                <tr><td><code>level</code></td><td>str</td><td><code>中</code></td></tr>
+                <tr><td><code>time</code></td><td>int</td><td>600</td></tr>
+                <tr><td><code>chan</code></td><td>str</td><td>空</td></tr>
+            </table>
+            <p>展开步骤：</p>
+            <div class="code-block">
+<pre>[quake who=%who level=%level chan=%chan]
+[wait time=%time]</pre>
+            </div>
+
+            <h3>发抖-stop</h3>
+            <table>
+                <tr><th>形参</th><th>类型</th><th>默认值</th></tr>
+                <tr><td><code>who</code></td><td>char</td><td>空</td></tr>
+                <tr><td><code>chan</code></td><td>str</td><td>空</td></tr>
+            </table>
+            <p>展开步骤：</p>
+            <div class="code-block">
+<pre>[quake-stop who=%who chan=%chan]</pre>
+            </div>
+            <div class="code-block">
+<pre>[发抖 who=角色A level=中 time=600]
+[发抖-stop who=角色A]</pre>
+            </div>
+
+            <hr>
+
+            <h2 id="ks">10. .ks 宏定义源语法</h2>
+            <p><code>.ks</code> 文件由 C# <code>KsMacroParser</code> 解析。一个宏由 <code>[macro name=...]</code> 开始、<code>[endmacro]</code> 结束：</p>
+            <div class="code-block">
+<pre>; 定时等待，不传 time 时默认 300 毫秒
+[macro name=示例-等]
+[wait time=%time|300]
+[endmacro]
+
+; 藏框一拍：藏消息框 → 等待 → 显示
+[macro name=示例-藏框]
+[msgoff]
+[wait time=%time|400]
+[msgon]
+[endmacro]</pre>
+            </div>
+
+            <h3>形参写法</h3>
+            <ul>
+                <li>形参写成 <code>%name</code>，默认值写在竖线之后：<code>%name|默认值</code>。</li>
+                <li>首次出现的形参被登记为参数，类型固定为 <code>str</code>；默认值若可解析为整数则存为数字，否则存为字符串。</li>
+                <li>同一个形参重复出现时只登记一次，后续复用。</li>
+                <li>形参同样可以写在位置参数里（<code>[角色A 正面 %face|表情101]</code>）。</li>
+                <li><strong>登记顺序 = 首次出现顺序</strong>，它决定调用时位置参数与形参的对应关系（见 11）。扫描顺序是：先扫每条指令的命名参数（按书写顺序），再扫它的位置参数。</li>
+                <li><strong>形参不能写在指令名位置</strong>。解析器只对命名参数与位置参数做形参登记与替换，<b>指令名是原样保留的</b>。因此 <code>[%storage|a.png off]</code> 不会变成 <code>[a.png off]</code>，而是产生一条指令名就叫 <code>%storage|a.png</code> 的调用，最终按“未注册指令”处理。<b>要参数化资源名，请写成 <code>[off storage=%storage|a.png]</code>。</b></li>
+                <li>形参名与参数键名<b>大小写不敏感</b>（<code>%Time</code> 与 <code>%time</code>、<code>storage=</code> 与 <code>Storage=</code> 是同一个）。</li>
+            </ul>
+
+            <h3>宏体硬性规则</h3>
+            <ul>
+                <li>宏体内只允许方括号 <code>[]</code> 调用。</li>
+                <li><strong>禁止 <code>[s]</code></strong>（等同 <code>wait click</code>）。</li>
+                <li><strong>禁止无 <code>time</code> 的 <code>[wait]</code></strong>（即禁止 <code>[wait click]</code>）。</li>
+                <li>违反时产生编译错误，建议改写成 <code>[wait time=%time|毫秒]</code>。</li>
+                <li>宏体内<b>可以调用其它宏</b>，包括本文件后面才定义的宏——装载时按顺序登记，展开时才做名字查找，因此嵌套与前置引用都不成问题。</li>
+                <li>宏名不得与指令或其他宏重名（重名会抛异常，装载时转为“指令/宏重名已跳过”警告）。</li>
+                <li>以 <code>;</code> 开头的行是注释。<b>注释里不要写方括号或 <code>@</code></b>——解析器只认 <code>[</code> 和 <code>@</code> 两种起始符，其余字符一律跳过，一旦注释里出现 <code>[...]</code> 就会被当成真实指令解析。</li>
+            </ul>
+
+            <h3>解析诊断</h3>
+            <table>
+                <tr><th>情况</th><th>诊断</th></tr>
+                <tr><td>上一个宏未闭合又出现 <code>[macro]</code></td><td>宏未闭合（Error，建议补 <code>[endmacro]</code>）</td></tr>
+                <tr><td><code>[macro]</code> 没有 <code>name</code></td><td>[macro] 缺少 name（Error）</td></tr>
+                <tr><td>没有对应 <code>[macro]</code> 的 <code>[endmacro]</code></td><td>孤立的 [endmacro]（Error）</td></tr>
+                <tr><td>宏体之外出现指令</td><td>宏体外指令已忽略（Warn）</td></tr>
+                <tr><td>宏体内写 <code>[s]</code></td><td>宏体内禁止 [s]（等同 wait click）（Error）</td></tr>
+                <tr><td>宏体内 <code>wait</code> 无 time</td><td>宏体内 wait 只允许定时推进，禁止 [wait click]（Error）</td></tr>
+                <tr><td>文件末尾宏未闭合</td><td>宏未闭合（Error）</td></tr>
+                <tr><td>宏文件读取失败</td><td>无法读取宏文件（Warn）</td></tr>
+            </table>
+            <div class="warning-box">
+                <strong>错误的影响范围是整个文件，不是单个宏。</strong>解析器内部只丢弃出错的那一个宏，但装载环节（<code>MacroCatalog.MergeInto</code>）一旦看到该文件产生了任何 Error，就会<b>跳过这个文件里的全部宏</b>。所以一个 <code>.ks</code> 文件里只要有一处 <code>[wait]</code> 漏写 <code>time</code>，同文件里写得再正确的宏也都不会生效。<br>
+                排查建议：改完 <code>.ks</code> 后看 F1 调试面板的诊断列表，确认 Error 清零，再用宏清单核对宏是否都在。
+            </div>
+
+            <hr>
+
+            <h2 id="expand">11. 宏展开与参数绑定规则</h2>
+
+            <h3>参数绑定顺序（Bind / bindMacro）</h3>
+            <p>按<strong>形参声明顺序</strong>（即首次出现顺序）逐个绑定，每个形参依次尝试：</p>
+            <ol>
+                <li>具名键值（<code>kv</code> 中同名的值，大小写不敏感）；</li>
+                <li>下一个未消耗的位置参数（<code>args</code>）；</li>
+                <li>形参的默认值；</li>
+                <li>仍没有则绑定为空字符串 <code>""</code>。</li>
+            </ol>
+            <div class="tip-box">
+                <strong>位置参数是“填空”而不是“对齐”。</strong>位置游标只在真正使用位置参数时才前进，所以具名与位置可以混用且不会错位：宏形参为 <code>(a, b)</code> 时，<code>@宏 b=2 1</code> 的结果是 <code>a=1</code>（拿第一个位置参数）、<code>b=2</code>（具名）。<br>
+                同理，<code>@宏 1</code> 只给 <code>a</code> 赋值，<code>b</code> 走默认值——位置参数永远是“够谁给谁”，按形参顺序发牌。
+            </div>
+
+            <h3>替换规则（Substitute）</h3>
+            <ul>
+                <li>只有当模板字符串的<strong>首字符</strong>是 <code>%</code> 时才查表替换；替换键为去掉 <code>%</code> 后、再转成小写的结果。</li>
+                <li>否则原样返回（模板字符串本身不参与替换）——所以 <code>a%name</code>、<code>x-%name</code> 这类<b>嵌在中间</b>的占位符不会被替换。</li>
+                <li>绑定表中没有该键时替换为空串。</li>
+                <li><strong>只替换命名参数与位置参数，不替换指令名</strong>（<code>step.cmd</code> 原样输出）。见 10 节“形参不能写在指令名位置”。</li>
+            </ul>
+
+            <h3>深度与循环</h3>
+            <ul>
+                <li><strong>展开深度不设上限</strong>：编译期 <code>MacroExpander.MaxDepth</code> 与运行期 <code>MAX_MACRO_DEPTH</code> 的深度判定均已移除，嵌套多少层都能展开。</li>
+                <li>展开时维护递归栈，检测到循环报 <code>宏循环嵌套</code>；回溯时会把当前宏移出栈，因此“同一宏被前后两次顺序调用”不算循环。</li>
+                <li>若某一步的 <code>cmd</code> 本身也是宏，会递归展开，并把展开结果平铺到输出。</li>
+                <li>命中循环时，<b>该次展开整体返回空</b>——不只是跳过出错的那一步，而是这条宏调用产出的所有指令都不执行。</li>
+            </ul>
+            <div class="tip-box">
+                宏是“编译期 / 展开期”概念：展开后得到的是普通指令序列。因此宏的 <code>level</code>、<code>time</code> 等参数最终都以替换结果落到具体指令的 kv 上。
+            </div>
+
+            <hr>
+
+            <h2 id="load">12. 宏的装载顺序</h2>
+            <p><code>MacroCatalog.Scan(macroDir, engineRoot)</code> 递归扫描引擎根下的 <code>macro/</code>，按扩展名归类后各自排序：</p>
+            <table>
+                <tr><th>扩展名</th><th>归类</th><th>说明</th></tr>
+                <tr><td><code>.js</code></td><td>NativeJs</td><td>原生 JS 宏，后载注入（用 <code>__reg</code> 自登记）</td></tr>
+                <tr><td><code>.ks</code></td><td>KsMacros</td><td>宏定义源，编译期解析</td></tr>
+                <tr><td><code>.json</code></td><td>Manifests</td><td>manifest 声明宏</td></tr>
+            </table>
+            <ul>
+                <li>三类文件都按<strong>站点根相对路径</strong>做不区分大小写排序，因此装载顺序可预期。</li>
+                <li>只有位于引擎根目录之内（经 <code>PathGuard.IsUnderRoot</code> 校验）的文件才会被装载。</li>
+                <li>合并进指令注册表的只有 <code>.ks</code> 与 <code>.json</code>，顺序为：先逐个 <code>.ks</code>，再逐个 <code>.json</code>；重名时输出 <code>指令/宏重名已跳过</code> 的警告（若注册表里已有同名宏则直接静默跳过）。</li>
+                <li><code>.js</code> <b>不参与合并</b>，它不会被解析成宏，只作为脚本注入页面（见下）。</li>
+            </ul>
+
+            <h3>原生 JS 脚本如何进页面</h3>
+            <p>宿主（<code>HttpServer.InjectOfficialSequence</code>）在返回场景页 HTML 时，把 <code>Macros.NativeJsRelative()</code> 逐个拼成 <code>&lt;script src&gt;</code> 注入：</p>
+            <ol>
+                <li>注入位置是<strong>页面第一个内联 <code>&lt;script&gt;</code> 之前</strong>；页面没有内联脚本时退到 <code>&lt;/body&gt;</code> 之前。因此它们一定早于页面自己的逻辑执行。</li>
+                <li>注入时会先拼 <code>engine_manifest.json</code> 里的 official 资源（css 进 <code>&lt;head&gt;</code>、js 进同一段），再拼 <code>macro/*.js</code>。</li>
+                <li><strong>按文件名去重</strong>：<code>shiori_dsl.js</code> 这类同时出现在 official 列表与 <code>macro/</code> 的文件只注入一次；页面 HTML 里已经写过 <code>&lt;script src=".../同名.js"&gt;</code> 的也不会重复注入。</li>
+            </ol>
+            <div class="tip-box">
+                <strong>发行形态同样适用：</strong>打包成 <code>.sgd</code> 后磁盘上可能没有 <code>macro\</code> 目录，扫描走的是“磁盘 + 容器”合并视图，<code>macro/</code> 前缀下的条目照样能被枚举，宏与原生脚本都不会丢。
+            </div>
+
+            <hr>
+
+            <h2 id="json">13. JSON manifest 宏</h2>
+            <p><code>JsonManifestLoader</code> 读取 <code>macro/*.json</code>，只处理 <code>register[]</code> 中 <code>kind == "macro"</code> 的声明：</p>
+            <div class="code-block">
+<pre>{
+  "register": [
+    {
+      "kind": "macro",
+      "name": "示例-藏框",
+      "steps": [
+        { "cmd": "msgoff" },
+        { "cmd": "wait", "time": "%time|400" },
+        { "cmd": "msgon" }
+      ]
+    }
+  ]
+}</pre>
+            </div>
+            <ul>
+                <li><code>register[]</code> 里 <code>kind</code> 不等于 <code>macro</code> 的条目<b>被静默忽略</b>（不报错），所以同一份 manifest 可以混放其它声明。</li>
+                <li>每个 step 必须有 <code>cmd</code>，其余键<b>全部</b>作为该 step 的 kv。非字符串的 JSON 值会取其原始文本（<code>GetRawText()</code>），所以 <code>"time": 400</code> 与 <code>"time": "400"</code> 等价。</li>
+                <li>kv 值若以 <code>%</code> 开头，则按 <code>%name|默认值</code> 规则登记形参，登记顺序同 <code>.ks</code>。</li>
+                <li><strong>manifest 形式无法写位置参数</strong>：C# 装载器只填 kv、不填 args，因此 manifest 宏只能靠具名参数与默认值。</li>
+                <li>同样禁止 <code>wait click</code> / <code>[s]</code>，违规报 <code>宏体内 wait 只允许定时推进，禁止 wait click / [s]</code>，且<b>整个文件的宏都被跳过</b>。</li>
+                <li><code>steps</code> 缺失或为空 → 该宏不会被登记（无诊断，容易误判为“宏没生效”）。</li>
+                <li><code>name</code> 缺失报 <code>manifest macro 缺少 name</code>；JSON 解析失败报 <code>manifest JSON 无效: 异常信息</code>。</li>
+            </ul>
+
+            <hr>
+
+            <h2 id="nativejs">14. 原生 JS 宏注册（__reg）</h2>
+            <p>运行期挂载了 <code>window.__shiori.reg</code> 与 <code>window.__reg</code>（同一个对象），提供四个方法：</p>
+            <table>
+                <tr><th>方法</th><th>入参</th><th>作用</th></tr>
+                <tr><td><code>cmd(manifest)</code></td><td><code>{ name, alias | aliases }</code></td><td>登记指令 schema</td></tr>
+                <tr><td><code>impl(spec)</code></td><td><code>{ cmd, run }</code></td><td>登记实现；<code>run(ctx, p)</code> 返回 action 对象</td></tr>
+                <tr><td><code>alias(spec)</code></td><td><code>{ name, alias }</code></td><td>给已有指令挂别名；不存在则以 name 新建</td></tr>
+                <tr><td><code>ks()</code></td><td>—</td><td>空操作（.ks 由 C# 编译期装载）</td></tr>
+            </table>
+            <p><code>impl</code> 的 <code>run(ctx, p)</code> 中，<code>ctx</code> 是 <code>gameEngine</code>，<code>p</code> 是该节点的 kv 参数展平后的对象。</p>
+            <ul>
+                <li><strong>位置参数在 <code>p._args</code></strong>，且<b>只有存在位置参数时才有这个字段</b>，取之前先判空。</li>
+                <li>kv 的值已经过 <code>coerce</code>：纯整数变 number、<code>true</code>/<code>false</code> 变 boolean，其余是字符串。</li>
+                <li>除了 <code>__reg.impl</code>，运行期还额外提供 <code>dsl.registerAction({name, alias, run})</code>：它同时登记 schema 与实现，但传给 <code>run</code> 的 <code>p</code> <b>只有 kv，没有 <code>_args</code></b>。需要位置参数时请用 <code>__reg.impl</code>。</li>
+                <li><code>alias({name, alias})</code>：命令已存在则把别名指向同一个 schema；不存在则以 <code>name</code> 为主名新建并把 <code>alias</code> 作为别名。</li>
+            </ul>
+            <div class="warning-box">
+                <strong>装载顺序决定成败。</strong><code>__shiori.reg</code> 由 <code>shiori_dsl.js</code> 创建，因此 impl 脚本<b>必须排在它之后</b>。排在前面时脚本顶端的 <code>if (!__reg …) return;</code> 会静默退出——<b>没有任何报错，只是功能全部失效</b>。<code>engine_manifest.json</code> 里 <code>macro/shiori_dsl.js</code> 已排在 official 段末尾，而 <code>macro/*.js</code> 在其后注入，所以默认顺序是安全的；新增 impl 文件时不要把它插到 <code>shiori_dsl.js</code> 之前。
+            </div>
+            <p>参考 <code>macro/quake_impl.js</code>：</p>
+            <div class="code-block">
+<pre>(function (global) {
+    'use strict';
+    var root = global;
+    var __reg = (root.__shiori &amp;&amp; root.__shiori.reg) || root.__reg;
+    if (!__reg || typeof __reg.cmd !== 'function' || typeof __reg.impl !== 'function')
+        return;
+
+    function start(ctx, p) {
+        // 依据 p.who / p.level / p.chan 找到目标元素并施加震动
+        return { type: 'quake' };
+    }
+    function stop(ctx, p) {
+        // 清除震动
+        return { type: 'quakeStop' };
+    }
+
+    __reg.cmd({ name: 'quake' });
+    __reg.cmd({ name: 'quake-stop' });
+    __reg.impl({ cmd: 'quake', run: start });
+    __reg.impl({ cmd: 'quake-stop', run: stop });
+})(typeof window !== 'undefined' ? window : this);</pre>
+            </div>
+            <div class="tip-box">
+                脚本被重复加载时，<code>__shiori.dsl</code> 会保留上一次的 <code>hostRegistry</code> 与 <code>lastCompile</code> 引用，并重新吸收宿主宏，因此热重载不会丢失宿主下发的宏。
+            </div>
+
+            <hr>
+
+            <h2 id="runtime">15. DSL 运行期 API 与宿主注入</h2>
+            <p>本页只列出与“写剧本”直接相关的成员，完整参数与返回值见 <a href="API.html" target="_blank">引擎对外 API 参考</a> 第 14、15 节。</p>
+
+            <h3>window.__shiori.dsl 常用成员</h3>
+            <table>
+                <tr><th>成员</th><th>说明</th></tr>
+                <tr><td><code>version</code></td><td>固定为 <code>DSL1.0</code></td></tr>
+                <tr><td><code>registry</code></td><td><code>commands</code> / <code>macros</code> / <code>impls</code> / <code>unknownPolicy</code></td></tr>
+                <tr><td><code>compile(field)</code></td><td>把剧本字段编译为 <code>{nodes, diagnostics}</code></td></tr>
+                <tr><td><code>compileOps(ops)</code></td><td>编译 <code>{cmd, ...kv}</code> 列表</td></tr>
+                <tr><td><code>splitInline(text)</code></td><td>切分 [s] / [a] / ruby 注音</td></tr>
+                <tr><td><code>executeDslNode(node, ctx)</code></td><td>执行节点（优先 impl，否则降级为 action）</td></tr>
+                <tr><td><code>registerMacro(manifest)</code></td><td>登记宏；<code>parameters</code> 数组与 <code>params</code> 对象两种写法都支持；同名宏或指令已存在时跳过</td></tr>
+                <tr><td><code>ingestHostRegistry(host)</code></td><td>吸收宿主下发的宏</td></tr>
+            </table>
+
+            <h3>宿主注入脚本</h3>
+            <p>文档创建时，C# <code>Bootstrapper.DocumentCreatedScript()</code> 会注入一段脚本：</p>
+            <ul>
+                <li>写入 <code>root.__shiori.dsl.hostRegistry</code>（JSON 见下）；</li>
+                <li>写入 <code>root.SHIORI_DSL_VERSION</code>；</li>
+                <li>若 <code>__shiori.dsl.ingestHostRegistry</code> 存在则调用它（只补宏，不替换已有 command 表）；</li>
+                <li>若存在 <code>chrome.webview.hostObjects.sync</code>，则 <code>root.shioriHost = chrome.webview.hostObjects.sync.shioriHost</code>。</li>
+            </ul>
+            <p>hostRegistry JSON 结构（<code>RuntimeRegistryJson.Emit</code>）：</p>
+            <div class="code-block">
+<pre>{
+  "version": "DSL1.0",
+  "commands": [ { "name": "...", "aliases": [], "source": "builtin", "label": "..." } ],
+  "macros": [
+    {
+      "name": "...",
+      "label": "...",
+      "parameters": [ { "name": "...", "type": "str", "defaultValue": null } ],
+      "steps": [ { "cmd": "...", "kv": { "key": "value" }, "args": [] } ]
+    }
+  ]
+}</pre>
+            </div>
+
+            <hr>
+
+            <h2 id="lower">16. 指令到动作的降级映射</h2>
+            <p><code>lowerToAction</code> 把节点转换成统一的 <code>action</code> 对象。注意：<code>char</code>、<code>bgm</code>、<code>se</code>、<code>voice</code>、<code>background</code>、<code>off</code>、<code>quake</code>、<code>quake-stop</code> 由 impl 直接处理，<b>不走这张表</b>。</p>
+
+            <h3>执行顺序（executeDslNode）</h3>
+            <ol>
+                <li><code>wait</code> 在降级阶段就变成了 <code>{kind:'wait', mode, ms}</code> 节点，<b>不是</b> <code>inst</code> 节点，因此它没有 <code>kv</code> / <code>args</code>；查 impl 时统一按 <code>cmd='wait'</code> 查找。</li>
+                <li>节点对应命令<b>有 impl</b> → 直接 <code>impl(ctx, node)</code>，<b>不再走 <code>lowerToAction</code></b>；impl 返回空值时补成 <code>{}</code>。</li>
+                <li>没有 impl → 走 <code>lowerToAction</code> 得到 action，若 action 有 <code>type</code> 则交给引擎 <code>ctx.handleAction(action)</code>。</li>
+            </ol>
+            <p>因此<strong>给已有指令挂 impl 会整体接管它</strong>，包括 <code>wait</code>（此时 <code>node</code> 只有 <code>mode</code> / <code>ms</code>，没有 kv）。</p>
+            <table>
+                <tr><th>指令</th><th>产生的 action</th></tr>
+                <tr><td><code>wait time=</code></td><td><code>{ type:'waitForTime', duration }</code></td></tr>
+                <tr><td><code>wait</code> / <code>s</code></td><td><code>{ type:'waitForClick' }</code></td></tr>
+                <tr><td><code>fadeout</code></td><td><code>{ type:'fadeOut', duration:time||1000, backgroundColor:color||'black' }</code></td></tr>
+                <tr><td><code>fadein</code></td><td><code>{ type:'fadeIn', duration:time||1000, backgroundColor:color||'black' }</code></td></tr>
+                <tr><td><code>clearname</code> / <code>clear</code></td><td><code>{ type:'clearName' }</code></td></tr>
+                <tr><td><code>msgoff</code></td><td><code>{ type:'hideText' }</code></td></tr>
+                <tr><td><code>msgon</code></td><td><code>{ type:'showText' }</code></td></tr>
+                <tr><td><code>finish</code></td><td><code>{ type:'finishGame', bgColor:bgcolor||'black', duration:time||1500 }</code></td></tr>
+                <tr><td><code>finishwhite</code></td><td><code>{ type:'finishGame', bgColor:bgcolor||'white', duration:time||1500 }</code></td></tr>
+                <tr><td><code>pov stop</code></td><td><code>{ type:'povStop' }</code></td></tr>
+                <tr><td><code>pov 名称</code></td><td><code>{ type:'povShow', povName }</code>（多个位置参数会用空格拼接）</td></tr>
+                <tr><td><code>novel</code></td><td><code>{ type:'novelOn' }</code></td></tr>
+                <tr><td><code>normal</code></td><td><code>{ type:'novelOff' }</code></td></tr>
+                <tr><td><code>lock</code> / <code>阻止</code></td><td><code>{ type:'clickLock' }</code></td></tr>
+                <tr><td><code>free</code> / <code>解锁</code></td><td><code>{ type:'clickUnlock' }</code></td></tr>
+            </table>
+            <p>impl 返回的 action 类型：<code>{ type:'char' }</code>、<code>{ type:'bgm'|'se'|'voice' }</code>、<code>{ type:'background' }</code>、<code>{ type:'mediaAnim', duration }</code>、<code>{ type:'off' }</code>、<code>{ type:'quake' }</code>、<code>{ type:'quakeStop' }</code>。未命中任何规则时返回 <code>{}</code>（引擎 <code>handleAction</code> 会记录“未知动作类型”）。</p>
+            <ul>
+                <li><code>pov</code> 特例：<code>@pov 角色A</code> 的位置参数会被空格拼接后写进 <code>kv.name</code>，<code>@pov stop</code> 则写进 <code>kv.stop=true</code>；<b>已显式写了 <code>name=</code> 时位置参数不再覆盖</b>。</li>
+                <li><code>wait</code> / <code>s</code> 不产生 <code>inst</code> 节点，因此不出现在上表中，而是在 <code>lowerToAction</code> 开头就转成 <code>waitForTime</code> / <code>waitForClick</code>。</li>
+            </ul>
+
+            <hr>
+
+            <h2 id="examples">17. 完整示例</h2>
+
+            <h3>示例1：.ks 宏集合</h3>
+            <div class="code-block">
+<pre>; 只组合已经落地的指令
+
+; 1) 定时等待，默认 300 毫秒
+[macro name=示例-等]
+[wait time=%time|300]
+[endmacro]
+
+; 2) 藏框一拍
+[macro name=示例-藏框]
+[msgoff]
+[wait time=%time|400]
+[msgon]
+[endmacro]
+
+; 3) 锁点一拍（宏体禁止 wait click，必须带 time）
+[macro name=示例-锁点]
+[lock]
+[wait time=%time|400]
+[free]
+[endmacro]
+
+; 4) 黑场闪一下：淡出 / 等 / 淡入，共用同一个 time
+[macro name=示例-黑场]
+[fadeout time=%time|400]
+[wait time=%time|400]
+[fadein time=%time|400]
+[endmacro]
+
+; 5) 播 BGM，默认渐入 1 秒
+[macro name=示例-BGM]
+[BGM play storage=%storage|bgm1.ogg vol=%vol|100% time=%time|1000]
+[endmacro]
+
+; 6) 换背景（简单模式）
+[macro name=示例-背景]
+[background storage=%storage|bg_002_00_00.png]
+[endmacro]
+
+; 7) 大图平移 + 缩放，最后移除图层
+;    · 第一行建立图层并定下 size / Ssize / x / y / 透明度 / zoom
+;    · 第二行只改变换，size 与 Ssize 自动沿用（不写 layer 会把它重置为 0，所以要补 layer=1）
+;    · 形参只能写在参数位，移除图层用 [off storage=...]，不能写成 [%storage|xxx.png off]
+[macro name=示例-大图]
+[background storage=%storage|panorama.png size=5339*3300 Ssize=1980*1080 layer=1 50% y=10% x=10% zoom=100%]
+[background storage=%storage|panorama.png time=3000 90% y=50% x=50% zoom=50% layer=1]
+[wait time=%time|500]
+[off storage=%storage|panorama.png]
+[endmacro]
+
+; 8) 嵌套发抖：再展开成 quake + wait
+[macro name=示例-抖一下]
+[发抖 who=%who level=%level|中 time=%time|500]
+[endmacro]</pre>
+            </div>
+
+            <h3>示例2：场景中使用</h3>
+            <div class="code-block">
+<pre>{
+    chars: "[角色A 正面 服装1 表情101]",
+    command: "@示例-等 time=500"
+},
+{
+    text: "（她轻轻颤了一下）",
+    command: "@发抖 who=角色A level=中 time=600",
+    action: { type: "nextScene", target: "scene_next.html" }
+},
+{
+    command: "@发抖-stop who=角色A"
+},
+{
+    command: "@示例-抖一下 who=角色A level=中 time=500"
+},
+{
+    command: "@示例-BGM storage=bgm1.ogg vol=80% time=1000"
+},
+{
+    command: "[background storage=bg_002_00_00.png],[BGM stop time=800]"
+},
+{
+    command: "@示例-大图 storage=yuki.png time=500"
+},
+{
+    text: "（画面在这里停住，等 3 秒的平移缩放动画走完）",
+    command: "[background storage=bg_003_00_00.png]"
+}</pre>
+            </div>
+
+            <hr>
+
+            <h2 id="notes">18. 注意事项与错误对照</h2>
+
+            <h3>常见错误</h3>
+            <table>
+                <tr><th>写法</th><th>结果</th><th>正确做法</th></tr>
+                <tr><td>宏体内 <code>[s]</code></td><td>编译错误</td><td>改成 <code>[wait time=%time|毫秒]</code></td></tr>
+                <tr><td>宏体内 <code>[wait]</code> 无 time</td><td>编译错误</td><td>补充 <code>time=</code></td></tr>
+                <tr><td>宏名与指令/宏重名</td><td>重名异常 / 装载时警告并跳过</td><td>换一个宏名</td></tr>
+                <tr><td>误用 <code>cond</code> / <code>nowait</code> / <code>jump</code> / 双花括号</td><td>当前内置指令未消费，属未实现约定</td><td>按示例只组合已落地指令</td></tr>
+                <tr><td>宏内参数忘了 <code>%</code></td><td>被当作字面量</td><td>写成 <code>%name</code></td></tr>
+                <tr><td>替换值不是模板首字符</td><td>不替换，原样输出</td><td>把 <code>%name</code> 单独作为值</td></tr>
+                <tr><td><code>[资源名 off]</code> 但资源名不含句点</td><td>不会触发 off 改写，被当成立绘或未注册指令</td><td>用 <code>[off storage=资源名]</code></td></tr>
+                <tr><td><code>[%storage|a.png off]</code>（形参写在指令名位）</td><td>指令名<b>不参与替换</b>，产生名为 <code>%storage|a.png</code> 的未注册指令，图层没被移除</td><td>写成 <code>[off storage=%storage|a.png]</code></td></tr>
+                <tr><td>图层模式第二行不写 <code>layer</code></td><td><code>z-index</code> 被重置为 0，图层可能被底层背景盖住</td><td>每一行都显式写 <code>layer=</code></td></tr>
+                <tr><td><code>size</code> 的宽高比与原图不一致</td><td>图层用 <code>background-size:100% 100%</code> 强制铺满，画面被拉伸变形</td><td><code>size</code> 填图片<b>真实像素尺寸</b>，缩放交给 <code>zoom</code> 与 <code>Ssize</code></td></tr>
+                <tr><td>同一 <code>storage</code> 想显示两次</td><td>图层以 storage 名为键，只会复用同一个元素</td><td>复制成不同文件名的资源</td></tr>
+                <tr><td><code>[off storage=bgm1.ogg]</code> 想停音乐</td><td><code>off</code> 只删背景图层，音乐继续播</td><td>用 <code>[bgm stop time=800]</code></td></tr>
+                <tr><td>一个 <code>.ks</code> 里有一处 Error</td><td><b>整文件的宏都不装载</b>，包括写对的那些</td><td>看 F1 诊断列表清掉全部 Error</td></tr>
+                <tr><td>manifest 的 <code>steps</code> 为空 / 缺失</td><td>宏静默不登记，无任何诊断</td><td>补上至少一个 <code>{ "cmd": ... }</code></td></tr>
+                <tr><td>impl 脚本排在 <code>shiori_dsl.js</code> 之前</td><td><code>__reg</code> 不存在，脚本静默退出，功能全失效</td><td>把它移到 <code>shiori_dsl.js</code> 之后</td></tr>
+                <tr><td><code>vol=100%-&gt;20%</code> 但没给 <code>time</code></td><td>直接跳到 20%，没有渐变过程</td><td>补 <code>time=毫秒</code></td></tr>
+                <tr><td>两路 BGM / 两路 SE 同时播</td><td>每通道只有一个播放器，后一条替换 <code>src</code> 打断前一条</td><td>需要叠加请自行扩展播放器</td></tr>
+                <tr><td><code>[background storage=a.png layer=1]</code></td><td>只写了 <code>layer</code> 也会进图层模式，图叠在底层背景<b>之上</b>而不是替换它</td><td>要替换底层背景就别写 <code>layer</code></td></tr>
+            </table>
+
+            <h3>解析/展开诊断信息</h3>
+            <ul>
+                <li><code>未注册指令: 名称</code>（warn / error，取决于 unknownPolicy）</li>
+                <li><code>宏循环嵌套: 名称</code>（深度上限已取消，不再产生“宏展开超过 N 层”诊断）</li>
+                <li><code>宏未闭合: 名称</code> / <code>[macro] 缺少 name</code> / <code>孤立的 [endmacro]</code> / <code>宏体外指令已忽略: 名称</code></li>
+                <li><code>指令/宏重名已跳过: 名称</code> / <code>指令重名: 名称</code></li>
+                <li><code>manifest macro 缺少 name</code> / <code>manifest JSON 无效</code></li>
+                <li><code>无法读取宏文件: 文件</code> / <code>无法读取 manifest: 文件</code></li>
+            </ul>
+
+            <div class="tip-box">
+                调试建议：F1 调试面板会显示当前行的 DSL AST 与诊断（<code>formatDslDebugBlock</code>），并列出宏清单（<code>formatDslCatalogBlock</code> / <code>getDslCatalog</code>）。开发期可用它直接观察宏展开后的节点。
+            </div>
+
+        </main>
+
+	<button id="scrollToBottomBtn">滚到底部</button>
+	<button id="backToTopBtn">回到顶部</button>
+
+	<footer class="site-footer">
+		<div class="footer-col">
+			<h4>开源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">引擎本体与启动器</a> · <a href="license_engine.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/license.txt" target="_blank">GitHub</a></p>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-editor" target="_blank">可视化编辑器</a> · <a href="license_editor.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/license.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>闭源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-manager" target="_blank">管理器与签发器</a></p>
+			<p><a href="license_manager.html" target="_blank">管理器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/license.txt" target="_blank">GitHub</a></p>
+                <p><a href="license_signer.html" target="_blank">签发器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/licensesigner.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>第三方开源协议</h4>
+			<p><a href="opensource_engine.html" target="_blank">启动器</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_manager.html" target="_blank">管理器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES_SIGNER.txt" target="_blank">GitHub</a> <br/>
+				<a href="opensource_signer.html" target="_blank">签发器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_editor.html" target="_blank">编辑器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a></p>
+			
+		</div>
+		<p class="footer-copyright" style="text-align:center"><a href="MIT_LICENSE.html" target="_blank">本网页采用 MIT License 协议</a> · <a href="https://github.com/1145141919810TONNY/Shioriteaching/blob/main/LICENSE" target="_blank">GitHub</a>，与 Shiori 其他项目协议不同，详情请参照各自的协议文件<br>
+			<a href="https://1145141919810tonny.github.io/Shioriteaching/" target="_blank">GitHub Pages 在线服务</a> · <a href="https://wakudemo.cn/games/100266" target="_blank">WakuDemo 应用商店</a>
+			&nbsp;&nbsp;&nbsp;&nbsp;联系方式：<a href="mailto:3099637681@qq.com">QQ</a> · <a href="https://space.bilibili.com/87412647" target="_blank">bilibili</a><br>
+			Copyright &copy; <span class="footer-year"></span> bilibili 月が綺麗ですね_ All Rights Reserved.</p>
+	</footer>
+	
+	<script>document.querySelectorAll('.footer-year').forEach(function(e){e.textContent=new Date().getFullYear()})</script>
+
+	<script>
+var backToTopBtn = document.getElementById('backToTopBtn');
+		var scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+
+		window.addEventListener('scroll', function() {
+			if (backToTopBtn) backToTopBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
+
+			if (scrollToBottomBtn) {
+				var scrollY = window.scrollY || window.pageYOffset;
+				var docHeight = document.documentElement.scrollHeight;
+				var winHeight = window.innerHeight;
+				var atBottom = (scrollY + winHeight) >= docHeight - 50;
+				scrollToBottomBtn.style.display = (docHeight > winHeight + 10 && !atBottom) ? 'block' : 'none';
+			}
+		});
+		backToTopBtn.addEventListener('click', function() {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		});
+		if (scrollToBottomBtn) {
+			scrollToBottomBtn.addEventListener('click', function() {
+				window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+			});
+		}
+	</script>
+</body>
+</html>

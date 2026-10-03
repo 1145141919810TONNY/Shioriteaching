@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资源管理与配置 - Shiori 引擎</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="icon" type="image/png" href="../icon/ico16.ico">
+<style>
+		#scrollToBottomBtn {
+			position: fixed;
+			right: 20px;
+			bottom: 20px;
+			padding: 10px 20px;
+			background-color: #e67e22;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			z-index: 999;
+			font-size: 14px;
+			outline: none;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+			font-weight: 600;
+			transition: background-color 0.3s, transform 0.3s;
+		}
+		#scrollToBottomBtn:hover {
+			background-color: #d35400;
+			transform: translateY(-2px);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+		}
+		#scrollToBottomBtn:active {
+			transform: translateY(1px);
+		}
+
+		#backToTopBtn {
+			position: fixed;
+			right: 20px;
+			bottom: 60px;
+			padding: 10px 20px;
+			background-color: #3498db;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			z-index: 999;
+			font-size: 14px;
+			outline: none;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+			font-weight: 600;
+			transition: background-color 0.3s, transform 0.3s;
+		}
+		#backToTopBtn:hover {
+			background-color: #2980b9;
+			transform: translateY(-2px);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+		}
+		#backToTopBtn:active {
+			transform: translateY(1px);
+		}
+
+		#scrollToBottomBtn, #backToTopBtn {
+			display: none;
+		}
+	</style>
+
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>资源管理与配置指南</h1>
+            <p>统一管理背景、立绘、BGM、音效及视频资源的引用与配置</p>
+            <a href="../index.html" class="nav-button">返回主页</a>
+        </header>
+
+        <main class="tutorial-content">
+
+            <div class="tip-box">
+                <strong>核心原则：集中化管理</strong><br>
+                Shiori 引擎采用集中化配置文件来管理所有静态资源。这种方式避免了在每个场景文件中重复硬编码路径，使得资源维护更加高效且不易出错。<br>
+                所有资源配置文件均位于引擎根目录的 <code>config/</code> 目录下（<code>bg_config.js</code>、<code>bgm_config.js</code>、<code>cg_config.js</code>、<code>cg_load_strategy.js</code>、<code>illustration.js</code>）。<br>
+                这些文件由启动器按 <code>engine_manifest.json</code> 自动注入到页面，场景文件里手写同名引用会被剔除后重新注入，不会重复加载，因此在场景中引入只是可选写法。
+            </div>
+
+            <h2>1. 背景图片 (Backgrounds)</h2>
+            <p>背景图片统一存放在 <code>assets/bg/</code> 目录中。</p>
+            
+            <h3>配置方式：</h3>
+            <p>在场景文件头部引入 <code>config/bg_config.js</code>，该文件定义了 <code>BG_CONFIG</code> 与 <code>BG_CONFIG_SUB</code> 对象（前者为根目录路径，后者为子目录路径）：</p>
+            <div class="code-block">
+<pre>&lt;script src="../config/bg_config.js"&gt;&lt;/script&gt;</pre>
+            </div>
+            <p><strong>配置文件示例 (bg_config.js)：</strong></p>
+            <div class="code-block">
+<pre>// 子目录路径配置
+const BG_CONFIG_SUB = {
+    'school_day': '../assets/bg/school_day.png',
+    'classroom_night': '../assets/bg/classroom_night.png'
+};</pre>
+            </div>
+            <p><strong>剧本中使用：</strong></p>
+            <div class="code-block">
+<pre>const sceneData = {
+    background: BG_CONFIG_SUB, // 引用集中配置
+    story: [
+        {
+            text: "切换到学校背景",
+            background: "school_day" // 直接使用配置中的键名
+        }
+    ]
+};</pre>
+            </div>
+
+            <h2>2. 背景音乐 (BGM)</h2>
+            <p>BGM 文件统一存放在 <code>assets/bgm/</code> 目录中。</p>
+
+            <h3>配置方式：</h3>
+            <p>在场景文件头部引入 <code>config/bgm_config.js</code>，该文件定义了 <code>BGM_CONFIG</code>、<code>BGM_CONFIG_SUB</code> 与 <code>BGM_MAP</code>：</p>
+            <div class="code-block">
+<pre>&lt;script src="../config/bgm_config.js"&gt;&lt;/script&gt;</pre>
+            </div>
+            <p><strong>配置文件示例 (bgm_config.js)：</strong></p>
+            <div class="code-block">
+<pre>const BGM_CONFIG_SUB = {
+    'theme_romantic': '../assets/bgm/theme_romantic.ogg',
+    'battle_theme': '../assets/bgm/battle_theme.ogg'
+};</pre>
+            </div>
+            <p><strong>剧本中使用：</strong></p>
+            <div class="code-block">
+<pre>const sceneData = {
+    bgm: BGM_CONFIG_SUB, // 引用集中配置
+    story: [
+        {
+            text: "播放浪漫音乐",
+            bgm: "theme_romantic" // 直接使用配置中的键名
+        },
+        {
+            text: "淡出切换 BGM",
+            bgm: "bgm wait battle_theme" // 使用 wait 指令实现平滑过渡
+        }
+    ]
+};</pre>
+            </div>
+
+            <h2>3. 角色立绘 (Characters)</h2>
+            <p>立绘文件统一存放在 <code>assets/chars/</code> 目录中。</p>
+
+            <h3>配置方式：</h3>
+            <p>在场景文件头部引入 <code>config/illustration.js</code>，该文件定义了 <code>CHAR_CONFIG</code> 与 <code>CHAR_CONFIG_SUB</code> 对象：</p>
+            <div class="code-block">
+<pre>&lt;script src="../config/illustration.js"&gt;&lt;/script&gt;</pre>
+            </div>
+            <p><strong>配置文件示例 (illustration.js)：</strong></p>
+            <div class="code-block">
+<pre>const CHAR_CONFIG_SUB = {
+    'heroine_smile': '../assets/chars/heroine_smile.png',
+    'hero_serious': '../assets/chars/hero_serious.png'
+};</pre>
+            </div>
+            <p><strong>剧本中使用：</strong></p>
+            <div class="code-block">
+<pre>{
+    text: "角色出现在左侧",
+    chars: "[左 heroine_smile]" // 格式：[位置 资源ID]
+},
+{
+    text: "角色A点头示意",
+    chars: "[角色A 中 点头 hero_serious]" // 支持角色标识符和动作指令
+}</pre>
+            </div>
+            <p><strong>提示：</strong>详细的立绘指令语法（如坐标控制、动作序列）请参考 <a href="chars.html">立绘控制系统教程</a>。</p>
+
+            <h2>4. 音频资源 (Audio - SE/Voice)</h2>
+            <p>音效和语音文件存放在 <code>assets/audio/</code> 目录中。</p>
+
+            <h3>零配置管理模式（推荐）：</h3>
+            <p>引擎支持音频资源零配置管理。你无需在场景中定义映射，直接使用文件名即可。</p>
+            <div class="code-block">
+<pre>{
+    text: "播放开门声",
+    audio: "door_open" // 引擎自动查找 ../assets/audio/door_open.ogg
+},
+{
+    text: "连续播放语音",
+    audio: "voice1[a]voice2" // 依次播放两个音频文件
+}</pre>
+            </div>
+
+            <h3>音效（SE）独立通道：</h3>
+            <p>引擎提供了独立的 <code>se</code> 属性用于播放音效，与 <code>audio</code>（语音）通道完全分离。</p>
+            <div class="tip-box">
+                <strong>优势说明：</strong><br>
+                - <strong>并发播放</strong>：音效和语音可以同时播放，互不干扰<br>
+                - <strong>统一管理</strong>：所有音效文件统一存放在 <code>assets/se/</code> 目录<br>
+                - <strong>零配置加载</strong>：与语音相同，直接使用文件名即可，无需预定义映射
+            </div>
+            <div class="code-block">
+<pre><span class="code-comment">// 单独播放音效</span>
+{
+    text: "点击按钮",
+    se: "click"  // 自动加载 ../assets/se/click.ogg 或 .mp3
+}
+
+<span class="code-comment">// 同时播放语音和音效</span>
+{
+    text: "角色说话并伴随背景音",
+    voice: "voice1",  // 播放语音
+    se: "bg_noise"    // 同时播放环境音效
+}
+
+<span class="code-comment">// 多个音效依次播放</span>
+{
+    text: "连击效果",
+    se: ["hit1", "hit2", "hit3"]  // 依次播放三个音效
+}</pre>
+            </div>
+            <p><strong>注意事项：</strong></p>
+            <ul>
+                <li>音效文件应放在 <code>assets/se/</code> 目录下</li>
+                <li>支持常见音频格式：.ogg, .mp3, .wav 等</li>
+                <li><code>se</code> 和 <code>voice</code> 可以同时在同一剧情行中使用</li>
+                <li><code>audio</code> 属性主要用于语音播放</li>
+            </ul>
+
+            <h2>5. 视频资源 (Video)</h2>
+            <p>视频文件存放在 <code>assets/video/</code> 目录中。</p>
+
+            <h3>零配置管理模式（推荐）：</h3>
+            <p>与音频类似，视频也支持零配置管理。</p>
+            <div class="code-block">
+<pre>{
+    text: "播放开场动画",
+    video: "op_video" // 引擎自动查找 ../assets/video/op_video.mp4
+}</pre>
+            </div>
+            <p><strong>注意：</strong>视频播放时会自动停止当前 BGM，结束后需手动指定新的 BGM。</p>
+
+            <h2>6. CG 鉴赏图片 (CG)</h2>
+            <p>CG 图片存放在 <code>assets/cg/</code> 目录中。</p>
+
+            <h3>配置方式：</h3>
+            <p>在场景文件头部引入 <code>config/cg_config.js</code>，该文件定义了 <code>CG_CONFIG</code> 与 <code>CG_CONFIG_SUB</code> 对象：</p>
+            <div class="code-block">
+<pre>&lt;script src="../config/cg_config.js"&gt;&lt;/script&gt;</pre>
+            </div>
+            <p><strong>配置文件示例 (cg_config.js)：</strong></p>
+            <div class="code-block">
+<pre>const CG_CONFIG_SUB = {
+    'ending_cg': '../assets/cg/ending_cg.jpg',
+    'special_event': '../assets/cg/special_event.jpg'
+};</pre>
+            </div>
+            <p><strong>剧本中使用：</strong></p>
+            <div class="code-block">
+<pre>const sceneData = {
+    background: BG_CONFIG_SUB, // CG 也是通过 background 属性显示
+    story: [
+        {
+            text: "展示一张精美的 CG",
+            background: "ending_cg" // 引用 cg_config.js 中的键名
+        }
+    ]
+};</pre>
+            </div>
+
+            <h2>7. UI 皮肤配置 (UI Skin)</h2>
+            <p>UI 皮肤用于替换标题页按钮、文本框、选项按钮、右键菜单等元素的默认样式。它由两部分组成：</p>
+            <ul>
+                <li><strong>图片</strong>：放在 <code>assets/ui/</code> 目录，文件名格式为 <code>{部件或角色}_{状态}.png</code></li>
+                <li><strong>尺寸表</strong>：登记在 <code>ui/ui_size.js</code> 的 <code>UI_SIZE_CONFIG</code> 中，告诉引擎每张图的像素尺寸</li>
+            </ul>
+
+            <div class="tip-box">
+                <strong>为什么必须登记尺寸？</strong><br>
+                引擎不再用 OpenCV 解码图片读尺寸，而是直接读取 <code>ui_size.js</code> 这个纯文本配置生成 CSS，因此加载速度极快、无任何解码开销。代价是：<strong>新增图片必须手动登记尺寸，否则该部件不生效</strong>。
+            </div>
+
+            <h3>7.1 三步配置流程</h3>
+            <p><strong>第 1 步</strong>：把 PNG 放进 <code>assets/ui/</code>，按 <code>{名称}_{状态}</code> 命名。状态只有三种：<code>normal</code>（必有）、<code>hover</code>（悬停，可选）、<code>on</code>（激活，可选）。</p>
+            <div class="code-block">
+<pre>assets/ui/title_start_normal.png   <span class="code-comment">// 必有的默认态</span>
+assets/ui/title_start_hover.png    <span class="code-comment">// 可选，鼠标悬停态</span>
+assets/ui/textbox_normal.png       <span class="code-comment">// 文本框只有 normal 态</span></pre>
+            </div>
+
+            <p><strong>第 2 步</strong>：在 <code>ui/ui_size.js</code> 中登记尺寸。</p>
+            <div class="code-block">
+<pre>var UI_SIZE_CONFIG = {
+    // 只登记尺寸，位置与缩放保持默认（x/y/zoom 全填 '#'）
+    title_start_normal:   { sizex: 442, sizey: 64,  x: '#', y: '#', zoom: '#' },
+    title_start_hover:    { sizex: 494, sizey: 131, x: '#', y: '#', zoom: '#' },
+
+    // 需要自定义位置时：x/y 用百分比，zoom 用百分比倍率
+    title_cg_normal:      { sizex: 442, sizey: 64,  x: '10%', y: '60%', zoom: '150%' },
+};</pre>
+            </div>
+
+            <p><strong>第 3 步</strong>：<strong>重启启动器</strong>。HTTP 服务在启动时读取一次 <code>ui_size.js</code>，改完配置不重启不会生效。</p>
+
+            <h3>7.2 尺寸表字段说明</h3>
+            <table>
+                <thead>
+                    <tr><th>字段</th><th>必填</th><th>取值</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>sizex</code></td><td>是</td><td>数字或 <code>'#'</code></td><td>图片原始宽度（像素）。填 <code>'#'</code> 表示无图片，该条目不生效</td></tr>
+                    <tr><td><code>sizey</code></td><td>是</td><td>数字或 <code>'#'</code></td><td>图片原始高度（像素）。填 <code>'#'</code> 表示无图片</td></tr>
+                    <tr><td><code>x</code></td><td>否</td><td><code>'10%'</code> / <code>'#'</code></td><td>水平位置，基准左上角。填具体值会把元素改为 <code>position:fixed</code> 相对屏幕定位</td></tr>
+                    <tr><td><code>y</code></td><td>否</td><td><code>'20%'</code> / <code>'#'</code></td><td>垂直位置，基准左上角。填具体值同样触发 fixed 定位</td></tr>
+                    <tr><td><code>zoom</code></td><td>否</td><td><code>'150%'</code> / <code>'#'</code></td><td>缩放倍率，转成 <code>transform:scale()</code>。<code>'#'</code> 或 <code>'100%'</code> 为原始大小</td></tr>
+                </tbody>
+            </table>
+            <p><strong>书写规则：</strong></p>
+            <ul>
+                <li><code>sizex</code> / <code>sizey</code> 是<strong>数字，不加引号</strong>；<code>x</code> / <code>y</code> / <code>zoom</code> 是<strong>带 <code>%</code> 的字符串，必须加引号</strong>，默认值 <code>'#'</code> 也要加引号。</li>
+                <li>只有 <code>sizex</code> 与 <code>sizey</code> <strong>都大于 0</strong> 的条目才会生成样式。</li>
+                <li>尺寸以 <strong>1920×1080 为基准</strong>换算成 <code>vw</code> / <code>vh</code>：442×64 的图在 1920×1080 下正好是原始像素，在 1280×720 下等比缩小，比例不变。</li>
+                <li>暂时没有图片的条目：<strong>在行首加 <code>//</code> 注释掉</strong>，并把 <code>sizex</code> / <code>sizey</code> 填 <code>'#'</code>。这样既保留占位，又不会触发加载失败告警。</li>
+                <li>文件名茎（<code>title_start_normal</code> 这部分）只允许<strong>中文、字母、数字、下划线、连字符</strong>，不能含空格与 <code>. / \ ? # &amp; %</code>，也不能超过 80 字符。</li>
+            </ul>
+
+            <h3>7.3 皮肤作用的两类目标</h3>
+            <p><strong>① PARTS（通用部件）</strong>：跨页面复用的组件，靠 ID 选择器匹配，<strong>不需要在 HTML 里写任何标记</strong>，放对图片 + 登记尺寸即可。</p>
+            <table>
+                <thead>
+                    <tr><th>部件</th><th>作用</th><th>需要的状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>textbox</code></td><td>文本框背景</td><td>normal</td></tr>
+                    <tr><td><code>namebox</code></td><td>姓名框背景</td><td>normal</td></tr>
+                    <tr><td><code>choice</code></td><td>选项按钮</td><td>normal、hover</td></tr>
+                    <tr><td><code>btn</code></td><td>顶栏通用功能按钮</td><td>normal、hover</td></tr>
+                    <tr><td><code>auto</code></td><td>AUTO 自动播放按钮</td><td>normal、hover、on</td></tr>
+                    <tr><td><code>skip1</code></td><td>快进按钮 1</td><td>normal、hover、on</td></tr>
+                    <tr><td><code>skip2</code></td><td>快进按钮 2</td><td>normal、hover、on</td></tr>
+                </tbody>
+            </table>
+
+            <p><strong>② ROLES（页面角色）</strong>：具体页面上的元素，需要在 HTML 标签上写 <code>data-ui="角色名"</code> 才会被皮肤命中。</p>
+            <div class="code-block">
+<pre>&lt;a href="scenes/scene1.html" data-ui="title_start"&gt;开始游戏&lt;/a&gt;</pre>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>所属页面</th><th>角色名（data-ui 值）</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>标题页</td><td><code>title_start</code>、<code>title_save</code>、<code>title_progress</code>、<code>title_flow</code>、<code>title_story</code>、<code>title_bgm</code>、<code>title_video</code>、<code>title_cg</code>、<code>title_copy</code></td><td>normal、hover</td></tr>
+                    <tr><td>分页面通用</td><td><code>sub_back</code>、<code>sub_return</code></td><td>normal、hover</td></tr>
+                    <tr><td>游戏内右键菜单</td><td><code>ctx_panel</code>（菜单面板）、<code>ctx_item</code>（菜单项）</td><td>panel 仅 normal；item 为 normal、hover</td></tr>
+                    <tr><td>CG 鉴赏页</td><td><code>cg_item</code>、<code>cg_nav</code>、<code>cg_close</code></td><td>normal、hover</td></tr>
+                    <tr><td>BGM 鉴赏页</td><td><code>bgm_item</code>、<code>bgm_ctrl</code></td><td>normal、hover、on</td></tr>
+                    <tr><td>视频鉴赏页</td><td><code>video_item</code>、<code>video_ctrl</code></td><td>normal、hover</td></tr>
+                    <tr><td>小故事页</td><td><code>story_item</code></td><td>normal、hover</td></tr>
+                    <tr><td>进度管理页</td><td><code>prog_act</code>、<code>prog_jump</code></td><td>normal、hover</td></tr>
+                    <tr><td>存档页</td><td><code>arc_act</code>、<code>arc_slot</code>、<code>arc_load</code>、<code>arc_del</code>、<code>arc_ow</code></td><td>normal、hover</td></tr>
+                    <tr><td>流程图页</td><td><code>flow_act</code>、<code>flow_node</code></td><td>normal、hover</td></tr>
+                    <tr><td>版权信息页</td><td><code>copy_act</code>、<code>copy_nav</code>、<code>copy_head</code></td><td>normal、hover</td></tr>
+                </tbody>
+            </table>
+
+            <h3>7.4 缺图回退规则</h3>
+            <ul>
+                <li>缺 <code>hover</code> 图 → 自动使用 <code>normal</code> 图。</li>
+                <li>缺 <code>on</code> 图 → 自动使用 <code>normal</code> 图。</li>
+                <li>整个部件 / 角色都没有图 → <strong>保持 <code>style.css</code> 的默认样式，不报错</strong>。</li>
+                <li>扩展名：走预加载路径（有 <code>UI_SIZE_CONFIG</code>）时<strong>固定按 <code>.png</code></strong> 拼接；只有降级到网络探测时才按 <code>webp → png → jpg</code> 顺序尝试。</li>
+                <li>带 <code>data-ui</code> 的<strong>角色元素</strong>一旦命中皮肤图，其<strong>原文字会被隐藏</strong>（<code>color:transparent</code> + <code>font-size:0</code>），所以皮肤图请自带文字或图标。唯一的例外是 <strong>BGM 鉴赏页</strong>，它保留原有文字。</li>
+            </ul>
+
+            <h3>7.5 自定义文件名映射</h3>
+            <p>如果图片名不想用 <code>{part}_{state}</code> 的默认规则，可以在加载 <code>ui_skin.js</code> 之前定义全局 <code>UI_SKIN</code> 覆盖。值为字符串时表示"文件名茎"，值为对象时可逐个状态指定：</p>
+            <div class="code-block">
+<pre>var UI_SKIN = {
+    textbox: 'textbox',                                            <span class="code-comment">// 茎 + _状态</span>
+    auto: { normal: 'auto_off', hover: 'auto_hi', on: 'auto_on' }  <span class="code-comment">// 逐状态指定</span>
+};</pre>
+            </div>
+            <p><strong>注意：</strong>改了文件名茎之后，<code>ui_size.js</code> 里的<strong>键名也要跟着改成实际文件名</strong>（上例应写成 <code>auto_off: {...}</code> 而不是 <code>auto_normal</code>）。</p>
+
+            <h3>7.6 运行时调试与提醒</h3>
+            <table>
+                <thead>
+                    <tr><th>接口</th><th>作用</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>loadUISkin({ forceReload: true })</code></td><td>丢弃缓存强制重新探测</td></tr>
+                    <tr><td><code>resetUISkin()</code></td><td>清除已注入的皮肤样式节点并重新探测</td></tr>
+                    <tr><td><code>ShioriUISkin.PARTS / STATES / ROLES / LATE_ROLES</code></td><td>查看当前支持的部件、状态与角色清单</td></tr>
+                    <tr><td><code>ShioriUISkin.EXTS / PROBE_DELAYS</code></td><td>扩展名优先级（webp/png/jpg）与探测重试延迟（200/500/1000/2000ms）</td></tr>
+                    <tr><td><code>window.__SHIORI_UISKIN_NO_AUTO = true</code></td><td>关闭自动加载，须在 <code>ui_skin.js</code> 之前设置</td></tr>
+                </tbody>
+            </table>
+            <p><strong>两个容易踩的坑：</strong></p>
+            <ul>
+                <li><code>ui/ui_size.js</code> <strong>不在 <code>engine_manifest.json</code> 的官方清单内</strong>，它由启动器以内联脚本注入（判定条件是页面里不含 <code>UI_SIZE_CONFIG</code> 字样）。<strong>千万不要在页面里手写 <code>&lt;script src="../ui/ui_size.js"&gt;</code></strong>，否则 <code>UI_SIZE_CONFIG</code> 会重复声明导致脚本报错。</li>
+                <li>游戏内右键菜单的 <code>ctx_panel</code> / <code>ctx_item</code> 由 <code>ui/page-chrome.js</code> 自动创建并带好 <code>data-ui</code> 标记。<strong>场景文件里不要手写这些容器</strong>，否则骨架构建会跳过，菜单会缺少皮肤标记。</li>
+            </ul>
+            <p><strong>说明：</strong>早期版本用 <code>assets/ui/.skin_cache.json</code> 缓存图片尺寸（需 OpenCV 解码），已被 <code>ui/ui_size.js</code> 取代。若目录里仍残留该文件，可以忽略或删除。</p>
+
+            <div class="tip-box">
+                <strong>总结与建议</strong><br>
+                1. <strong>优先使用零配置</strong>：对于音频和视频，直接使用文件名是最便捷的方式。<br>
+                2. <strong>保持命名规范</strong>：建议使用有意义的英文或拼音命名资源文件，避免使用特殊字符。<br>
+                3. <strong>统一入口引入</strong>：资源配置统一放在 <code>config/</code> 目录，由启动器自动注入，场景中无需重复引入。<br>
+                4. <strong>UI 皮肤记得登记尺寸</strong>：图片放 <code>assets/ui/</code> 后，必须在 <code>ui/ui_size.js</code> 填写 <code>sizex</code> / <code>sizey</code> 并重启启动器才会生效。
+            </div>
+        </main>
+
+	<button id="scrollToBottomBtn">滚到底部</button>
+	<button id="backToTopBtn">回到顶部</button>
+
+	<footer class="site-footer">
+		<div class="footer-col">
+			<h4>开源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">引擎本体与启动器</a> · <a href="license_engine.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/license.txt" target="_blank">GitHub</a></p>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-editor" target="_blank">可视化编辑器</a> · <a href="license_editor.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/license.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>闭源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-manager" target="_blank">管理器与签发器</a></p>
+			<p><a href="license_manager.html" target="_blank">管理器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/license.txt" target="_blank">GitHub</a></p>
+                <p><a href="license_signer.html" target="_blank">签发器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/licensesigner.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>第三方开源协议</h4>
+			<p><a href="opensource_engine.html" target="_blank">启动器</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_manager.html" target="_blank">管理器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES_SIGNER.txt" target="_blank">GitHub</a> <br/>
+				<a href="opensource_signer.html" target="_blank">签发器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_editor.html" target="_blank">编辑器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a></p>
+			
+		</div>
+		<p class="footer-copyright" style="text-align:center"><a href="MIT_LICENSE.html" target="_blank">本网页采用 MIT License 协议</a> · <a href="https://github.com/1145141919810TONNY/Shioriteaching/blob/main/LICENSE" target="_blank">GitHub</a>，与 Shiori 其他项目协议不同，详情请参照各自的协议文件<br>
+			<a href="https://1145141919810tonny.github.io/Shioriteaching/" target="_blank">GitHub Pages 在线服务</a> · <a href="https://wakudemo.cn/games/100266" target="_blank">WakuDemo 应用商店</a>
+				&nbsp;&nbsp;&nbsp;&nbsp;联系方式：<a href="mailto:3099637681@qq.com">QQ</a> · <a href="https://space.bilibili.com/87412647" target="_blank">bilibili</a><br>
+			Copyright &copy; <span class="footer-year"></span> bilibili 月が綺麗ですね_ All Rights Reserved.</p>
+	</footer>
+	
+	<script>document.querySelectorAll('.footer-year').forEach(function(e){e.textContent=new Date().getFullYear()})</script>
+
+	<script>
+var backToTopBtn = document.getElementById('backToTopBtn');
+		var scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+
+		window.addEventListener('scroll', function() {
+			if (backToTopBtn) backToTopBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
+
+			if (scrollToBottomBtn) {
+				var scrollY = window.scrollY || window.pageYOffset;
+				var docHeight = document.documentElement.scrollHeight;
+				var winHeight = window.innerHeight;
+				var atBottom = (scrollY + winHeight) >= docHeight - 50;
+				scrollToBottomBtn.style.display = (docHeight > winHeight + 10 && !atBottom) ? 'block' : 'none';
+			}
+		});
+		backToTopBtn.addEventListener('click', function() {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		});
+		if (scrollToBottomBtn) {
+			scrollToBottomBtn.addEventListener('click', function() {
+				window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+			});
+		}
+	</script>
+</body>
+</html>

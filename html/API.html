@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>引擎对外 API 参考 - Shiori 引擎</title>
+    <link rel="stylesheet" href="../style.css">
+	<link rel="icon" type="image/png" href="../icon/ico16.ico">
+<style>
+	#scrollToBottomBtn {
+		position: fixed;
+		right: 20px;
+		bottom: 20px;
+		padding: 10px 20px;
+		background-color: #e67e22;
+		color: white;
+		border: none;
+		border-radius: 5px;
+		cursor: pointer;
+		z-index: 999;
+		font-size: 14px;
+		outline: none;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		font-weight: 600;
+		transition: background-color 0.3s, transform 0.3s;
+	}
+	#scrollToBottomBtn:hover {
+		background-color: #d35400;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+	}
+	#scrollToBottomBtn:active {
+		transform: translateY(1px);
+	}
+
+	#backToTopBtn {
+		position: fixed;
+		right: 20px;
+		bottom: 60px;
+		padding: 10px 20px;
+		background-color: #3498db;
+		color: white;
+		border: none;
+		border-radius: 5px;
+		cursor: pointer;
+		z-index: 999;
+		font-size: 14px;
+		outline: none;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		font-weight: 600;
+		transition: background-color 0.3s, transform 0.3s;
+	}
+	#backToTopBtn:hover {
+		background-color: #2980b9;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+	}
+	#backToTopBtn:active {
+		transform: translateY(1px);
+	}
+
+	#scrollToBottomBtn, #backToTopBtn {
+		display: none;
+	}
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>引擎对外 API 参考</h1>
+            <p>归纳 Shiori 引擎运行期真实暴露的对外接口，参数与返回值以源码实现为准<br>本页面所书写的版本号均为示例版本号，后续更新不做更改</p>
+            <a href="../index.html" class="nav-button">返回主页</a>
+        </header>
+
+        <main class="tutorial-content">
+
+            <h2>目录</h2>
+            <ol>
+                <li><a href="#overview">1. API 概览与分层</a></li>
+                <li><a href="#core">2. 引擎核心 gameEngine：状态与元素</a></li>
+                <li><a href="#life">3. 生命周期与初始化</a></li>
+                <li><a href="#command">4. 命令执行、分支与条件</a></li>
+                <li><a href="#scene">5. 剧情推进、跳转与视频</a></li>
+                <li><a href="#text">6. 文本、选项与演出</a></li>
+                <li><a href="#chars">7. 立绘系统 API</a></li>
+                <li><a href="#bg">8. 背景与演出 API</a></li>
+                <li><a href="#audio">9. 音频 API</a></li>
+                <li><a href="#affinity">10. 好感度 API（指向好感度文档）</a></li>
+                <li><a href="#system">11. 系统模块 systemModule</a></li>
+                <li><a href="#vars">12. 变量系统 VarSpace</a></li>
+                <li><a href="#hostcfg">13. 渲染配置 ShioriHostConfig</a></li>
+                <li><a href="#dsl">14. DSL 运行期 API（__shiori.dsl / __reg）</a></li>
+                <li><a href="#host">15. 宿主桥 shioriHost.invoke</a></li>
+                <li><a href="#ui">16. UI 骨架 PageChrome 与皮肤 ShioriUISkin</a></li>
+                <li><a href="#examples">17. 调用示例</a></li>
+                <li><a href="#notes">18. 注意事项</a></li>
+                <li><a href="#archive">19. 存档 / 进度接口（补充收录）</a></li>
+            </ol>
+
+            <hr>
+
+            <h2 id="overview">1. API 概览与分层</h2>
+            <p>Shiori 引擎的对外接口按加载顺序分为三层。<b><code>gameEngine</code> 与 <code>systemModule</code> 是引擎核心脚本里的顶层 <code>const</code></b>（进入全局词法作用域、靠裸名访问，<b>不是</b> <code>window</code> 的属性，<code>window.gameEngine</code> / <code>window.systemModule</code> 为 <code>undefined</code>）；<code>VarSpace</code> 与扩展层、宿主层接口都挂在 <code>window</code> 上：</p>
+            <table>
+                <tr><th>层次</th><th>全局对象</th><th>职责</th></tr>
+                <tr><td>脚本层</td><td><code>gameEngine</code> / <code>systemModule</code>（顶层 const，裸名访问）/ <code>VarSpace</code>（window 属性）</td><td>剧情推进、渲染演出、系统 UI、变量读写</td></tr>
+                <tr><td>扩展层</td><td><code>window.__shiori.dsl</code> / <code>window.__reg</code> / <code>window.ShioriHostConfig</code>（另有 <code>window.ShioriUISkin</code>）</td><td>DSL 编译执行、宏/指令注册、渲染配置读取、UI 皮肤</td></tr>
+                <tr><td>宿主层</td><td><code>window.shioriHost</code>（WebView2 同步对象）、<code>window.shiori.api</code></td><td>经白名单方法与 C# 端通信、上报存储操作</td></tr>
+            </table>
+
+            <h3>装载顺序（engine_manifest.json 的 official 段）</h3>
+            <p>引擎按官方清单顺序注入脚本，因此下层 API 依赖上层的结果：</p>
+            <div class="code-block">
+<pre>ui/style.css → ui/ui_skin.css → config/bgm_config.js → config/cg_config.js → config/bg_config.js
+→ config/cg_load_strategy.js → config/illustration.js → api/progress_api.js → system/host_config.js
+→ ui/ui_skin.js → system/system.js → system/vars.js → system/fans_medal_f2.js → ui/page-chrome.js
+→ macro/shiori_dsl.js → engine_core → engine_env → engine_charparse → chardiff_math → char_runtime
+→ char_anim → char_stage → engine_chars → engine_audio → engine_bg → engine_text → engine_command
+→ engine_scene → engine_affinity → engine_save → engine_boot</pre>
+            </div>
+            <p>此外，<code>macro/</code> 目录下的 <code>*.js</code> 会作为原生 JS 宏在清单之后装载（<code>media_impl.js</code>、<code>quake_impl.js</code>），它们通过 <code>__reg</code> 登记指令实现。</p>
+
+            <div class="warning-box">
+                <strong>范围声明：</strong>本页正文（第 1~18 节）仅整理“对外可用”的运行期接口。与<b>存档 / 读档 / 进度管理</b>相关的 API 已从正文移出：其中 <code>VarSpace</code> 的存档序列化方法（<code>serializeF()</code> / <code>restoreF()</code> / <code>clearF()</code> / <code>resetSystem()</code>）已在 <a href="lovesystem.html" target="_blank">好感度系统详解</a> 中完整说明；其余存档 / 进度接口（<code>engine_save.js</code>、<code>GalgameProgressAPI</code>、系统模块的存档页导航等）统一收录于本页 <a href="#archive">第 19 节</a>。
+            </div>
+
+            <h3>方法命名约定</h3>
+            <ul>
+                <li>以下划线开头（<code>_charStageApi</code>、<code>_paintCharStage</code> 等）的成员为<b>内部实现</b>，不保证稳定，不建议外部调用，本页也不展开。</li>
+                <li>各子模块均以 <code>gameEngine.xxx = function(){}</code> 的形式向核心对象追加方法，因此只有在对应脚本加载完成后才可调用。</li>
+                <li>本页“参数”列取自源码形参，“返回值”列取自源码实现；标注 <code>void</code> 表示无返回值。</li>
+            </ul>
+
+            <hr>
+
+            <h2 id="core">2. 引擎核心 gameEngine：状态与元素</h2>
+            <p>版本常量 <code>ENGINE_VERSION = "V2.2.0"</code>。<code>gameEngine</code> 是全引擎唯一的核心对象。</p>
+
+            <h3>gameEngine.state —— 运行时状态</h3>
+            <table>
+                <tr><th>字段</th><th>类型 / 默认</th><th>说明</th></tr>
+                <tr><td><code>currentScene</code></td><td>number / 0</td><td>当前场景索引</td></tr>
+                <tr><td><code>currentLine</code></td><td>number / 0</td><td>当前对话行号</td></tr>
+                <tr><td><code>novelMode</code></td><td>bool / false</td><td>是否处于全屏小说模式</td></tr>
+                <tr><td><code>msgOff</code></td><td>bool / false</td><td>[msgoff] 闩锁：空文本藏框后不擅自 [msgon]</td></tr>
+                <tr><td><code>choicesActive</code></td><td>bool / false</td><td>选项菜单是否激活</td></tr>
+                <tr><td><code>pendingSelections</code></td><td>Array / []</td><td>待显示的选项列表</td></tr>
+                <tr><td><code>disableLVE</code></td><td>bool / false</td><td>是否禁用 Live2D 演出</td></tr>
+                <tr><td><code>affinity</code></td><td>object / {}</td><td>角色好感度数据（只读展示于 F1 面板）</td></tr>
+                <tr><td><code>completedScenes</code></td><td>Array / []</td><td>已完成场景列表</td></tr>
+                <tr><td><code>contextMenuInitialized</code></td><td>bool / false</td><td>右键菜单是否已初始化</td></tr>
+                <tr><td><code>textSegments</code> / <code>currentSegment</code></td><td>Array|null / number</td><td>分段文本数组与当前索引（支持 [s]）</td></tr>
+                <tr><td><code>waitingForSegmentClick</code></td><td>bool / false</td><td>是否等待点击继续下一段</td></tr>
+                <tr><td><code>typingTimerId</code> / <code>typingActive</code></td><td>id / bool</td><td>打字机定时器与运行标志</td></tr>
+                <tr><td><code>fastForwardActive</code> / <code>fastForwardTimerId</code></td><td>bool / id</td><td>快进状态与定时器</td></tr>
+                <tr><td><code>skipMode</code></td><td>0 / 1 / 2</td><td>0=无，1=SKIP/1，2=SKIP/2（选项处停止）</td></tr>
+                <tr><td><code>audioSegments</code> / <code>currentAudioSegment</code></td><td>Array|null / number</td><td>音频分段（支持 [a]）</td></tr>
+                <tr><td><code>povActive</code> / <code>povIndicator</code></td><td>bool / element</td><td>POV 视角指示器</td></tr>
+                <tr><td><code>textFullyDisplayed</code></td><td>bool / false</td><td>文本是否完整显示（控制点击行为）</td></tr>
+                <tr><td><code>activeChars</code></td><td>object / {}</td><td>当前激活立绘 { id: {path,left,zIndex,clipPath} }</td></tr>
+                <tr><td><code>charRuntime</code></td><td>object / {}</td><td>立绘运行时（动作/缩放/动画）</td></tr>
+                <tr><td><code>charStageLatch</code></td><td>'Dom' | 'Canvas' | null</td><td>立绘舞台渲染器闩锁（场次内不切换）</td></tr>
+                <tr><td><code>shakingChars</code></td><td>object / {}</td><td>持续发抖状态</td></tr>
+                <tr><td><code>isBackgroundTransitioning</code></td><td>bool / false</td><td>背景转场标志</td></tr>
+                <tr><td><code>charNameMap</code></td><td>object / {}</td><td>角色名映射 { roleName: {charId, domElement} }</td></tr>
+                <tr><td><code>isClickLocked</code></td><td>bool / false</td><td>点击锁定状态（[lock]/[free]）</td></tr>
+                <tr><td><code>waitSequences</code></td><td>object / {}</td><td>活跃的 [wait time] 序列 { background,bgm,audio,se,chars,command }</td></tr>
+                <tr><td><code>commandWaitTimerId</code></td><td>id|null</td><td>command 元素全局等待定时器</td></tr>
+                <tr><td><code>mediaLayers</code></td><td>object / {}</td><td>媒体图层容器 { storage 名: DOM 元素 }（由 media_impl 惰性创建）</td></tr>
+                <tr><td><code>mediaLastBg</code></td><td>string / ''</td><td>最近一次使用的背景 storage 名（[background] 缺省时沿用）</td></tr>
+            </table>
+
+            <h3>gameEngine.elements —— DOM 引用</h3>
+            <table>
+                <tr><th>字段</th><th>说明</th></tr>
+                <tr><td><code>backgroundContainer</code></td><td>背景容器</td></tr>
+                <tr><td><code>characterContainer</code></td><td>立绘容器</td></tr>
+                <tr><td><code>nameBox</code> / <code>textBox</code></td><td>姓名框 / 对话框</td></tr>
+                <tr><td><code>textContainer</code></td><td>文本框外层容器</td></tr>
+                <tr><td><code>optionsContainer</code></td><td>选项容器</td></tr>
+                <tr><td><code>novelTextBox</code> / <code>novelModeContainer</code></td><td>全屏小说模式元素</td></tr>
+                <tr><td><code>bgmPlayer</code> / <code>sePlayer</code> / <code>voicePlayer</code> / <code>videoPlayer</code></td><td>BGM / 音效 / 语音 / 视频播放器</td></tr>
+            </table>
+
+            <h3>其它成员</h3>
+            <table>
+                <tr><th>成员</th><th>说明</th></tr>
+                <tr><td><code>sceneData</code></td><td>当前场景数据对象（含 <code>story</code>、<code>videos</code> 等）</td></tr>
+                <tr><td><code>audioCache</code> / <code>videoCache</code></td><td>音频 / 视频资源缓存 { key: path }</td></tr>
+                <tr><td><code>_charExtCache</code></td><td>图片扩展名运行时缓存（C# 启动时注入 <code>_SHIORI_EXT_MAP</code>）</td></tr>
+            </table>
+
+            <hr>
+
+            <h2 id="life">3. 生命周期与初始化</h2>
+            <p>由 <code>engine_boot.js</code> 追加。</p>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>init(data, startLine)</code></td><td><code>data</code> 场景数据对象；<code>startLine</code> 起始行号（默认 0，&gt;0 表示从当前行运行并重建历史状态）</td><td>void</td><td>场景入口总编排：委托宿主编译 DSL → 缓存场景数据 → 标注行号 → 缓存 DOM → 绑定事件 → 加载进度 → 恢复状态快照 → 显示目标行</td></tr>
+                <tr><td><code>attachHostCompile(data)</code></td><td><code>data</code> 含 <code>story</code> 数组的场景数据</td><td>void</td><td>调用宿主 <code>compileScene</code>，把结果逐行写回 <code>story[i]._dsl</code> 并更新 <code>__shiori.dsl.lastCompile</code>；无宿主时静默跳过</td></tr>
+                <tr><td><code>cacheElements()</code></td><td>—</td><td>void</td><td>缓存 DOM 元素引用到 <code>elements</code></td></tr>
+                <tr><td><code>bindEvents()</code></td><td>—</td><td>void</td><td>绑定点击 / 右键 / 键盘 / 页面可见性等全局事件</td></tr>
+                <tr><td><code>toggleContextMenu()</code></td><td>—</td><td>void</td><td>右键上下文菜单的呼出与收起</td></tr>
+                <tr><td><code>hideArchiveMenuItems()</code></td><td>—</td><td>void</td><td>在非场景页隐藏存档相关菜单项</td></tr>
+                <tr><td><code>syncDebugCharsState()</code></td><td>—</td><td>void</td><td>把当前立绘状态同步到调试数据集（供 F1 面板）</td></tr>
+                <tr><td><code>annotateStoryLineNumbers()</code></td><td>—</td><td>void</td><td>为 story 逐行标注源码行号范围</td></tr>
+                <tr><td><code>parseStoryLineNumbers(htmlContent)</code></td><td><code>htmlContent</code> 页面 HTML 源码</td><td>void</td><td>解析并标注行号</td></tr>
+                <tr><td><code>buildStateFromHistory(startLine)</code></td><td><code>startLine</code> 起始行索引</td><td>void</td><td>扫描 <code>story[0..startLine-1]</code>，重建 BGM / 背景 / 立绘（存档恢复用，详见第 19 节）</td></tr>
+            </table>
+
+            <hr>
+
+            <h2 id="command">4. 命令执行、分支与条件</h2>
+            <p>由 <code>engine_command.js</code> 追加。指令的书写语法见 <a href="KSmacro.html" target="_blank">KS 宏与 DSL 语法指南</a>。</p>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>executeCommand(command, shouldAutoNext, nodes)</code></td><td><code>command</code> 命令字符串；<code>shouldAutoNext</code> 非阻塞命令执行完是否自动进下一行（默认 true）；<code>nodes</code> 预编译的 DSL 节点</td><td>boolean</td><td>执行一行命令；返回是否包含阻塞性命令。DSL 存在时优先编译并逐节点执行，否则走旧正则回退</td></tr>
+                <tr><td><code>executeCommandSequence(commandStr, shouldAutoNext, nodes)</code></td><td>同上的命令串（逗号分隔）</td><td>boolean</td><td>按序执行整串命令；返回序列中是否有阻塞性命令（点击等待 / 动画 / 计时）</td></tr>
+                <tr><td><code>resolveDslNodes(command, line)</code></td><td><code>command</code> 原始命令串；<code>line</code> 当前行对象（带 <code>_dsl.nodes</code> 缓存时直接返回）</td><td>Array</td><td>编译为 DSL 节点数组；无编译器或解析失败返回空数组</td></tr>
+                <tr><td><code>parseCommand(commandStr)</code></td><td><code>commandStr</code> 如 "[wait time=1000]"、"[pov 角色A]"</td><td>Object</td><td>旧正则路径解析，返回动作对象；无法识别返回 <code>{}</code></td></tr>
+                <tr><td><code>parseCommandByName(cmdName, params, parts)</code></td><td><code>cmdName</code> 已转小写的命令名；<code>params</code> 键值参数；<code>parts</code> 空格切分后的片段数组</td><td>Object</td><td>按名解析为标准化动作对象；未识别返回 <code>{}</code></td></tr>
+                <tr><td><code>handleAction(action)</code></td><td><code>action</code> 至少含 <code>type</code> 的动作对象</td><td>void</td><td>根据 action 执行具体动作</td></tr>
+                <tr><td><code>evaluateCondition(conditionStr)</code></td><td><code>conditionStr</code> 条件表达式，如 "f.love &gt; 5"</td><td>boolean</td><td>求值条件；表达式出错时安全返回 false</td></tr>
+                <tr><td><code>resolveSilentBranch(choices)</code></td><td><code>choices</code> 每项形如 { when?, flag?, add?, target? }</td><td>void</td><td>解析静默分支：按序求值，首个命中即跳转其 target</td></tr>
+                <tr><td><code>lineHasVisibleText(line)</code></td><td><code>line</code> 剧本行对象</td><td>boolean</td><td>该行 text 是否为非空字符串</td></tr>
+                <tr><td><code>shouldSkipLine(index)</code></td><td><code>index</code> 行索引（保留参数，当前未使用）</td><td>boolean</td><td>当前实现恒为 false（预留扩展）</td></tr>
+                <tr><td><code>parseWaitTaggedString(str)</code></td><td><code>str</code> 如 "bg1,[wait time=1000]bg2"</td><td>Array|null</td><td>切分为 {type:'wait',duration} 与 {type:'item',value} 序列；无标记返回 null</td></tr>
+                <tr><td><code>interruptAllWaitSequences()</code></td><td>—</td><td>void</td><td>中断全部进行中的 [wait time] 序列</td></tr>
+                <tr><td><code>interruptCharSequences()</code></td><td>—</td><td>void</td><td>中断进行中的立绘连续动作序列</td></tr>
+            </table>
+
+            <hr>
+
+            <h2 id="scene">5. 剧情推进、跳转与视频</h2>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>displayLine(index)</code></td><td><code>index</code> story 下标</td><td>void</td><td>显示指定行</td></tr>
+                <tr><td><code>nextLine()</code></td><td>—</td><td>void</td><td>推进到下一行</td></tr>
+                <tr><td><code>handleEndOfScene()</code></td><td>—</td><td>void</td><td>场景结束处理</td></tr>
+                <tr><td><code>goTarget(target)</code></td><td><code>target</code> 跳转目标</td><td>void</td><td>统一跳转入口：<code>#</code> 不跳转、含 <code>.html</code>/路径则跨文件、否则标签跳转</td></tr>
+                <tr><td><code>goToScene(sceneUrl)</code></td><td><code>sceneUrl</code> 目标场景 URL（相对路径）</td><td>void</td><td>跳转场景页（系统页面会先停止 AUTO/SKIP）</td></tr>
+                <tr><td><code>jumpToLabel(label)</code></td><td><code>label</code> 标签名（不含方括号，区分大小写）</td><td>void</td><td>跳到本场景 story 中 <code>[label]</code> 之后</td></tr>
+                <tr><td><code>findLabelLine(label)</code></td><td><code>label</code> 标签名</td><td>number</td><td>标签所在行号；未找到返回 -1</td></tr>
+                <tr><td><code>handleChoiceTarget(target, choice)</code></td><td><code>target</code> 选项 target；<code>choice</code> 原始选项对象（调试用）</td><td>void</td><td>关闭选项菜单后走 <code>goTarget</code></td></tr>
+                <tr><td><code>isInScenesFolder()</code></td><td>—</td><td>boolean</td><td>当前页面是否位于 <code>scenes/</code> 目录内</td></tr>
+                <tr><td><code>startFastForward(mode)</code></td><td><code>mode</code> 1=SKIP/1，2=SKIP/2（缺省取 <code>state.skipMode</code> 或 1）</td><td>void</td><td>开始快进</td></tr>
+                <tr><td><code>stopFastForward()</code></td><td>—</td><td>void</td><td>停止快进并重置 <code>skipMode = 0</code></td></tr>
+                <tr><td><code>toggleSkipMode(mode)</code></td><td><code>mode</code> 1 或 2</td><td>void</td><td>切换 SKIP 模式；SKIP 与 AUTO 互斥</td></tr>
+                <tr><td><code>resolveVideoPath(videoKey)</code></td><td><code>videoKey</code> 键名或文件名</td><td>string|null</td><td>解析视频路径（优先 sceneData.videos → 缓存 → 零配置 <code>../assets/video/</code>）</td></tr>
+                <tr><td><code>playVideo(videoKey)</code></td><td><code>videoKey</code> 键名或文件名</td><td>boolean</td><td>true=已开始播放（阻塞当前行，由 ended 推进）；false=播放器缺失</td></tr>
+                <tr><td><code>playVideoNative(videoKey)</code></td><td><code>videoKey</code> 键名或文件名</td><td>void</td><td>使用原生 &lt;video&gt; 播放</td></tr>
+                <tr><td><code>setupVideoSkip()</code> / <code>skipVideo()</code></td><td>—</td><td>void</td><td>设置跳过（右键）/ 跳过后继续下一行</td></tr>
+                <tr><td><code>finishGame(bgColor, duration)</code></td><td><code>bgColor</code> 覆盖色；<code>duration</code> 毫秒</td><td>void</td><td>淡出结束（默认 black / 1500ms）</td></tr>
+                <tr><td><code>finishGameNoTransition(bgColor, duration)</code></td><td><code>bgColor</code> 默认 black；<code>duration</code> 默认 1500</td><td>void</td><td>无过渡直接结束</td></tr>
+                <tr><td><code>chapterEnd(bgColor, duration)</code></td><td><code>bgColor</code> 默认 black；<code>duration</code> 默认 1500</td><td>void</td><td>章节结束：淡出后返回主菜单</td></tr>
+                <tr><td><code>returnToMenu()</code></td><td>—</td><td>void</td><td>返回标题页（<code>../index.html</code>）</td></tr>
+            </table>
+
+            <hr>
+
+            <h2 id="text">6. 文本、选项与演出</h2>
+            <p>由 <code>engine_text.js</code>、<code>engine_scene.js</code> 追加。</p>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>typeText(text)</code></td><td><code>text</code> 原始文本（可含 ruby 与换行标记）</td><td>void</td><td>打字机输出</td></tr>
+                <tr><td><code>typeTextAppend(text)</code></td><td><code>text</code> 文本片段（可含 HTML）</td><td>void</td><td>追加输出</td></tr>
+                <tr><td><code>typeTextWithSplits(text)</code></td><td><code>text</code> 可含 ruby、换行与 [s]</td><td>void</td><td>按 [s] / [a] 分段后输出</td></tr>
+                <tr><td><code>displayTextSegment(segmentIndex)</code></td><td><code>segmentIndex</code> 分段下标</td><td>void</td><td>显示指定分段</td></tr>
+                <tr><td><code>displayNextSegment()</code></td><td>—</td><td>void</td><td>显示下一段</td></tr>
+                <tr><td><code>showCumulativeText(fullText, currentSegment)</code></td><td><code>fullText</code> 第 0 段到当前段拼接结果；<code>currentSegment</code> 当前索引</td><td>void</td><td>显示累积文本</td></tr>
+                <tr><td><code>processRubyText(text)</code></td><td><code>text</code> 原始文本</td><td>string</td><td>[汉字,拼音] → &lt;ruby&gt; 注音；假值原样返回</td></tr>
+                <tr><td><code>processLineBreaks(text)</code></td><td><code>text</code> 原始文本</td><td>string</td><td>换行标记统一为 &lt;br&gt;</td></tr>
+                <tr><td><code>clearNameBox()</code> / <code>hideTextBox()</code> / <code>showTextBox()</code></td><td>—</td><td>void</td><td>姓名框与对话框控制</td></tr>
+                <tr><td><code>setWindowMode(visible)</code></td><td><code>visible</code> bool</td><td>void</td><td>显示 / 隐藏消息窗</td></tr>
+                <tr><td><code>addClickPrompt()</code> / <code>showClickPrompt()</code> / <code>hideClickPrompt()</code></td><td>—</td><td>void</td><td>点击提示符</td></tr>
+                <tr><td><code>handleSegmentClick()</code></td><td>—</td><td>void</td><td>处理分段点击</td></tr>
+                <tr><td><code>showPovIndicator(povName)</code></td><td><code>povName</code> 视角名称</td><td>void</td><td>显示 POV 指示器</td></tr>
+                <tr><td><code>hidePovIndicator()</code> / <code>clearPovState()</code></td><td>—</td><td>void</td><td>隐藏 / 清理 POV 状态</td></tr>
+                <tr><td><code>showChoices(choices, action)</code></td><td><code>choices</code> 每项 { text, target, flag, add, when }；<code>action</code> 可选，含 silent 标志</td><td>void</td><td>显示选项菜单</td></tr>
+                <tr><td><code>calculateChoicePosition(index, total)</code></td><td><code>index</code> 下标；<code>total</code> 总数</td><td>string</td><td>计算选项位置（当前实现返回空串，由 CSS 决定布局）</td></tr>
+                <tr><td><code>isOptionElement(element)</code></td><td><code>element</code> DOM 元素</td><td>boolean</td><td>该元素或其祖先为 <code>#options-container</code> 时返回 true</td></tr>
+                <tr><td><code>setNovelMode(enabled)</code></td><td><code>enabled</code> bool</td><td>void</td><td>小说模式切换</td></tr>
+            </table>
+
+            <hr>
+
+            <h2 id="chars">7. 立绘系统 API</h2>
+            <p>由 <code>engine_chars.js</code>、<code>char_runtime.js</code>、<code>char_anim.js</code>、<code>char_stage.js</code> 追加，指令层由 <code>media_impl.js</code> 的 <code>char</code> 实现转发到 <code>renderChars</code>。</p>
+
+            <h3>渲染与更新</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>renderChars(charString)</code></td><td><code>charString</code> 立绘指令串，如 "[左 lh01],[右 前 lh02]"</td><td>void</td><td>渲染一条或多条立绘指令</td></tr>
+                <tr><td><code>renderSingleCharInstruction(content)</code></td><td><code>content</code> 已去掉首尾方括号的指令内容</td><td>void</td><td>渲染单条立绘指令</td></tr>
+                <tr><td><code>updateChar(charId, modifiers, forceInstant, roleName)</code></td><td><code>charId</code> 立绘 ID；<code>modifiers</code> 修饰词组（中英文混合）；<code>forceInstant</code> 是否瞬切（默认 false）；<code>roleName</code> 角色名</td><td>void</td><td>按修饰词更新单个立绘</td></tr>
+                <tr><td><code>updateCharDiff(charName, orientation, dress, face, modifiers)</code></td><td><code>charName</code> 角色名（同时作为 charId 与 DOM id 后缀）；<code>orientation</code> 方位；<code>dress</code>/<code>face</code> 差分对象；<code>modifiers</code> 修饰词</td><td>void</td><td>组合并应用立绘差分</td></tr>
+                <tr><td><code>updateLayeredCharScale(container, scale, transition)</code></td><td><code>container</code> 分层容器；<code>scale</code> 身体层缩放（非正数回退 1）；<code>transition</code> 过渡样式</td><td>boolean</td><td>更新分层立绘缩放；返回是否为合法分层容器</td></tr>
+                <tr><td><code>resolveCharFilePath(fileIdOrPath, charName)</code></td><td><code>fileIdOrPath</code> 文件 ID 或路径；<code>charName</code> 角色名</td><td>string</td><td>解析立绘文件路径（可能不含扩展名，由内部探测补全）</td></tr>
+                <tr><td><code>resolveCharDiffFrame(roleName, modifiersParts)</code></td><td><code>roleName</code> 角色名；<code>modifiersParts</code> 修饰词片段数组</td><td>Object|null</td><td>返回 {orientation, dress, face}；无法解析返回 null</td></tr>
+                <tr><td><code>parseCharDiffModifiers(mods, charName, dress, face)</code></td><td><code>mods</code> 修饰词串；<code>charName</code> 角色名；<code>dress</code>/<code>face</code> 已选对象</td><td>Object</td><td>按 CHAR_DIFF_CONFIG 解析差分修饰词</td></tr>
+                <tr><td><code>parseCharModifiers(mods)</code></td><td><code>mods</code> 如 "左 下"、"中 10% 前"、"瞬 左"、"x:10% y:-5%"</td><td>Object</td><td>返回 { left, zIndex, clipPath, scale, bottom, instant, preciseX, preciseY }</td></tr>
+                <tr><td><code>isModifierKeyword(word)</code></td><td><code>word</code> 单词</td><td>boolean</td><td>是否为立绘修饰词关键词</td></tr>
+                <tr><td><code>shouldAnimateCharLayout(prev, left, bottom, rotation)</code></td><td><code>prev</code> 上次布局记录；<code>left</code>/<code>bottom</code> 位置；<code>rotation</code> 角度</td><td>boolean</td><td>本次布局变化是否需要动画</td></tr>
+                <tr><td><code>standFromRotation(rt, explicitZ)</code></td><td><code>rt</code> 立绘运行时状态；<code>explicitZ</code> 显式旋转角（来自 z: 修饰词）</td><td>number</td><td>归一化后的旋转角度（度）</td></tr>
+            </table>
+
+            <h3>连续动作序列</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>parseCharSequence(sequenceContent)</code></td><td><code>sequenceContent</code> 逗号分隔的序列串</td><td>Object</td><td>返回 { valid, roleName, useDiff, queueKey, segments }</td></tr>
+                <tr><td><code>applyCharSequenceFrame(parsed, segment, forceInstant)</code></td><td><code>parsed</code> parseCharSequence 结果；<code>segment</code> 本帧修饰词片段；<code>forceInstant</code> 是否强制瞬切</td><td>void</td><td>应用连续动作的某一帧</td></tr>
+                <tr><td><code>executeCharSequence(sequenceContent)</code></td><td><code>sequenceContent</code> 逗号分隔的完整指令内容</td><td>void</td><td>执行整条连续动作序列</td></tr>
+                <tr><td><code>parseCharWaitSequence(charString)</code></td><td><code>charString</code> 原始立绘串</td><td>Array|null</td><td>切分为 {type:'wait',duration} 与 {type:'item',instructions}；无标记返回 null</td></tr>
+                <tr><td><code>executeCharWaitSequence(segments)</code></td><td><code>segments</code> 解析后的序列段</td><td>void</td><td>执行带等待的立绘序列</td></tr>
+            </table>
+
+            <h3>动作与特效</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>applyCharAction(charId, charEl, actionType, props)</code></td><td><code>charId</code>；<code>charEl</code> DOM；<code>actionType</code> 动作标识；<code>props</code> 修饰词属性</td><td>void</td><td>按动作类型分发到下面的具体动作</td></tr>
+                <tr><td><code>applyStandAction(charEl, props)</code></td><td>立绘 DOM、属性</td><td>void</td><td>站立（复位动作）</td></tr>
+                <tr><td><code>applyNodAction(charEl, props)</code></td><td>同上</td><td>void</td><td>点头</td></tr>
+                <tr><td><code>applyLeftTiltAction(charEl, props)</code> / <code>applyRightTiltAction(charEl, props)</code></td><td>同上</td><td>void</td><td>左倾 / 右倾</td></tr>
+                <tr><td><code>applyProudAction(charEl, props, isContinuous)</code></td><td>同上，<code>isContinuous</code> 是否持续模式</td><td>void</td><td>得意（持续动作）</td></tr>
+                <tr><td><code>stopProudAction(charId)</code> / <code>resetProudState(charEl, baseBottom, baseRotation)</code></td><td>立绘 ID / DOM + 基准值</td><td>void</td><td>停止得意动作 / 复位其状态</td></tr>
+                <tr><td><code>applyRetreatAction(charEl, props)</code> / <code>applyForwardAction(charEl, props)</code></td><td>同上</td><td>void</td><td>后退 / 前进</td></tr>
+                <tr><td><code>applyJumpscareAction(charEl, props)</code></td><td>同上（props 用于取基准缩放）</td><td>void</td><td>惊吓突进</td></tr>
+                <tr><td><code>applyShakeAction(charEl, props, isContinuous)</code></td><td>同上</td><td>void</td><td>立绘发抖（[quake] 的角色目标最终走这里）</td></tr>
+                <tr><td><code>stopShakeAction(charId)</code></td><td><code>charId</code> 立绘 ID</td><td>void</td><td>停止发抖</td></tr>
+            </table>
+
+            <h3>显隐与移除</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>fadeInChar(charId, charEl, direction)</code></td><td><code>charId</code>；<code>charEl</code> 可选；<code>direction</code> 'left'/'right'，缺省原地淡入</td><td>void</td><td>立绘渐入</td></tr>
+                <tr><td><code>fadeOutChar(charId, charEl, direction)</code></td><td>同上</td><td>void</td><td>立绘渐出</td></tr>
+                <tr><td><code>fadeOutAllChars(direction)</code></td><td><code>direction</code> 可选</td><td>void</td><td>全部立绘渐出</td></tr>
+                <tr><td><code>hideAllCharacters()</code></td><td>—</td><td>void</td><td>隐藏全部立绘</td></tr>
+                <tr><td><code>hideCharacter(time)</code></td><td><code>time</code> 淡出时长（毫秒）</td><td>void</td><td>隐藏单个立绘</td></tr>
+                <tr><td><code>removeChar(charId)</code> / <code>removeAllChars()</code></td><td><code>charId</code> / —</td><td>void</td><td>从 DOM 移除单个 / 全部立绘</td></tr>
+            </table>
+
+            <hr>
+
+            <h2 id="bg">8. 背景与演出 API</h2>
+            <p>由 <code>engine_bg.js</code> 追加；<code>[background]</code> 指令由 <code>media_impl.js</code> 实现并调用 <code>setBackground</code>。</p>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>setBackground(imagePath)</code></td><td><code>imagePath</code> 背景路径，空值清空</td><td>void</td><td>直接替换底层背景</td></tr>
+                <tr><td><code>performBackgroundTransition(newBgPath, currentLine, type)</code></td><td><code>newBgPath</code>；<code>currentLine</code> 当前行数据；<code>type</code> fade/slideL/slideR/scanL/scanR</td><td>void</td><td>执行转场并在结束后恢复该行剩余内容</td></tr>
+                <tr><td><code>performSlideTransition(newBgPath, currentLine, type, duration)</code></td><td>type 为 slideL / slideR</td><td>void</td><td>滑动转场</td></tr>
+                <tr><td><code>performScanTransition(newBgPath, currentLine, type, duration)</code></td><td>type 为 scanL / scanR</td><td>void</td><td>扫描转场</td></tr>
+                <tr><td><code>performBackgroundTransitionSequence(newBgPath, type, onComplete)</code></td><td><code>onComplete</code> 完成后回调</td><td>void</td><td>转场序列（供 [wait time] 分段推进）</td></tr>
+                <tr><td><code>executeBackgroundSequence(segments, line)</code></td><td><code>segments</code> {type,value,duration} 数组；<code>line</code> 当前行</td><td>void</td><td>执行背景序列</td></tr>
+                <tr><td><code>backgroundChangeWithTransition(options)</code> / <code>backgroundChangeWithoutTransition(options)</code></td><td><code>options.time</code> 默认 1000</td><td>void</td><td>带 / 不带转场的背景切换</td></tr>
+                <tr><td><code>setBackgroundWithPosition(options)</code> / <code>backgroundErase(options)</code></td><td><code>options.time</code> 默认 1000；<code>options.transition</code> 默认 black</td><td>void</td><td>定位设置 / 擦除背景</td></tr>
+                <tr><td><code>fadeOut(duration, backgroundColor, callback)</code></td><td><code>duration</code> 毫秒；<code>backgroundColor</code> CSS 颜色；<code>callback</code> 完成回调</td><td>void</td><td>淡出</td></tr>
+                <tr><td><code>fadeIn(duration, backgroundColor)</code></td><td>同上</td><td>void</td><td>淡入</td></tr>
+                <tr><td><code>whiteOut(time)</code></td><td><code>time</code> 单程时长（毫秒）</td><td>void</td><td>白屏闪</td></tr>
+                <tr><td><code>eventShow(options)</code> / <code>eventHide(options)</code> / <code>hideEventVisual()</code></td><td><code>options.file</code> 事件图键名；<code>options.opacity</code>；<code>options.time</code></td><td>void</td><td>事件立绘显示 / 隐藏</td></tr>
+                <tr><td><code>betaFuraShow(options)</code> / <code>betaFuraEnd(options)</code></td><td><code>options.time</code></td><td>void</td><td>模糊演出开始 / 结束</td></tr>
+                <tr><td><code>eventBlurShow(options)</code> / <code>eventBlurRestore(options)</code></td><td><code>options.file</code>、<code>options.blur</code>、<code>options.time</code></td><td>void</td><td>事件模糊与还原</td></tr>
+                <tr><td><code>sepiaStart()</code> / <code>sepiaEnd()</code></td><td>—</td><td>void</td><td>怀旧滤镜开始 / 结束</td></tr>
+                <tr><td><code>sepiaStartWithWhiteout(time)</code> / <code>sepiaEndWithWhiteout(time)</code></td><td><code>time</code> 闪屏总时长（内部按半程计算）</td><td>void</td><td>带白闪的怀旧滤镜切换</td></tr>
+                <tr><td><code>fadeoutSepiaEnd()</code></td><td>—</td><td>void</td><td>淡出并结束怀旧滤镜</td></tr>
+                <tr><td><code>flashbackStart(options)</code> / <code>flashbackEnd(options)</code></td><td><code>options.time</code> 总时长（收缩/展开各半程）</td><td>void</td><td>闪回开始 / 结束</td></tr>
+                <tr><td><code>negaposiFlip(options)</code> / <code>negaposiFlipEnd(options)</code></td><td><code>options</code> 保留参数</td><td>void</td><td>负片翻转与还原</td></tr>
+            </table>
+
+            <hr>
+
+            <h2 id="audio">9. 音频 API</h2>
+            <p>由 <code>engine_audio.js</code> 追加；<code>[bgm]</code> / <code>[se]</code> / <code>[voice]</code> 指令由 <code>media_impl.js</code> 实现。</p>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>requestAudioPlayback()</code> / <code>unlockAudioContext()</code></td><td>—</td><td>void</td><td>请求播放权限 / 解锁 AudioContext</td></tr>
+                <tr><td><code>resolveAudioPath(audioKey)</code></td><td><code>audioKey</code> 键名或文件名（不含扩展名）</td><td>Object|null</td><td>返回 { path, isBgm }</td></tr>
+                <tr><td><code>resolveSEPath(seKey)</code></td><td><code>seKey</code> 键名或文件名</td><td>string|null</td><td>音效路径</td></tr>
+                <tr><td><code>playAudio(audioKey)</code></td><td><code>audioKey</code> 从 sceneData.bgm / audio 中查找</td><td>void</td><td>播放语音</td></tr>
+                <tr><td><code>playSE(seKey)</code></td><td><code>seKey</code> 键名或文件名</td><td>void</td><td>播放音效</td></tr>
+                <tr><td><code>parseAudioSequence(audioStr)</code></td><td><code>audioStr</code> 如 "audio1[a]audio2[a]audio3"</td><td>Array</td><td>切分为音频键名数组（已去除空白段）</td></tr>
+                <tr><td><code>stopAllAudio()</code> / <code>stopAudio()</code> / <code>stopSE()</code></td><td>—</td><td>void</td><td>停止语音 / 音效</td></tr>
+                <tr><td><code>stopAllAudioWithBGM()</code> / <code>stopBGM()</code></td><td>—</td><td>void</td><td>停止全部（含 BGM） / 停止 BGM</td></tr>
+                <tr><td><code>fadeOutAndPlayBGM(newBgmKey)</code></td><td><code>newBgmKey</code> 新 BGM 键名</td><td>void</td><td>淡出并切换 BGM（切换后自动推进）</td></tr>
+                <tr><td><code>fadeOutAndPlayBGMNoNextLine(newBgmKey, onComplete)</code></td><td><code>newBgmKey</code>；<code>onComplete</code> 完成回调</td><td>void</td><td>同上但不自动进入下一行</td></tr>
+                <tr><td><code>fadeInBGMWithDuration(bgmKey, fadeDuration, callback)</code></td><td><code>bgmKey</code>；<code>fadeDuration</code> 毫秒；<code>callback</code></td><td>void</td><td>指定时长淡入</td></tr>
+                <tr><td><code>fadeOutBGMWithDuration(fadeDuration, callback)</code></td><td>同上</td><td>void</td><td>指定时长淡出</td></tr>
+                <tr><td><code>executeBgmSequence(segments)</code> / <code>executeAudioSequence(segments)</code> / <code>executeSESequence(segments)</code></td><td><code>segments</code> 解析后的序列段</td><td>void</td><td>执行 BGM / 语音 / 音效序列</td></tr>
+            </table>
+
+            <hr>
+
+            <h2 id="affinity">10. 好感度 API（指向好感度文档）</h2>
+            <p>下列方法由 <code>engine_affinity.js</code> 追加，属于好感度体系，<b>完整说明与示例见 <a href="lovesystem.html" target="_blank">好感度系统详解</a></b>，此处只列出入口以免遗漏：</p>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>applyAffinity(flag, add)</code></td><td><code>flag</code> 变量名（不含 f. 前缀）；<code>add</code> 变化值</td><td>void</td><td>应用好感度变化</td></tr>
+                <tr><td><code>affinityChange(options)</code></td><td><code>options.flag</code>；<code>options.add</code></td><td>void</td><td>选项 / 指令入口的好感度变更</td></tr>
+                <tr><td><code>affinityUpShow(options)</code> / <code>affinityDownShow(options)</code></td><td><code>options.flag</code>；<code>options.add</code>；<code>options.time</code> 默认 1000</td><td>void</td><td>上升 / 下降演出，到期后推进剧情</td></tr>
+                <tr><td><code>playAffinityEffect(flag, add)</code></td><td><code>flag</code>；<code>add</code></td><td>void</td><td>播放好感度特效</td></tr>
+                <tr><td><code>playAffinitySound(type)</code></td><td><code>type</code> 'up' 或 'down'</td><td>void</td><td>播放好感度音效</td></tr>
+                <tr><td><code>initAffinitySystem()</code></td><td>—</td><td>void</td><td>好感度系统初始化</td></tr>
+            </table>
+
+            <hr>
+
+            <h2 id="system">11. 系统模块 systemModule</h2>
+            <p><code>systemModule</code> 负责音量、调试面板、AUTO/SKIP 按钮、日志、系统设置等全局功能。初始化时会把宿主渲染配置挂到 <code>window.__shiori.hostConfig</code>。</p>
+
+            <h3>生命周期与常用状态</h3>
+            <table>
+                <tr><th>成员</th><th>说明</th></tr>
+                <tr><td><code>init()</code></td><td>初始化系统模块（读配置、加载音量/调试/面板/AUTO 设置、创建各面板与绑定事件）</td></tr>
+                <tr><td><code>currentVolume</code> / <code>bgmVolume</code> / <code>seVolume</code> / <code>voiceVolume</code></td><td>主音量与各通道音量（0~1），媒体指令按“主音量 × 通道音量 × 指令相对音量”计算</td></tr>
+                <tr><td><code>WATCHED_F_VARS</code></td><td>F2 变量面板观察的 f. 变量名清单</td></tr>
+                <tr><td><code>autoModeEnabled</code> / <code>autoDelaySeconds</code> / <code>autoShowCountdown</code> / <code>autoWaitForAudio</code> / <code>autoWaitForTyping</code></td><td>AUTO 模式相关设置项</td></tr>
+                <tr><td><code>debugVisible</code> / <code>varsVisible</code> / <code>systemSettingsVisible</code></td><td>调试面板 / 变量面板 / 系统设置的显示状态</td></tr>
+                <tr><td><code>VOLUME_STORAGE_KEY</code>、<code>BGM_VOLUME_STORAGE_KEY</code>、<code>SE_VOLUME_STORAGE_KEY</code>、<code>VOICE_VOLUME_STORAGE_KEY</code>、<code>DEBUG_MODE_STORAGE_KEY</code>、<code>VARS_MODE_STORAGE_KEY</code>、<code>AUTO_DELAY_KEY</code>、<code>AUTO_SHOW_COUNTDOWN_KEY</code>、<code>FAST_FORWARD_STORAGE_KEY</code></td><td>各类设置的 localStorage 键名常量</td></tr>
+            </table>
+
+            <h3>音量</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>loadVolume()</code></td><td>—</td><td>void</td><td>从 localStorage 载入各通道音量</td></tr>
+                <tr><td><code>saveVolume()</code> / <code>saveBgmVolume()</code> / <code>saveSeVolume()</code> / <code>saveVoiceVolume()</code></td><td>—</td><td>void</td><td>保存各通道音量</td></tr>
+                <tr><td><code>changeVolume(delta)</code></td><td><code>delta</code> 增量</td><td>void</td><td>调整主音量</td></tr>
+                <tr><td><code>getVolume()</code> / <code>setVolume(volume)</code></td><td><code>volume</code> 音量值</td><td>number / void</td><td>读取 / 设置主音量</td></tr>
+                <tr><td><code>getVolumeSettings()</code></td><td>—</td><td>Object</td><td>读取完整音量设置对象</td></tr>
+                <tr><td><code>setVolumeChannel(channel, value)</code></td><td><code>channel</code> 通道名；<code>value</code> 音量</td><td>void</td><td>设置指定通道</td></tr>
+                <tr><td><code>applyVolumeToAllAudio()</code> / <code>applyBgmVolume()</code> / <code>applySeVolume()</code> / <code>applyVoiceVolume()</code></td><td>—</td><td>void</td><td>把音量应用到音频元素</td></tr>
+                <tr><td><code>createVolumeOverlay()</code> / <code>showVolumeOverlay()</code> / <code>bindVolumeControls()</code></td><td>—</td><td>void</td><td>音量提示框与按键绑定</td></tr>
+            </table>
+
+            <h3>调试与变量面板</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>loadDebugMode()</code> / <code>saveDebugMode()</code></td><td>—</td><td>void</td><td>调试面板显示状态持久化</td></tr>
+                <tr><td><code>createDebugPanel()</code> / <code>bindDebugToggle()</code> / <code>toggleDebugPanel()</code> / <code>updateDebugInfo()</code></td><td>—</td><td>void</td><td>F1 调试面板</td></tr>
+                <tr><td><code>formatDslDebugBlock(currentLineData)</code></td><td><code>currentLineData</code> 当前行数据</td><td>string</td><td>输出当前行 DSL AST 与诊断文本</td></tr>
+                <tr><td><code>formatDslCatalogBlock()</code></td><td>—</td><td>string</td><td>输出宏清单文本</td></tr>
+                <tr><td><code>getDslCatalog()</code></td><td>—</td><td>Object|null</td><td>经宿主 <code>catalogQuery</code> 拉取脚本清单（带缓存）</td></tr>
+                <tr><td><code>parseBgmInstruction(bgmInstruction)</code></td><td><code>bgmInstruction</code> BGM 指令串</td><td>Object</td><td>解析 BGM 指令为结构化参数（供调试面板展示）</td></tr>
+                <tr><td><code>escapeDebugText(s)</code> / <code>parseCharsInfo(charsStr)</code></td><td>文本 / 立绘串</td><td>string / Object</td><td>调试文本转义 / 解析立绘信息</td></tr>
+                <tr><td><code>resetDebugState()</code></td><td>—</td><td>void</td><td>切换场景时重置调试状态</td></tr>
+                <tr><td><code>loadVarsMode()</code> / <code>saveVarsMode()</code></td><td>—</td><td>void</td><td>变量面板状态持久化</td></tr>
+                <tr><td><code>createVarsPanel()</code> / <code>bindVarsToggle()</code> / <code>toggleVarsPanel()</code> / <code>updateVarsInfo()</code></td><td>—</td><td>void</td><td>F2 变量观察面板（遍历 <code>WATCHED_F_VARS</code>）</td></tr>
+            </table>
+
+            <h3>AUTO / SKIP</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>toggleAutoMode()</code></td><td>—</td><td>void</td><td>AUTO 模式切换</td></tr>
+                <tr><td><code>updateAutoButton(enabled)</code> / <code>updateAllButtons()</code> / <code>updateSkipButton(mode)</code></td><td><code>enabled</code> / <code>mode</code></td><td>void</td><td>刷新按钮激活态</td></tr>
+                <tr><td><code>loadAutoSettings()</code> / <code>saveAutoSettings()</code> / <code>getAutoSettings()</code> / <code>updateAutoSettings(settings)</code></td><td><code>settings</code> 设置对象</td><td>Object / void</td><td>AUTO 设置读写</td></tr>
+                <tr><td><code>startAutoCountdown(hasAudio)</code> / <code>stopAutoCountdown()</code> / <code>updateAutoCountdownDisplay()</code> / <code>createAutoCountdownElement()</code></td><td><code>hasAudio</code> 是否等待音频</td><td>void</td><td>AUTO 倒计时</td></tr>
+                <tr><td><code>handleAutoClick()</code> / <code>onTypingComplete()</code> / <code>checkAutoConditions()</code></td><td>—</td><td>void</td><td>AUTO 触发判定</td></tr>
+                <tr><td><code>stopAllAutoSkipModes()</code></td><td>—</td><td>void</td><td>停止全部 AUTO / SKIP</td></tr>
+                <tr><td><code>toggleFastForward()</code> / <code>startFastForward()</code> / <code>stopFastForward()</code> / <code>isFastForwardActive()</code> / <code>restoreFastForwardState()</code></td><td>—</td><td>boolean（isFastForwardActive）</td><td>快进控制（按钮层包装）</td></tr>
+            </table>
+
+            <h3>日志、系统设置与辅助</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>addLogEntry(data)</code></td><td><code>data</code> 对话行数据</td><td>void</td><td>追加一条对话日志</td></tr>
+                <tr><td><code>createLogOverlay()</code> / <code>openLog()</code> / <code>closeLog()</code> / <code>updateLogContent()</code> / <code>clearLog()</code></td><td>—</td><td>void</td><td>日志浮层</td></tr>
+                <tr><td><code>createLogTextWithAudioButtons(text, audioSegments)</code> / <code>bindLogAudioButtons()</code> / <code>handleLogAudioButtonClick(e)</code></td><td><code>text</code>；<code>audioSegments</code>；<code>e</code> 事件</td><td>void</td><td>日志内语音回放</td></tr>
+                <tr><td><code>showSystemSettings()</code> / <code>onSystemSettingsClosed()</code></td><td>—</td><td>void</td><td>打开 / 关闭系统设置</td></tr>
+                <tr><td><code>pauseAllAudioForSettings()</code> / <code>updateVolumeFromSettings(volumeData)</code></td><td><code>volumeData</code> 音量设置</td><td>void</td><td>设置期间暂停音频 / 应用设置</td></tr>
+                <tr><td><code>playTestAudio(type, play)</code> / <code>stopAllTestAudio()</code></td><td><code>type</code> 类型；<code>play</code> 是否播放</td><td>void</td><td>试听音频</td></tr>
+                <tr><td><code>createGalgameUiMenu()</code> / <code>bindUiClickHandler()</code> / <code>openOptions()</code></td><td>—</td><td>void</td><td>底部 SKIP/AUTO/SAVE 菜单与右键菜单</td></tr>
+                <tr><td><code>createVoiceProgressBar()</code> / <code>bindVoicePlayerEvents()</code> / <code>showVoiceProgress()</code> / <code>hideVoiceProgress()</code> / <code>resetVoiceProgress()</code> / <code>startVoiceProgressUpdate()</code> / <code>stopVoiceProgressUpdate()</code> / <code>updateVoiceProgress()</code></td><td>—</td><td>void</td><td>语音进度条</td></tr>
+                <tr><td><code>bindFullscreenDetection()</code> / <code>checkMaximizedState()</code> / <code>updateFullscreenClass()</code></td><td>—</td><td>void</td><td>全屏 / 最大化状态检测</td></tr>
+                <tr><td><code>isSceneFile()</code> / <code>processLineBreaks(text)</code> / <code>processRubyText(text)</code></td><td><code>text</code> 文本</td><td>boolean / string</td><td>场景判定 / 文本处理</td></tr>
+                <tr><td><code>notifyStorageOperation(operation, key, storageType)</code></td><td><code>operation</code> 'CREATE'/'DELETE'/'UPDATE'；<code>key</code> 键名；<code>storageType</code> 'localStorage'/'sessionStorage'</td><td>void</td><td>经 <code>window.shiori.api.onStorageOperation</code> 上报宿主</td></tr>
+            </table>
+
+            <div class="tip-box">
+                系统模块中通往存档 / 进度页面的导航（底栏 SAVE 按钮的存档页跳转、<code>openArchive()</code>）属于存档相关接口，已移至 <a href="#archive">第 19 节</a>。
+            </div>
+
+            <hr>
+
+            <h2 id="vars">12. 变量系统 VarSpace</h2>
+            <p><code>VarSpace</code>（版本 <code>version = '1.2.0'</code>）提供三个命名空间代理，可直接用点号读写：</p>
+            <table>
+                <tr><th>成员</th><th>生命周期</th><th>存储</th></tr>
+                <tr><td><code>VarSpace.f</code></td><td>游戏变量，随游戏进程；页面跳转经 sessionStorage 镜像继承</td><td>sessionStorage <code>shiori_f_runtime</code>（防抖 150ms）</td></tr>
+                <tr><td><code>VarSpace.sf</code></td><td>系统变量，跨关、跨会话留存</td><td>localStorage <code>shiori_sf</code>（防抖 300ms）</td></tr>
+                <tr><td><code>VarSpace.tf</code></td><td>临时变量，关页即失</td><td>纯内存</td></tr>
+            </table>
+            <div class="code-block">
+<pre>VarSpace.f.aff_角色A = 3;          // 直接读写，等价于 VarSpace.set('f.aff_角色A', 3)
+VarSpace.sf.clear = 1;             // 系统变量
+VarSpace.tf.tmp = Date.now();      // 临时变量</pre>
+            </div>
+
+            <h3>读写方法</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>init()</code></td><td>—</td><td>Object（自身，支持链式）</td><td>载入持久区（幂等）</td></tr>
+                <tr><td><code>get(name)</code> / <code>set(name, value)</code> / <code>has(name)</code></td><td><code>name</code> 完整名（含前缀），如 'f.aff_角色A'</td><td>value / Object / boolean</td><td>按完整名读写与判断</td></tr>
+                <tr><td><code>getSF(name)</code> / <code>setSF(name, value)</code></td><td><code>name</code> 不含 <code>sf.</code> 前缀</td><td>value / Object</td><td>系统变量便捷读写</td></tr>
+                <tr><td><code>eval(exp)</code></td><td><code>exp</code> 表达式字符串</td><td>*</td><td>以 <code>f</code>/<code>sf</code>/<code>tf</code> 为作用域求值</td></tr>
+                <tr><td><code>flushF()</code></td><td>—</td><td>void</td><td>立即把 <code>f.</code> 写入 sessionStorage（绕过防抖）；跨文件跳转前同步写入</td></tr>
+                <tr><td><code>dump()</code> / <code>log()</code></td><td>—</td><td>Object</td><td>导出三个命名空间的深拷贝 <code>{f, sf, tf}</code>；<code>log()</code> 额外在控制台打印</td></tr>
+                <tr><td><code>setVerbose(v)</code></td><td><code>v</code> bool</td><td>Object</td><td>开关自动日志（默认开启；也可用 URL <code>?vlog=0</code>）</td></tr>
+                <tr><td><code>isAffinityAnimEnabled()</code> / <code>setAffinityAnimEnabled(v)</code></td><td><code>v</code> bool</td><td>boolean / Object</td><td>好感度飘动动画开关</td></tr>
+                <tr><td><code>refreshGating()</code></td><td>—</td><td>void</td><td>重新应用入口门禁（页面加载时内部已自动调用一次）</td></tr>
+            </table>
+
+            <h3>好感度与分支判定</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>applyAffinity(flag, add)</code></td><td><code>flag</code> 变量名；<code>add</code> 变化值</td><td>number</td><td>对 <code>f.&lt;flag&gt;</code> 增减，返回变化后的值</td></tr>
+                <tr><td><code>getAffinity(flag)</code></td><td><code>flag</code> 变量名</td><td>number</td><td>读取好感度（未定义返回 0）</td></tr>
+                <tr><td><code>checkCondition(cond)</code></td><td><code>cond</code> 条件表达式</td><td>boolean</td><td>求值条件表达式</td></tr>
+                <tr><td><code>resolveBranch(choices)</code></td><td><code>choices</code> 分支数组</td><td>string|null</td><td>按序求值，首个命中返回其 target（命中项含 <code>add</code> 时调用 <code>applyAffinity</code>）</td></tr>
+            </table>
+
+            <h3>入口门禁（GATED_PAGES）</h3>
+            <p>以下功能页面仅在 <code>sf.clear == 1</code>（通关一次）后显示入口，未解锁时直接访问会被重定向回首页：</p>
+            <div class="code-block">
+<pre>[
+  'html/bgm.html',    // BGM鉴赏
+  'html/video.html',  // 视频鉴赏
+  'html/cg.html',     // CG鉴赏
+  'html/story.html'   // 小故事
+]</pre>
+            </div>
+
+            <div class="warning-box">
+                <strong>已排除的存档相关方法：</strong><code>serializeF()</code>、<code>restoreF()</code>、<code>clearF()</code>、<code>resetSystem()</code> 属于存档 / 系统重置语义，正文不予收录。<b>完整说明见 <a href="lovesystem.html" target="_blank">好感度系统详解</a> 第 5、7、11 节</b>，本页不再重复。
+            </div>
+
+            <hr>
+
+            <h2 id="hostcfg">13. 渲染配置 ShioriHostConfig</h2>
+            <p><code>window.ShioriHostConfig</code> 读取启动器注入的渲染配置（也可回退到 <code>localStorage.shiori_render_settings</code>）。启动时 C# 会注入 <code>window.__shioriHostConfig</code>。</p>
+            <table>
+                <tr><th>成员</th><th>说明</th></tr>
+                <tr><td><code>LOCAL_STORAGE_KEY</code></td><td>固定为 <code>'shiori_render_settings'</code></td></tr>
+                <tr><td><code>DEFAULTS</code></td><td><code>{ thumbnails:true, frameCache:false, charRenderer:'Dom', diskCache:'Mb1', hardwareAccel:'Default', layoutMode:'Flow' }</code></td></tr>
+                <tr><td><code>AUTO_CANVAS_MIN_CHARS</code></td><td>自动切换 Canvas 渲染的立绘数量阈值，默认 <code>2</code></td></tr>
+                <tr><td><code>read()</code></td><td>读取并归一化配置对象</td></tr>
+                <tr><td><code>assetThumbUrl(path, cfg)</code></td><td>返回缩略图 URL（<code>/cg-thumb/</code> 或 <code>/assets/</code>）</td></tr>
+                <tr><td><code>charRenderer(cfg)</code> / <code>layoutMode(cfg)</code></td><td>读取立绘渲染器 / 布局模式</td></tr>
+                <tr><td><code>effectiveCharRenderer(cfg, count, latched)</code></td><td>结合数量与闩锁得出实际渲染器（'Dom' / 'Canvas' / 'Precomposed'）</td></tr>
+                <tr><td><code>charFrameUrl(parts)</code></td><td>拼装 <code>/char-frame?</code> 帧缓存 URL</td></tr>
+            </table>
+            <p>系统模块初始化后，相同配置会挂到 <code>window.__shiori.hostConfig</code> 供运行期读取。</p>
+
+            <hr>
+
+            <h2 id="dsl">14. DSL 运行期 API（__shiori.dsl / __reg）</h2>
+            <p>DSL 运行期版本常量 <code>SHIORI_DSL_VERSION = 'DSL1.0'</code>，宏展开深度不设上限（仅保留循环嵌套检测）。引擎用 <code>typeof window.__shiori === 'object'</code> 探测是否启用 DSL。语法与宏写法详见 <a href="KSmacro.html" target="_blank">KS 宏与 DSL 语法指南</a>。</p>
+
+            <h3>window.__shiori.dsl</h3>
+            <table>
+                <tr><th>成员</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>version</code></td><td>—</td><td>string</td><td>固定为 <code>'DSL1.0'</code></td></tr>
+                <tr><td><code>registry</code></td><td>—</td><td>Object</td><td><code>commands</code> / <code>macros</code> / <code>impls</code> / <code>unknownPolicy</code></td></tr>
+                <tr><td><code>hostRegistry</code></td><td>—</td><td>Object</td><td>宿主注入的登记清单</td></tr>
+                <tr><td><code>lastCompile</code></td><td>—</td><td>Object</td><td>最近一次 <code>compileScene</code> 结果</td></tr>
+                <tr><td><code>compile(field)</code></td><td><code>field</code> 剧本字段文本</td><td>{ nodes, diagnostics }</td><td>把字段编译为节点</td></tr>
+                <tr><td><code>compileOps(ops)</code></td><td><code>ops</code> {cmd, ...kv} 数组</td><td>{ nodes, diagnostics }</td><td>编译结构化指令列表</td></tr>
+                <tr><td><code>splitInline(text)</code></td><td><code>text</code> 文本</td><td>Array</td><td>切分 [s] / [a] / &lt;ruby&gt; 注音 run</td></tr>
+                <tr><td><code>lowerToAction(node)</code></td><td><code>node</code> IR 节点</td><td>Object</td><td>把节点降级为 action；未命中返回 <code>{}</code></td></tr>
+                <tr><td><code>executeDslNode(node, ctx)</code></td><td><code>node</code> 节点；<code>ctx</code> 引擎实例</td><td>Object</td><td>执行节点（优先 impl，否则 lower 后交 <code>ctx.handleAction</code>）</td></tr>
+                <tr><td><code>registerAction(manifest)</code></td><td><code>{ name, alias, run }</code></td><td>void</td><td>登记指令；<code>run(ctx, p)</code> 返回 action</td></tr>
+                <tr><td><code>registerMacro(manifest)</code></td><td><code>{ name, parameters|params, steps }</code></td><td>void</td><td>登记宏；同名宏或指令已存在时跳过</td></tr>
+                <tr><td><code>ingestHostRegistry(host)</code></td><td><code>host</code> 宿主登记表</td><td>void</td><td>吸收宿主 hostRegistry 的宏</td></tr>
+                <tr><td><code>reg</code></td><td>—</td><td>Object</td><td>同 <code>window.__reg</code></td></tr>
+            </table>
+
+            <h3>window.__reg（= __shiori.reg）</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>cmd(manifest)</code></td><td><code>{ name, alias | aliases }</code></td><td>void</td><td>登记指令 schema</td></tr>
+                <tr><td><code>impl(spec)</code></td><td><code>{ cmd, run }</code></td><td>void</td><td>登记实现；<code>run(ctx, p)</code> 中 <code>p</code> 为 kv 参数，位置参数在 <code>p._args</code></td></tr>
+                <tr><td><code>alias(spec)</code></td><td><code>{ name, alias }</code></td><td>void</td><td>为已有指令挂别名；不存在则以 name 新建</td></tr>
+                <tr><td><code>ks()</code></td><td>—</td><td>void</td><td>空操作（.ks 由 C# 编译期装载）</td></tr>
+            </table>
+
+            <hr>
+
+            <h2 id="host">15. 宿主桥 shioriHost.invoke</h2>
+            <p>WebView2 环境下，宿主的 <code>Bootstrapper.DocumentCreatedScript()</code> 会注入同步 shim：<code>window.shioriHost = chrome.webview.hostObjects.sync.shioriHost</code>。对外仅暴露一个方法：</p>
+            <div class="code-block">
+<pre>shioriHost.invoke(name, argsJson) → JSON 字符串</pre>
+            </div>
+            <p>方法名走 <b>白名单</b>（<code>DslRuntime.Allowed</code>），仅以下五个可用：</p>
+            <table>
+                <tr><th>方法</th><th>入参</th><th>返回值 data</th><th>说明</th></tr>
+                <tr><td><code>compileScene</code></td><td><code>{ file, story[] }</code></td><td>逐行编译结果（含 <code>lines</code> 与 <code>diagnostics</code>）</td><td>编译整场景</td></tr>
+                <tr><td><code>registrySnapshot</code></td><td><code>{}</code></td><td>登记表 JSON</td><td>返回当前登记表快照</td></tr>
+                <tr><td><code>catalogQuery</code></td><td><code>{}</code></td><td><code>{ official, macros, nativeJs, version }</code></td><td>查询装载清单</td></tr>
+                <tr><td><code>diagnostics</code></td><td><code>{}</code></td><td>诊断数组</td><td>返回最近一次编译诊断</td></tr>
+                <tr><td><code>readFile</code></td><td><code>{ path }</code></td><td><code>{ path, text }</code></td><td>读取引擎根内文件（受 <code>PathGuard</code> 限制）</td></tr>
+            </table>
+
+            <h3>返回协议与错误</h3>
+            <div class="code-block">
+<pre>{ "ok": true,  "data": ... }   // 成功
+{ "ok": false, "error": "..." } // 失败</pre>
+            </div>
+            <table>
+                <tr><th>错误信息</th><th>触发条件</th></tr>
+                <tr><td><code>unknown method: 名称</code></td><td>方法不在白名单内</td></tr>
+                <tr><td><code>invalid json</code></td><td>argsJson 不是合法 JSON</td></tr>
+                <tr><td><code>payload too large</code></td><td>argsJson 超过 2MB</td></tr>
+                <tr><td><code>compileScene requires story[]</code></td><td>缺少 story 数组</td></tr>
+                <tr><td><code>story too large</code></td><td>story 超过 20000 行</td></tr>
+                <tr><td><code>readFile requires path</code> / <code>invalid path</code></td><td>path 缺失或非法</td></tr>
+                <tr><td><code>path outside engine root</code></td><td>目标路径不在引擎根目录内</td></tr>
+                <tr><td><code>file not found</code> / <code>file too large</code></td><td>文件不存在 / 超过 2MB</td></tr>
+                <tr><td><code>internal error</code></td><td>宿主内部异常</td></tr>
+            </table>
+
+            <h3>window.shiori.api</h3>
+            <p>宿主还可提供 <code>window.shiori.api.onStorageOperation(jsonString)</code>，引擎在执行 localStorage / sessionStorage 写删操作时经 <code>notifyStorageOperation()</code> 上报，宿主不存在该方法时静默跳过。</p>
+
+            <hr>
+
+            <h2 id="ui">16. UI 骨架 PageChrome 与皮肤 ShioriUISkin</h2>
+
+            <h3>PageChrome</h3>
+            <p>负责剧本页容器的动态骨架创建（幂等：已有 <code>background-container</code> 则跳过）。</p>
+            <table>
+                <tr><th>成员</th><th>说明</th></tr>
+                <tr><td><code>buildSceneChrome()</code></td><td>创建场景骨架容器</td></tr>
+                <tr><td><code>byId(id)</code> / <code>layer(name)</code></td><td>按 id 取元素 / 取图层</td></tr>
+                <tr><td><code>menuItems</code></td><td>右键菜单项常量数组（可在构建前覆写）</td></tr>
+            </table>
+
+            <h3>ShioriUISkin（window.ShioriUISkin）</h3>
+            <p>把图放到 <code>assets/ui/{part}_{state}.{webp|png|jpg}</code>，缺图回退 <code>_normal</code>，整 part 缺失则沿用 CSS。</p>
+            <table>
+                <tr><th>成员</th><th>说明</th></tr>
+                <tr><td><code>UI_SKIN</code></td><td>皮肤声明对象（可覆写）</td></tr>
+                <tr><td><code>PARTS</code></td><td><code>['textbox','namebox','choice','btn','auto','skip1','skip2']</code></td></tr>
+                <tr><td><code>STATES</code></td><td>各部件可用状态映射</td></tr>
+                <tr><td><code>ROLES</code> / <code>LATE_ROLES</code></td><td>皮肤角色表（LATE_ROLES 为后置生效角色）</td></tr>
+                <tr><td><code>EXTS</code> / <code>PROBE_DELAYS</code></td><td><code>['webp','png','jpg']</code> / 探测重试延迟</td></tr>
+                <tr><td><code>sanitizeStem(value)</code> / <code>fileBody(part, state, spec)</code></td><td>文件名清洗 / 生成文件基名</td></tr>
+                <tr><td><code>loadUISkin(opts)</code></td><td>探测并应用皮肤，返回已应用部件对象</td></tr>
+                <tr><td><code>resetUISkin()</code></td><td>还原到 CSS 默认皮肤</td></tr>
+            </table>
+            <p>同时挂载了全局便捷入口 <code>window.loadUISkin</code> 与 <code>window.resetUISkin</code>。</p>
+
+            <hr>
+
+            <h2 id="examples">17. 调用示例</h2>
+
+            <h3>示例1：读写变量与分支</h3>
+            <div class="code-block">
+<pre>// 增加好感度（返回值是变化后的数值）
+VarSpace.applyAffinity('角色A', 5);
+
+// 读取当前值
+var aff = VarSpace.getAffinity('角色A');   // 例如 5
+
+// 条件判定
+if (VarSpace.checkCondition('f.角色A &gt;= 5')) {
+    // 满足条件
+}
+
+// 设置系统变量（等价写法）
+VarSpace.setSF('clear', 1);
+VarSpace.sf.clear = 1;</pre>
+            </div>
+
+            <h3>示例2：控制剧情推进与演出</h3>
+            <div class="code-block">
+<pre>// 跳转到其它场景
+gameEngine.goToScene('../scenes/chapter2.html');
+
+// 跳转到本场景标签
+gameEngine.jumpToLabel('路线A');
+
+// 立绘与背景
+gameEngine.updateCharDiff('角色A', '正面', '服装1', '表情101', {});
+gameEngine.setBackground('../assets/bg/room.png');
+
+// 播放 BGM 并淡出切换
+gameEngine.fadeOutAndPlayBGM('bgm_main');
+
+// 执行一行命令（返回是否阻塞）
+var blocked = gameEngine.executeCommand('[fadeout time=500],[wait time=300]', true);</pre>
+            </div>
+
+            <h3>示例3：系统模块与快进</h3>
+            <div class="code-block">
+<pre>// 切换 AUTO
+systemModule.toggleAutoMode();
+
+// 开启 SKIP/1
+gameEngine.toggleSkipMode(1);
+
+// 设置音量通道
+systemModule.setVolumeChannel('bgm', 0.8);</pre>
+            </div>
+
+            <h3>示例4：调用宿主编译与查询清单</h3>
+            <div class="code-block">
+<pre>// 仅在 WebView2 宿主中可用
+var host = window.shioriHost;
+if (host &amp;&amp; typeof host.invoke === 'function') {
+    var raw = host.invoke('catalogQuery', '{}');
+    var res = JSON.parse(raw);
+    if (res.ok) console.log(res.data.macros, res.data.nativeJs);
+}</pre>
+            </div>
+
+            <h3>示例5：注册原生 JS 指令</h3>
+            <div class="code-block">
+<pre>(function (global) {
+    var __reg = (global.__shiori &amp;&amp; global.__shiori.reg) || global.__reg;
+    if (!__reg) return;
+
+    function run(ctx, p) {
+        // ctx 为 gameEngine，p 为节点 kv 参数，位置参数在 p._args
+        return { type: 'myAction' };
+    }
+    __reg.cmd({ name: 'my-cmd' });
+    __reg.impl({ cmd: 'my-cmd', run: run });
+})(typeof window !== 'undefined' ? window : this);</pre>
+            </div>
+
+            <hr>
+
+            <h2 id="notes">18. 注意事项</h2>
+            <ul>
+                <li><strong>加载顺序敏感：</strong>下层 API 依赖上层已注入。请在引擎清单与 macro 脚本之后访问 <code>gameEngine</code> / <code>systemModule</code> 等对象。</li>
+                <li><strong>宿主能力可选：</strong><code>window.shioriHost</code> 与 <code>window.shiori.api</code> 仅在 WebView2 宿主中存在，调用前需判空，并按 <code>{ok, data|error}</code> 协议解析。</li>
+                <li><strong>内部成员不稳定：</strong>下划线开头的成员属内部实现（如立绘舞台绘制、图层合成、缓存补全），跨版本可能变动。</li>
+                <li><strong>返回值以源码为准：</strong>部分方法（如 <code>calculateChoicePosition</code>、<code>shouldSkipLine</code>）当前实现返回空串或固定值，属预留扩展，不要依赖其具体结果。</li>
+                <li><strong>存档接口：</strong>存档 / 读档 / 进度管理相关接口已从正文移出。<code>VarSpace</code> 的存档序列化方法见 <a href="lovesystem.html" target="_blank">好感度系统详解</a>；其余见 <a href="#archive">第 19 节</a>。</li>
+                <li><strong>调试入口：</strong>F1 面板可查看当前行 DSL AST 与诊断、宏清单；F2 面板可观察 <code>WATCHED_F_VARS</code> 中的 <code>f.</code> 变量。</li>
+            </ul>
+
+            <div class="tip-box">
+                <strong>提示：</strong>调试变量时可在控制台使用 <code>VarSpace.log()</code> 打印全部命名空间，或用 <code>VarSpace.eval('f.角色A + sf.clear')</code> 快速求值。
+            </div>
+
+            <hr>
+
+            <h2 id="archive">19. 存档 / 进度接口（补充收录）</h2>
+            <p>正文（第 1~18 节）按要求未收录存档 / 读档 / 进度相关接口。其中 <b><code>VarSpace</code> 的存档序列化方法</b>（<code>serializeF()</code> / <code>restoreF()</code> / <code>clearF()</code> / <code>resetSystem()</code>）已由 <a href="lovesystem.html" target="_blank">好感度系统详解</a> 完整说明，本页不重复；<b>以下接口在该文档中没有说明</b>，故在此补充。</p>
+
+            <h3>19.1 引擎存档模块 engine_save.js（方法追加到 <code>gameEngine</code>）</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>markSceneCompleted()</code></td><td>—</td><td>void</td><td>把当前场景（仅 <code>scenes/</code> 内）记入 <code>state.completedScenes</code> 并持久化</td></tr>
+                <tr><td><code>saveProgress()</code> / <code>loadProgress()</code></td><td>—</td><td>void / Object|null</td><td>把进度写入 / 读出 <code>localStorage.gameProgress</code></td></tr>
+                <tr><td><code>isSceneCompleted(sceneFileName)</code></td><td><code>sceneFileName</code> 场景文件名</td><td>boolean</td><td>查询单个场景是否已完成</td></tr>
+                <tr><td><code>getCompletedScenes()</code></td><td>—</td><td>Array</td><td>已完成场景文件名数组（副本）</td></tr>
+                <tr><td><code>resetProgress()</code></td><td>—</td><td>void</td><td>清空进度</td></tr>
+                <tr><td><code>saveCurrentSceneMarker()</code></td><td>—</td><td>void</td><td>记录已进入的场景（<code>sceneMarkers[sceneId] = {visited,lastAccessTime}</code>）</td></tr>
+                <tr><td><code>getDefaultProgressData()</code></td><td>—</td><td>Object</td><td>默认进度对象（含 completedScenes / timestamp / gameState / sceneMarkers）</td></tr>
+                <tr><td><code>captureThumbnail()</code></td><td>—</td><td>Object|null</td><td>生成存档缩略图数据 <code>{bg,bgCss,chars,capturedAt}</code>；无背景且无立绘时返回 null</td></tr>
+                <tr><td><code>saveStateSnapshot()</code> / <code>loadStateSnapshot()</code></td><td>—</td><td>void / Object|null</td><td>写入 / 读取 <code>sessionStorage.gameStateSnapshot</code></td></tr>
+                <tr><td><code>writeSceneEntrySnapshot(sceneFile)</code></td><td><code>sceneFile</code> 目标场景（含 .html / 路径）</td><td>void</td><td>写入场景入口 f. 快照</td></tr>
+                <tr><td><code>loadSceneEntryFvars(sceneFile)</code> / <code>applySceneEntryFvars(sceneFile)</code></td><td><code>sceneFile</code> 当前场景文件名</td><td>Object|null</td><td>读取 / 应用场景入口 f. 快照（无记录时清空 f.）</td></tr>
+                <tr><td><code>buildStateFromHistory(startLine)</code></td><td><code>startLine</code> 起始行索引</td><td>void</td><td>重建 BGM / 背景 / 立绘（读档续玩）</td></tr>
+            </table>
+
+            <h3>19.2 快速存档 QuickSaveManager（全局对象）</h3>
+            <table>
+                <tr><th>成员</th><th>说明</th></tr>
+                <tr><td><code>quickSave()</code></td><td>F5 快速存档：刷新快照 → 写入 <code>localStorage.galgame_archives</code> 头部</td></tr>
+                <tr><td><code>openArchivePage()</code></td><td>停 AUTO/SKIP、存快照后跳 <code>../html/archive.html</code></td></tr>
+                <tr><td><code>loadArchives()</code></td><td>读取存档槽 JSON 数组</td></tr>
+                <tr><td><code>getDefaultSaveName()</code> / <code>extractSceneFileName(path)</code> / <code>getCurrentPreviewText()</code> / <code>formatTimestamp(ts)</code> / <code>showMessage(msg, type)</code></td><td>存档命名、场景文件名提取、预览文本与时间格式化、提示气泡</td></tr>
+            </table>
+
+            <h3>19.3 进度 API GalgameProgressAPI（api/progress_api.js）</h3>
+            <p>供流程图 / 进度页读取 <code>localStorage.gameProgress</code>，并自动检测 <code>../scenes/</code> 目录（检测失败回退 <code>sceneMarkers</code>），全部为异步方法。</p>
+            <table>
+                <tr><th>成员</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>getProgress()</code></td><td>Object</td><td><code>{lastUpdated,completedScenes,sceneMarkers,totalScenes,completionRate,gameStats}</code></td></tr>
+                <tr><td><code>detectScenes()</code></td><td>Array</td><td>解析 <code>../scenes/</code> 得到场景 id 数组（带缓存）</td></tr>
+                <tr><td><code>getFlowchartData()</code></td><td>Object</td><td>流程图数据 <code>{nodes,edges,completionRate,completedScenes,sceneMarkers}</code></td></tr>
+                <tr><td><code>exportSaveData()</code></td><td>Object</td><td>导出进度数据（等同 <code>getProgress()</code>）</td></tr>
+                <tr><td><code>resetProgress()</code></td><td>Object</td><td>删除 <code>gameProgress</code> 并清空目录检测缓存，返回最新进度</td></tr>
+                <tr><td><code>getBgMaskOpacity()</code> / <code>setBgMaskOpacity(n)</code></td><td>number / void</td><td>缩略图黑色遮罩透明度（0-100，键 <code>archiveBgMaskOpacity</code>）</td></tr>
+            </table>
+
+            <h3>19.4 系统模块的存档页导航</h3>
+            <table>
+                <tr><th>成员</th><th>说明</th></tr>
+                <tr><td><code>systemModule.openArchive()</code></td><td>底栏 SAVE 按钮点击处理：停 AUTO/SKIP → <code>saveStateSnapshot()</code> → 跳 <code>&lt;引擎根&gt;/html/archive.html</code></td></tr>
+                <tr><td><code>gameEngine.hideArchiveMenuItems()</code></td><td>非场景页隐藏存档相关菜单项</td></tr>
+                <tr><td><code>PageChrome.menuItems</code></td><td>右键菜单中的存档 / 进度项：保存存档 (F5)、<code>QuickSaveManager.openArchivePage()</code> 存档页面、进度管理（<code>../html/saves.html</code>）、剧本流程图（<code>../html/flowchart.html</code>）</td></tr>
+            </table>
+
+            <div class="highlight-box">
+                <strong>说明：</strong>以上接口均与存档 / 进度强相关，稳定性与语义以引擎实现为准；常规剧本制作无需直接调用，了解其存在即可。
+            </div>
+
+        </main>
+
+	<button id="scrollToBottomBtn">滚到底部</button>
+	<button id="backToTopBtn">回到顶部</button>
+
+	<footer class="site-footer">
+		<div class="footer-col">
+			<h4>开源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">引擎本体与启动器</a> · <a href="license_engine.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/license.txt" target="_blank">GitHub</a></p>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-editor" target="_blank">可视化编辑器</a> · <a href="license_editor.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/license.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>闭源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-manager" target="_blank">管理器与签发器</a></p>
+			<p><a href="license_manager.html" target="_blank">管理器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/license.txt" target="_blank">GitHub</a></p>
+                <p><a href="license_signer.html" target="_blank">签发器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/licensesigner.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>第三方开源协议</h4>
+			<p><a href="opensource_engine.html" target="_blank">启动器</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_manager.html" target="_blank">管理器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES_SIGNER.txt" target="_blank">GitHub</a> <br/>
+				<a href="opensource_signer.html" target="_blank">签发器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_editor.html" target="_blank">编辑器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a></p>
+			
+		</div>
+		<p class="footer-copyright" style="text-align:center"><a href="MIT_LICENSE.html" target="_blank">本网页采用 MIT License 协议</a> · <a href="https://github.com/1145141919810TONNY/Shioriteaching/blob/main/LICENSE" target="_blank">GitHub</a>，与 Shiori 其他项目协议不同，详情请参照各自的协议文件<br>
+			<a href="https://1145141919810tonny.github.io/Shioriteaching/" target="_blank">GitHub Pages 在线服务</a> · <a href="https://wakudemo.cn/games/100266" target="_blank">WakuDemo 应用商店</a>
+			&nbsp;&nbsp;&nbsp;&nbsp;联系方式：<a href="mailto:3099637681@qq.com">QQ</a> · <a href="https://space.bilibili.com/87412647" target="_blank">bilibili</a><br>
+			Copyright &copy; <span class="footer-year"></span> bilibili 月が綺麗ですね_ All Rights Reserved.</p>
+	</footer>
+	
+	<script>document.querySelectorAll('.footer-year').forEach(function(e){e.textContent=new Date().getFullYear()})</script>
+
+	<script>
+var backToTopBtn = document.getElementById('backToTopBtn');
+		var scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+
+		window.addEventListener('scroll', function() {
+			if (backToTopBtn) backToTopBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
+
+			if (scrollToBottomBtn) {
+				var scrollY = window.scrollY || window.pageYOffset;
+				var docHeight = document.documentElement.scrollHeight;
+				var winHeight = window.innerHeight;
+				var atBottom = (scrollY + winHeight) >= docHeight - 50;
+				scrollToBottomBtn.style.display = (docHeight > winHeight + 10 && !atBottom) ? 'block' : 'none';
+			}
+		});
+		backToTopBtn.addEventListener('click', function() {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		});
+		if (scrollToBottomBtn) {
+			scrollToBottomBtn.addEventListener('click', function() {
+				window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+			});
+		}
+	</script>
+</body>
+</html>

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Shiori重要联合更新页面</title>
+		<link rel="stylesheet" href="../style.css">
+		<link rel="icon" type="image/png" href="../icon/ico16.ico">
+	</head>
+	<style>
+		.accordion-container {
+			max-width: 800px;
+			margin: 0 auto;
+			padding: 20px;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			line-height: 1.6;
+			color: #333;
+			background-color: #f5f7fa;
+		}
+
+		.accordion-container h1 {
+			text-align: center;
+			margin-bottom: 30px;
+			color: #2c3e50;
+		}
+
+		.accordion {
+			background: white;
+			border-radius: 8px;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+			overflow: hidden;
+			margin-bottom: 20px;
+		}
+
+		.accordion-header {
+			padding: 15px 20px;
+			background-color: #d32f2f;
+			color: #ffd700;
+			cursor: pointer;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			transition: background-color 0.3s;
+			border: none;
+			width: 100%;
+			text-align: left;
+			font-size: 16px;
+			font-weight: bold;
+		}
+
+		.accordion-header:hover {
+			background-color: #b71c1c;
+		}
+
+		.accordion-header::after {
+			content: '+';
+			font-size: 20px;
+			transition: transform 0.3s;
+			color: #ffd700;
+		}
+
+		.accordion.active .accordion-header::after {
+			transform: rotate(45deg);
+			content: '−';
+		}
+
+		.accordion-content {
+			padding: 0;
+			max-height: 0;
+			overflow: hidden;
+			transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+		}
+
+		.accordion.active .accordion-content {
+			padding: 20px;
+			max-height: 1000000px;
+		}
+
+		.accordion-content-wrapper {
+			display: grid;
+			grid-template-rows: 0fr;
+			transition: grid-template-rows 0.3s ease-out;
+		}
+
+		.accordion.active .accordion-content-wrapper {
+			grid-template-rows: 1fr;
+		}
+
+		.accordion-content {
+			min-height: 0;
+			overflow: hidden;
+		}
+
+		.closed-source-badge {
+			display: inline-block;
+			background-color: #d32f2f;
+			color: #fff;
+			padding: 3px 10px;
+			border-radius: 4px;
+			font-size: 13px;
+			margin-left: 10px;
+			vertical-align: middle;
+			font-weight: bold;
+		}
+
+		.warning-box {
+			background: #ffebee;
+			border-left: 4px solid #d32f2f;
+			padding: 15px 20px;
+			margin: 15px 0;
+			border-radius: 0 6px 6px 0;
+		}
+
+		.sticky-header {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			background-color: #d32f2f;
+			color: #ffd700;
+			padding: 15px 20px;
+			display: none;
+			z-index: 1000;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+			font-weight: bold;
+			font-size: 16px;
+		}
+
+		.accordion {
+			scroll-margin-top: 80px;
+		}
+
+		.version-block {
+			margin-bottom: 25px;
+			padding-bottom: 20px;
+			border-bottom: 1px solid #eee;
+		}
+		.version-block:last-child {
+			border-bottom: none;
+			margin-bottom: 0;
+			padding-bottom: 0;
+		}
+		.version-block h3 {
+			color: #d32f2f;
+			margin: 0 0 10px 0;
+			font-size: 16px;
+		}
+		.version-block ul {
+			margin: 5px 0 10px 20px;
+			padding: 0;
+		}
+		.version-block li {
+			margin-bottom: 4px;
+		}
+		.version-date {
+			color: #999;
+			font-size: 13px;
+			font-weight: normal;
+		}
+	
+		#scrollToBottomBtn {
+			position: fixed;
+			right: 20px;
+			bottom: 20px;
+			padding: 10px 20px;
+			background-color: #e67e22;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			z-index: 999;
+			font-size: 14px;
+			outline: none;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+			font-weight: 600;
+			transition: background-color 0.3s, transform 0.3s;
+		}
+		#scrollToBottomBtn:hover {
+			background-color: #d35400;
+			transform: translateY(-2px);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+		}
+		#scrollToBottomBtn:active {
+			transform: translateY(1px);
+		}
+
+		#backToTopBtn {
+			position: fixed;
+			right: 20px;
+			bottom: 60px;
+			padding: 10px 20px;
+			background-color: #3498db;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			z-index: 999;
+			font-size: 14px;
+			outline: none;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+			font-weight: 600;
+			transition: background-color 0.3s, transform 0.3s;
+		}
+		#backToTopBtn:hover {
+			background-color: #2980b9;
+			transform: translateY(-2px);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+		}
+		#backToTopBtn:active {
+			transform: translateY(1px);
+		}
+
+		#scrollToBottomBtn, #backToTopBtn {
+			display: none;
+		}
+
+		code {
+			background-color: #f4f4f4;
+			padding: 2px 6px;
+			border-radius: 3px;
+			font-family: 'Consolas', 'Monaco', monospace;
+			font-size: 0.9em;
+		}
+
+		pre {
+			background-color: #f8f8f8;
+			padding: 15px;
+			border-radius: 5px;
+			overflow-x: auto;
+			border-left: 4px solid #d32f2f;
+		}
+
+		pre code {
+			background-color: transparent;
+			padding: 0;
+		}
+
+		.note {
+			background-color: #fff3cd;
+			border-left: 4px solid #ffc107;
+			padding: 10px 15px;
+			margin: 10px 0;
+			border-radius: 0 4px 4px 0;
+		}
+
+</style>
+	<body>
+		<div id="stickyHeader" class="sticky-header"></div>
+
+		<section class="hero-section">
+			<h1 class="hero-title">Shiori 重要联合更新页面</h1>
+			<div class="nav-buttons">
+				<a href="../index.html" class="nav-button">返回主页</a>
+			</div>
+		</section>
+
+		<!-- 全闭源提醒 -->
+		<div class="warning-box">
+			<strong>本页面说明</strong>
+			<p style="margin:8px 0 0 0; color:#666; font-size:14px;">
+				本界面将记录特别重要的，且多模块联合更新的页面。在此记录版本号的内容将不会在各自的专属更新日志页面中重复书写。
+			</p>
+		</div>
+
+		<!-- 最新版本内容 -->
+		<div class="accordion active">
+			<button class="accordion-header">最近重要版本更新</button>
+			<div class="accordion-content">
+
+				<div class="version-block">
+					<h3>引擎核心：V2.2.0 → V3.0.0</br>
+                    启动器：V1.2.7 → V2.0.0<br>
+                    启动器单机补丁nupkg依赖包：V1.2.7-3 → V2.0.0-4<br>
+                    签名发布器（原签发器）：V1.0.0 → V2.0.0<br>
+                    管理器：V1.0.6 → V1.1.0<br>
+                    补丁器：V1.0.1 → 已合并并下线                
+                </h3>
+					
+					<strong>重要公告与说明</strong>
+					<ol>
+						<li><strong>签发器更名与功能合并</strong>：<br>原「签发器」正式更名为「签名发布器」（英文全称 Shiori Signer 不变，后续简称「签发器」），并与原「补丁器」（Shiori Package / Shiori Patch）完成功能合并；原补丁器（V1.0.1）已并入签发器并下线。</li>
+						<li><strong>C++ 版启动器无限期搁置</strong>:<br>出于技术栈避嫌（Kirikiri 底层使用 C++），已被宣布立项的C++ 版启动器将无限期搁置且不会上线。虽然其当前功能已基本达到 V1.2.7 版启动器的水平，但后续不再维护。</li>
+                        <li><strong>名词区分：签发器 / 补丁器 / 专属签发器</strong>:<br>「签发器」指签名发布器（ShioriSigner.exe），在开发机上使用；「补丁器」（ShioriPatch.exe）由签发器产出，是发给玩家的单文件增量安装程序；「专属签发器」（ShioriVerify.exe）随游戏分发，供玩家双击自校检。三者用途与分发对象各不相同.</li>
+					</ol>
+
+					<strong>功能新增部分：</strong>
+					<br><br>
+					<strong>引擎核心</strong>
+					<ul>
+						<li><strong>新增 .ks 格式支持</strong></li>
+						<li>旧版本的正则 DSL 扩展性较差，本次新增 .ks 文件支持，可在此类文件中编写宏。具体用法见 <a href="KSmacro.html">KSmacro.html</a>；若不使用 .ks，可忽略本条并继续用 JS 开发。</li>
+                        <p class="note">说明：仅借用 Kirikiri 的 KAGScript 文件格式，语法虽相似但「与 Kirikiri 的 ks 不同」，不能将 Kirikiri 的 ks 直接放入本引擎使用；但可使用 ks 的语法高亮。</p>
+                        <li>迁移说明：旧版剧本只需修改引用即可无痛迁移到新引擎，无需改动剧本正文，旧剧本内容与本次引擎更新完全兼容。</li>
+                        <p class="note">宏示例：<br>
+                            [macro name=BGM渐升]<br>
+                            [BGM play storage=%storage|bgm1.ogg vol=%vol|20%->100% time=%time|1000]<br>
+                            [endmacro]<br>
+                            该宏作用：令 bgm1.ogg 以 1 秒速度从 20% 音量渐变到 100% 后，以 100% 音量持续播放。<br>
+                            剧本中调用宏：command: "@BGM渐升"。整体写法虽与 Kirikiri 的 ks 相似，但语法不同。
+						</p>
+					</ul>
+                    <br>
+                    <strong>新增 GPU 加速等渲染方式</strong>
+                    <li>请在启动器的选项菜单中设置（部分功能需重启后生效）。</li>
+                    <br>
+                    <strong>UI系统</strong>
+                    <li>可将 UI 指定命名后放入 .\assets\ui\，并在 .\ui\ui_size.js 中指定其位置与大小，无需修改 CSS（若对性能有极致追求，仍可直接修改 CSS）。</li>
+                    <br>
+                    <strong>新增缓存设置</strong>
+                    <li>目前提供 1MB / 256MB / 1GB 三个档位，默认且推荐 256MB，用于缓存图片信息。</li>
+					<br>
+					<strong>新功能：</strong>
+					<li>新增左下角小头像的显示</li>
+					<p class="note">无需任何指令引擎会自动读取当前说话人<code>speaker</code>属性，若当前画面存在说话人立绘时，左下角小头像会自动显示该角色的立绘头像。<br>
+					当存在多人立绘时，以说话人名片为准</p>
+                    <br>
+                    <strong>教学网页部分</strong>
+                    <ol>
+                        <li>新增「API 接口」页面，记录本引擎所有开放的 API 接口；</li>
+						<p class="note">API使用样本：在引擎核心中，<code>macro/rmb_hidebox_impl.js</code>有对应的API使用样本文件<br>
+						本文件实现的功能：<br>
+					右键可隐藏文本框/全屏小说模式的遮罩层，左键可以恢复非<code>[msgoff]</code>隐藏的文本框和遮罩层（此次左键点击不会推进剧情），且会恢复隐藏前的文本。全程只调用API，不修改其他任何文件。<br>
+					需要注意的是，若加载此文件后，使用右键打开上下文菜单时，需要右键两次（esc不受影响），具体请参考文件顶部注释说明<br>
+					需要调用此文件时，请在<code>engine_manifest.json</code>中引用此js即可</p>
+                        <li>新增 KSmacro 的 KS 语法教学解析；</li>
+                        <li>新增「插件模块」，收录官方插件或被收录的第三方插件。本次已加入一个官方插件，后续该页面会持续更新。</li>
+						<p class="note">目前该插件实现的功能<br>
+						获取bilibili对应账号下的指定某个主播的粉丝团灯牌等级（由于bilibili的API限制，需要用户在内置浏览器的bilibili官方登录页面中登录账号，登录过程需要联网）<br>
+						登录后，程序将自动获取指定的粉丝团灯牌等级并返回json数组，此数值将作为基础的好感度等级，你可以自由的编辑f.变量名。本程序将只会获取此等级，不会收集其他数据。<br>
+					此等级将参与进f.的运算，但是其会作为一个独立的字段，被独立保存。（在index中开始游戏的f.变量清零也无法将此变量清零）<br>
+					需要在C#文件中指定好对应主播的UID（非直播间号），此插件可用于同人二创作品。<br>
+					<br>
+					API接口返回json数组示例：<br>
+					<code>{"code":0,"message":"OK","data":{"has_fans_medal":true,"source":"GetMyMedals","my_fans_medal":{"level":20,"target_id":123456,"medal_name":"xxx","uname":"yyy"}}}</code><br>
+					程序将只记录并保存“level”值，其余内容将在关闭页面后自动清除。以示例举例，对应的f.xx初始变量值将为20.（可通过debug的F2窗口中查看，数值是括号内的数字）
+				</p>
+                    </ol>
+
+					<strong>签名发布器（签发器）部分</strong>
+					<li><strong>签名格式升级（SHA256/PSS/RSA）</strong>
+                        <ol>
+                            <li>现行签名文件头为「-- SIGNATURE - SHA256/PSS/RSA --」，总清单为「-- SIGNATURE - SHA256/PSS/RSA - MANIFEST --」。</li>
+                            <li>签名算法为 RSA-PSS + SHA256，每条签名载荷为「相对路径 + 换行 + 哈希」，防止 A 文件的签名被挪到 B 文件上使用。</li>
+                            <li>签名文件内分段记录 -- PATH -- / -- FILES -- / -- EXTERNAL -- / -- RSA -- / -- KEY ID --；KEY ID 为签发公钥指纹（SHA256(SPKI DER) 前 16 位十六进制）。</li>
+                            <li>发行布局：每个受保护目标同级生成 <目标>.sig，内容根生成 release.sig 总清单，公钥随附 public_key.pem。</li>
+                            <li>旧版签名（文件头「-- SIGNATURE - SHA256 --」/「-- SIGNATURE - SHA256 - MANIFEST --」：集中式目录 shiori engine\SHA256 + manifest.sig）仍可读取并比对哈希，但不含 RSA 段，不具备抗篡改能力（即无法防止非开发者重新为游戏生成完整配套签名）。</li>
+                            <li>旧版发行包需用本版本重新生成签名后，整套签名才具备抗篡改能力。</li>
+                            <li>开启「严格模式（缺少 RSA 签名即判失败）」时，不含 RSA 段的签名一律按失败计。</li>
+                            <li>向前兼容：仍可校检旧版已生成的 SHA256 编码，也可生成旧版未加密文件的 SHA256 编码；同时可为未加密文件生成带 SHA256/PSS/RSA 签名的新版 SHA256 编码，且生成位置与之前完全一致。</li>
+                        </ol>
+                    </li>
+                    
+                    <li><strong>专用资源容器格式（.sgd）</strong>
+                        <ol>
+                            <li>容器魔数头为 8 字节 ASCII「SHIORIPK」（十六进制 53 48 49 4F 52 49 50 4B），位于文件开头（偏移 0~7），是识别 .sgd 容器的唯一特征；读取侧先校验魔数与版本号（当前版本 1），不匹配一律拒绝打开。</li>
+							<li>容器头为 64 字节定长明文区：魔数(0~7) / 版本 u32(8) / 标志 u32(12) / 头部密文长度 u32(16) / 条目数 u32(20) / 扇区对齐 u32(24) / 头部 IV(48~63)；多字节字段统一大端序（BE）。</li>
+							<li>标志位定义：1 = 头部加密、2 = 含授权文件、4 = 子包。</li>
+							<li>头部之后为密钥包裹区：Key ID 长度 u16 + Key ID 字符串（打包公钥 SPKI 的 SHA256 十六进制）+ 包裹长度 u32 + RSA-OAEP(SHA256) 包裹的数据密钥 DEK；Key ID 不符即拒绝解包。</li>
+							<li>头部区内容为「条目表 + RSA-PSS 签名 + 末尾 u32 签名长度」，由 HKDF(DEK, "shiori/hdr") 派生的头部密钥经 AES-256-CTR 加密；签名长度写在末尾，读取侧无需预知条目表长度即可反解。</li>
+							<li>数据区每条资源一条记录：名称长度 u16 + 逻辑名称 + 数据偏移 u64 + 密文长度 u64 + 明文长度 u64 + 12 字节 Nonce + 32 字节明文 SHA256 + 编解码器 u8 + 标志 u8。</li>
+							<li>编解码器：0 = 明文（读取即原文），1 = AES-256-CTR（以 nonce(12) || 计数器 u32 作为 AES-ECB 输入生成密钥流后异或），2 / 3 为预留。</li>
+							<li>读取时逐条用定长时间比较校验明文 SHA256，不一致即判定内容被篡改或密钥不匹配。</li>
+							<li>发布时按目录分包：cg、ui 目录为明文包，其余目录、assets 各子目录、站点根散文件（code.sgd）各自成包，默认统一走 AES-256-CTR 加密。</li>
+							<li>每个 .sgd 同级生成一份明文 .sig，容器本身纳入外层签名体系统一保护。</li>
+							<p class="note">注意：请勿分发或发布你的密钥（尤其是私钥），也切勿遗失密钥，否则将无法找回，且无法对已发布的游戏进行补丁式更新。请务必在本地或私有云端多处保存好已发布游戏的密钥文件。</p>
+                        </ol>
+                    
+                    </li>
+
+					<li><strong>加密与发布窗口</strong>
+						<ol>
+							<li>「加密与发布」窗口内置「① 密钥管理」与「② 加密打包发布」两页，顶部页签可随时来回切换。</li>
+							<li>主窗口入口为「加密与发布」「生成签名」「校验完整性」三个按钮。</li>
+							<li>密钥管理页提供：生成密钥对、显示 / 复制公钥与私钥、导出密钥为 txt、导入密钥 txt、清空密钥、应用到本次会话。</li>
+							<li>加密打包发布页提供：源目录、输出目录、打包选项（编译专属启动器 Shiori.exe / 部署原生内核 ShioriCore.dll / 打包后自校验读取 / 生成 .sig 校验文件）、开始加密打包发布。</li>
+							<li>发布产物为发布根下的内容目录（含 shiori engine、public_key.pem、release.sig 与各 .sig，以及随游戏分发的专属签发器 ShioriVerify.exe）与 developer_keys 密钥备份目录，以及 launcher_priv.pem、launcher_pub.pem。</li>
+							<p class="note">注意：发布时需要启动器源码以编译专属启动器。</p>
+						</ol>
+					</li>
+
+					<li><strong>密钥与打包同源</strong>
+						<ol>
+							<li>GUI 中仅有密钥管理页一个密钥生成入口，RSA 位数严格按下拉框选择执行（2048 / 3072 / 4096），默认 3072。</li>
+							<li>打包密钥默认使用密钥管理页的会话密钥，生成与打包使用同一把密钥。</li>
+							<li>打包密钥可切换为「使用指定 PEM 文件」，该选择会被记住，不会被自动改回。</li>
+							<li>新增「另存为 PEM...」，将当前生效的打包密钥导出为 launcher_priv.pem 与 launcher_pub.pem。</li>
+						</ol>
+					</li>
+
+					<li><strong>Key ID 全程可见</strong>
+						<ol>
+							<li>密钥管理页生成、导入后立即显示当前密钥的 Key ID 与位数。</li>
+							<li>打包页常驻显示「本次打包密钥 Key ID」（含位数与来源），打包前即可确认所用密钥。</li>
+							<li>导出的密钥 txt 与 launcher_priv.pem 末尾均标注 Key ID，离线保管时也能一眼核对。</li>
+						</ol>
+					</li>
+
+					<li><strong>校检自动匹配随包公钥</strong>
+						<ol>
+							<li>校检时若当前持有的密钥与签名记录不一致，自动改用发行包随附的 public_key.pem，并在日志中提示。</li>
+							<li>验签结果同时列出「签名记录 Key ID」与「当前公钥 Key ID」，密钥是否配对可一眼核对。</li>
+						</ol>
+					</li>
+
+					<li><strong>命令行校检</strong>
+						<ol>
+							<li>新增 <code>--verify</code>：<code>ShioriSigner.exe --verify --site &lt;目录&gt; [--pub &lt;公钥.pem&gt;]</code>。</li>
+							<li>校检结束输出 <code>VERIFY_EXITCODE</code>（0 为通过，2 为存在失败），供脚本与自动化流程直接调用。</li>
+						</ol>
+					</li>
+
+					<li><strong>专属签发器（ShioriVerify.exe，随游戏分发）</strong>
+						<ol>
+							<li>发布时在内容根额外产出一个独立校检程序，玩家双击即可校检本游戏，无需安装管理器。</li>
+							<li>以 C++ 编写、不依赖任何运行库，体积约 0.2 MB（同功能的 .NET 程序为 100 MB 级）。</li>
+							<li>与本次发布的那一款游戏绑定：公钥指纹、公钥本体、发布基线三重绑定，拷到别的游戏目录即被拒绝；校检只读内置公钥、不读同目录的 .pem，替换公钥也无法蒙混通过。</li>
+							<li>只读、不联网、不提权；除玩家主动「导出报告」外不写任何文件。</li>
+							<li>打开窗口后由玩家点「开始校检」再执行，过程逐条输出，便于观察大文件校检进度。</li>
+							<li>支持静默模式 <code>/silent</code> 并返回退出码（0 通过 / 2 存在失败 / 3 自身被篡改 / 4 非本游戏），供脚本与自动化流程调用。</li>
+							<li>签发器签发时的记录与当前内容不同时只给出中性说明（常见于已安装补丁或版本更新），不影响校检结论。</li>
+						</ol>
+					</li>
+
+					<li><strong>发布补丁包（增量补丁，原Shiori Package整合部分）</strong>
+						<ol>
+							<li>「加密与发布」窗口新增「③ 发布补丁包」页：指定被改 / 新增的源目录或散文件，以及已发布的完整游戏内容根，即可产出单个补丁安装程序 ShioriPatch.exe。</li>
+							<li>自动识别目标状态并据此安装：完整的 .sgd 加密 / 明文 + 公私钥 256 / 明文 + 仅 256 / 明文（无 256）；开发者只需给出被改动的文件，程序自动归入对应 .sgd 包或对应目录。</li>
+							<li>加密目标走条目级增量：只就地改写受影响的 .sgd，未变动条目的密文逐字节不变，随后重出该包 .sig 与内容根 release.sig。</li>
+							<li>明文目标走文件级增量：只落地被改 / 新增文件并重算 shiori engine\SHA256\manifest.sig，保持原有明文布局，不新建 .sgd。</li>
+							<li>以完整文件集为基准：.sig / release.sig / manifest.sig 一律按补丁后的全量目标签发，而不是只覆盖被改动的文件。</li>
+							<li>同密钥硬校验：加密目标与带 RSA 的明文目标必须由开发者显式提供与该游戏公钥指纹一致的私钥 .pem，未提供或指纹不符即拒绝生成。</li>
+							<li>补丁自带前身版本核对：安装前比对当前游戏是否为本补丁对应的上一个版本，不符仅提示、不拒绝安装（「仍要安装」/「取消」）。</li>
+							<li>不重编译启动器：Shiori.exe 与 ShioriCore.dll 原样保留，补丁只写 .sgd / .sig / release.sig / manifest.sig。</li>
+							<li>补丁自身带完整性自检：启动即以尾部签名与内置公钥校验自身，并对内置增量载荷验签，防掉包与字节级篡改。</li>
+							<li>安装时同步释放专属签发器：与本次补丁匹配的 ShioriVerify.exe 内嵌在补丁内一并替换，因此只需分发一个补丁文件，不会出现「补丁更新了、签发器忘换」导致的长期误报。</li>
+						</ol>
+					</li>
+
+					<li><strong>离线补丁包</strong>
+						<ul>
+							<li>离线编译补丁包的nupkg依赖包从原来的8个扩充至18个</li>
+						</ul>
+					</li>
+
+					<br>
+					<strong>管理器部分</strong>
+					<ul>
+						<li>校检签名将兼容现有的签名格式。</li>
+						<li>文件格式检测将支持专有容器 .sgd 检测。</li>
+						<li>当游戏中填写了网址时，现在可通过管理器直接在外部浏览器打开游戏官网。</li>
+						<p class="note">请注意：这些链接均为开发者写在游戏中的网页链接，大概率为游戏官网或补丁网站，并非 Shiori 官方网页，Shiori 官方不对这些网页的安全性负责。</p>
+					</ul>
+
+					<br>
+					<strong>优化内容</strong>
+					<br><br>
+					<strong>引擎核心</strong>
+					<ul>
+						<li><strong>源代码优化</strong>：将原近万行代码的引擎核心运行时 engine.js 按模块拆分为十余个 JS 文件，并在 Shiori engine 文件夹内新建 ui / system / engine 等子文件夹，便于后续维护。</li>
+						<li><strong>新版立绘系统优化</strong>：新版立绘在拼接后不再被视为多张图片，而是被视为一张图片，快速点击移动时错位几率大幅降低。<br>原 engine.js 处理：将 img.char-dress 与 img.char-face 各自作为一张图，使用两个 DOM 节点，导致快速点击渲染时会错位。<br>现 engine_chars.js 处理：通过 computeCharDiffFaceRect 算出 face 落位矩形，用 drawImage 两级叠加后合成单张图并使用同一 DOM 节点；简言之，将 face 的像素按矩形「烧」进 dress 画布中。</li>
+						<li><strong>剧本减重</strong>：现在不再需要在剧本中引用近十个文件与通用 UI 设置，这些内容现由 page-chrome.js 统一管理，每个剧本文件减少六十余行重复代码。</li>
+						<li><strong>启动器读取策略</strong>：启动器现在会无条件读取 Shiori engine 文件夹内的 js / css / ks / json 文件。若需引擎按需按顺序读取文件，请到 engine_manifest.json 中设置即可。</li>
+						<p class="note">请注意不要重复放置相同或相似的代码在引擎文件夹中，以免发生不可控的错误。</p>
+						<li><strong>CSS 优化</strong>：现在不再使用 CSS 的响应式设计来做响应式优化，删除大量 CSS 样式，改为与 C# 窗口同步大小的等比缩放，彻底解决边界问题，并限定窗口最小尺寸。</li>
+						<li><strong>BGM 页面优化</strong>：下方的 UI 不会再因页面过小而遮挡 BGM 列表。</li>
+						<li><strong>画面大小优化</strong>：现在关闭画面后，下一次打开画面的窗口大小将继承上次关闭时的大小，不再回归默认状态。</li>
+						<li><strong>CG 页面优化</strong>：现在 CG 页面加载时间大幅减少，且不会再出现卡顿、滚动时图片预览错位的情况（内部经暴力测试：将 29 张图片以 500 倍倍率输出并全部视为独立 DOM 加载，仅较靠后的内容加载稍慢；但即便商业作品也用不到这么多张 CG 图片）。</li>
+						<li><strong>音频播放优化</strong>：现在打开任意含 BGM 的页面后会自动播放 BGM，不再需要先点击一次页面才会播放。</li>
+						<li><strong>开发者窗口</strong>：F1 / F2 两个开发者专用窗口现在在 Release 中被屏蔽，转为 Debug 专属内容；为保护加密游戏文件代码，F12 也同步在 Release 中被屏蔽。</li>
+					</ul>
+
+					<strong>管理器</strong>
+					<ul>
+						<li>修复了无法检测到 8080 端口占用、且无法杀掉本引擎游戏进程的问题（现在不仅能检测 8080，还能检测电脑当前所有被占用的端口）。</li>
+						<p class="note">PS：启动器源码是开源的，可在代码中将 8080 端口改为其他任意数字，以免默认端口冲突。</p>
+						<li>优化了「只能杀掉当前打开的 Shiori 游戏」为「会杀掉被打开的其他 Shiori 游戏进程」（非 Shiori 引擎游戏可能无法杀掉进程，也不做越权管理），从而启动本次被点击启动的游戏。</li>
+						<li>现在 UI 会自动换行，不再重叠或被遮挡。</li>
+					</ul>
+
+					<strong>签名发布器（签发器）</strong>
+					<ol>
+						<li><strong>窗口高度自适应</strong>
+							<ol>
+								<li>加密与发布窗口与主窗口不再限定固定高度，改为按内容自然撑开。</li>
+								<li>高度上限为屏幕可视区域，内容超出后由内容区滚动，不会超出屏幕。</li>
+								<li>切换页签时按当前页内容重新适配高度。</li>
+								<li>密钥框与执行日志区高度随内容增长，不再写死固定值。</li>
+							</ol>
+						</li>
+						<li><strong>发布前置说明</strong>
+							<ol>
+								<li>加密打包发布页顶部新增可折叠的「发布前置条件与注意事项」，列出前置源代码依赖、目录怎么摆、发布注意事项与推荐做法；默认收起，展开后窗口按内容自动适配高度。</li>
+							</ol>
+						</li>
+					</ol>
+
+					<br>
+					<strong>其他说明</strong>
+					<ul>
+						<p class="note">可视化编辑器：Beta 测试版 V0.1.1 目前尚未适配新版引擎，待新功能完全稳定后再尝试适配（可能与上一版本的好感度变量系统同步更新）。</p>
+					</ul>
+
+					
+				</div>
+			</div>
+		</div>
+
+
+
+	<button id="backToTopBtn">回到顶部</button>
+
+	<footer class="site-footer">
+		<div class="footer-col">
+			<h4>开源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">引擎本体与启动器</a> · <a href="license_engine.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/license.txt" target="_blank">GitHub</a></p>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-editor" target="_blank">可视化编辑器</a> · <a href="license_editor.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/license.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>闭源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-manager" target="_blank">管理器与签发器</a></p>
+			<p><a href="license_manager.html" target="_blank">管理器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/license.txt" target="_blank">GitHub</a></p>
+                <p><a href="license_signer.html" target="_blank">签发器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/licensesigner.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>第三方开源协议</h4>
+			<p><a href="opensource_engine.html" target="_blank">启动器</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_manager.html" target="_blank">管理器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES_SIGNER.txt" target="_blank">GitHub</a> <br/>
+				<a href="opensource_signer.html" target="_blank">签发器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_editor.html" target="_blank">编辑器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a></p>
+			
+		</div>
+		<p class="footer-copyright" style="text-align:center"><a href="MIT_LICENSE.html" target="_blank">本网页采用 MIT License 协议</a> · <a href="https://github.com/1145141919810TONNY/Shioriteaching/blob/main/LICENSE" target="_blank">GitHub</a>，与 Shiori 其他项目协议不同，详情请参照各自的协议文件<br>
+			<a href="https://1145141919810tonny.github.io/Shioriteaching/" target="_blank">GitHub Pages 在线服务</a> · <a href="https://wakudemo.cn/games/100266" target="_blank">WakuDemo 应用商店</a>
+				&nbsp;&nbsp;&nbsp;&nbsp;联系方式：<a href="mailto:3099637681@qq.com">QQ</a> · <a href="https://space.bilibili.com/87412647" target="_blank">bilibili</a><br>
+			Copyright &copy; <span class="footer-year"></span> bilibili 月が綺麗ですね_ All Rights Reserved.</p>
+	</footer>
+	
+	<script>document.querySelectorAll('.footer-year').forEach(function(e){e.textContent=new Date().getFullYear()})</script>
+
+	<script>
+		// ===== Accordion toggle =====
+		document.querySelectorAll('.accordion-header').forEach(function(header) {
+			header.addEventListener('click', function() {
+				this.parentElement.classList.toggle('active');
+			});
+		});
+
+		// ===== Sticky header on scroll =====
+		var stickyHeader = document.getElementById('stickyHeader');
+		var allAccordions = document.querySelectorAll('.accordion');
+		window.addEventListener('scroll', function() {
+			var found = null;
+			allAccordions.forEach(function(acc) {
+				var rect = acc.getBoundingClientRect();
+				if (rect.top <= 80) {
+					found = acc.querySelector('.accordion-header').textContent.trim();
+				}
+			});
+			if (found) {
+				stickyHeader.textContent = found;
+				stickyHeader.style.display = 'block';
+			} else if (stickyHeader) {
+				stickyHeader.style.display = 'none';
+			}
+
+			var btn = document.getElementById('backToTopBtn');
+			if (btn) {
+				btn.style.display = window.scrollY > 300 ? 'block' : 'none';
+			}
+			var sbtn = document.getElementById('scrollToBottomBtn');
+			if (sbtn) {
+				var docHeight = document.documentElement.scrollHeight;
+				var winHeight = window.innerHeight;
+				var atBottom = (window.scrollY + winHeight) >= docHeight - 50;
+				sbtn.style.display = (docHeight > winHeight + 10 && !atBottom) ? 'block' : 'none';
+			}
+		});
+
+		// ===== Back to top =====
+		var backToTopBtn = document.getElementById('backToTopBtn');
+		if (backToTopBtn) {
+			backToTopBtn.addEventListener('click', function() {
+				window.scrollTo({ top: 0, behavior: 'smooth' });
+			});
+		}
+		var scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+		if (scrollToBottomBtn) {
+			scrollToBottomBtn.addEventListener('click', function() {
+				window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+			});
+		}
+	</script>
+</body>
+</html>
