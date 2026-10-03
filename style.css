@@ -24,7 +24,7 @@
 * 本网页的icon图标将统一使用至Shiori生态全系列，以下为各组件的SPDX标识：
 * Shiori 引擎核心、Shiori 引擎启动器：SPDX-License-Identifier: LicenseRef-Shiori-Engine
 * Shiori 游戏管理器：SPDX-License-Identifier: LicenseRef-Shiori-Manager
-* Shiori 校检器：SPDX-License-Identifier: LicenseRef-Shiori-Signer
+* Shiori 签发器：SPDX-License-Identifier: LicenseRef-Shiori-Signer
 * Shiori 可视化编辑器：SPDX-License-Identifier: LicenseRef-Shiori-Editor
 * 详情请参阅各自的使用协议
 * 本协议的最终解释权归作者所有，作者有权随时对本协议进行修改。
@@ -103,6 +103,7 @@ footer {
 .nav-button:active {
 	transform: translateY(1px);
 }
+
 .site-footer {
 	width: 100%;
 	max-width: 1200px;
@@ -225,6 +226,7 @@ h2.hero-title {
 h3.hero-title {
 	font-size: 16px;
 }
+
 h4.hero-title {
 	font-size: 10px;
 }
@@ -237,6 +239,7 @@ h4.hero-title {
 	opacity: 0.9;
 	position: relative;
 }
+
 .feature-card {
 	background: #fff;
 	border-radius: 12px;
@@ -254,6 +257,7 @@ h4.hero-title {
 	transform: translateY(-10px);
 	box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
 }
+
 .card-content {
 	padding: 25px;
 	flex-grow: 1;
@@ -266,6 +270,7 @@ h4.hero-title {
 	margin: 0 0 15px;
 	color: #8e0e00;
 }
+
 .btn-primary {
 	display: inline-block;
 	background: linear-gradient(to right, #8e0e00, #a52a2a);
@@ -310,6 +315,130 @@ h4.hero-title {
 	gap: 20px;
 	justify-content: center;
 	align-items: center;
+}
+
+/* --- 公告折叠栏（手风琴：最多同时展开一条） --- */
+.notice-board {
+	max-width: 1200px;
+	margin: 0 auto 40px;
+}
+
+.notice-board .update-title {
+	margin-bottom: 18px;
+}
+
+.notice-item {
+	background: #fff;
+	border: 1px solid rgba(142, 14, 0, 0.15);
+	border-radius: 10px;
+	margin-bottom: 12px;
+	overflow: hidden;
+	transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.notice-item:last-child {
+	margin-bottom: 0;
+}
+
+.notice-item.is-open {
+	border-color: rgba(142, 14, 0, 0.35);
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.notice-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 14px;
+	padding: 14px 20px;
+	cursor: pointer;
+	user-select: none;
+	background: linear-gradient(to right, rgba(142, 14, 0, 0.06), rgba(31, 28, 24, 0.04));
+	transition: background 0.3s ease;
+}
+
+.notice-header:hover {
+	background: linear-gradient(to right, rgba(142, 14, 0, 0.13), rgba(31, 28, 24, 0.08));
+}
+
+.notice-header:focus-visible {
+	outline: 2px solid #8e0e00;
+	outline-offset: -2px;
+}
+
+.notice-heading {
+	font-size: 18px;
+	font-weight: 600;
+	color: #8e0e00;
+	margin: 0;
+	line-height: 1.4;
+}
+
+.notice-date {
+	display: inline-block;
+	margin-left: 10px;
+	font-size: 13px;
+	font-weight: 400;
+	color: #999;
+	vertical-align: middle;
+}
+
+.notice-arrow {
+	flex-shrink: 0;
+	font-size: 16px;
+	color: #8e0e00;
+	transition: transform 0.3s ease;
+}
+
+.notice-item.is-open .notice-header {
+	background: linear-gradient(to right, rgba(142, 14, 0, 0.14), rgba(31, 28, 24, 0.08));
+}
+
+.notice-item.is-open .notice-arrow {
+	transform: rotate(180deg);
+}
+
+/* max-height 由 JS 按内容高度精确赋值，实现平滑展开/收起；JS 未执行时保持收起 */
+.notice-body {
+	max-height: 0;
+	overflow: hidden;
+	transition: max-height 0.35s ease;
+}
+
+.notice-content {
+	padding: 18px 22px 20px;
+	font-size: 15px;
+	line-height: 1.8;
+	color: #444;
+}
+
+.notice-content ul,
+.notice-content ol {
+	padding-left: 25px;
+	margin: 10px 0;
+}
+
+.notice-content li {
+	margin-bottom: 6px;
+}
+
+.notice-content p {
+	margin: 10px 0;
+}
+
+@media (max-width: 768px) {
+	.notice-heading {
+		font-size: 16px;
+	}
+
+	.notice-header {
+		padding: 12px 14px;
+	}
+
+	.notice-content {
+		padding: 14px 16px 16px;
+		font-size: 14px;
+	}
 }
 
 .section-title {
@@ -410,7 +539,7 @@ h4.hero-title {
 }
 
 /* --- 文档页头部 --- */
-.container > header {
+.container>header {
 	background: linear-gradient(135deg, #8e0e00 0%, #1f1c18 100%);
 	color: #fff;
 	text-align: center;
@@ -419,14 +548,14 @@ h4.hero-title {
 	margin-bottom: 0;
 }
 
-.container > header h1 {
+.container>header h1 {
 	font-size: 32px;
 	margin-bottom: 10px;
 	text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 	color: #f1c40f;
 }
 
-.container > header p {
+.container>header p {
 	font-size: 16px;
 	color: #ecf0f1;
 	opacity: 0.9;
@@ -537,10 +666,22 @@ h4.hero-title {
 }
 
 /* --- 语法高亮 --- */
-.code-keyword { color: #c678dd; }
-.code-string  { color: #98c379; }
-.code-comment  { color: #5c6370; font-style: italic; }
-.code-property { color: #e06c75; }
+.code-keyword {
+	color: #c678dd;
+}
+
+.code-string {
+	color: #98c379;
+}
+
+.code-comment {
+	color: #5c6370;
+	font-style: italic;
+}
+
+.code-property {
+	color: #e06c75;
+}
 
 /* --- 提示框 --- */
 .tip-box {
@@ -575,16 +716,26 @@ th {
 	font-weight: 600;
 }
 
-th:first-child { border-radius: 6px 0 0 0; }
-th:last-child  { border-radius: 0 6px 0 0; }
+th:first-child {
+	border-radius: 6px 0 0 0;
+}
+
+th:last-child {
+	border-radius: 0 6px 0 0;
+}
 
 td {
 	padding: 10px 15px;
 	border-bottom: 1px solid #eee;
 }
 
-tr:nth-child(even) td { background: #f9f9f9; }
-tr:hover td           { background: #fff8e1; }
+tr:nth-child(even) td {
+	background: #f9f9f9;
+}
+
+tr:hover td {
+	background: #fff8e1;
+}
 
 
 /* --- 存档系统专用 --- */
@@ -597,9 +748,13 @@ tr:hover td           { background: #fff8e1; }
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.module-section h2 { margin-top: 0; }
+.module-section h2 {
+	margin-top: 0;
+}
 
-.comparison-table { margin: 30px 0; }
+.comparison-table {
+	margin: 30px 0;
+}
 
 .faq-item {
 	background: #f8f9fa;
@@ -625,17 +780,47 @@ tr:hover td           { background: #fff8e1; }
 
 /* --- 响应式 --- */
 @media (max-width: 768px) {
-	.container { padding: 10px; }
-	.container > header h1 { font-size: 24px; }
-	.tutorial-content { padding: 20px 15px; }
-	.tutorial-content h2 { font-size: 20px; }
-	.tutorial-content h3 { font-size: 17px; }
-	table { font-size: 12px; }
-	th, td { padding: 8px 10px; }
+	.container {
+		padding: 10px;
+	}
+
+	.container>header h1 {
+		font-size: 24px;
+	}
+
+	.tutorial-content {
+		padding: 20px 15px;
+	}
+
+	.tutorial-content h2 {
+		font-size: 20px;
+	}
+
+	.tutorial-content h3 {
+		font-size: 17px;
+	}
+
+	table {
+		font-size: 12px;
+	}
+
+	th,
+	td {
+		padding: 8px 10px;
+	}
 }
 
 @media (max-width: 480px) {
-	.container > header h1 { font-size: 20px; }
-	.tutorial-content { padding: 15px 12px; }
-	.code-block { padding: 15px; font-size: 12px; }
+	.container>header h1 {
+		font-size: 20px;
+	}
+
+	.tutorial-content {
+		padding: 15px 12px;
+	}
+
+	.code-block {
+		padding: 15px;
+		font-size: 12px;
+	}
 }
