@@ -309,6 +309,19 @@ h4.hero-title {
 	margin-bottom: 20px;
 }
 
+h4.update-title {
+	font-size: 22px;
+	font-weight: 600;
+	margin-bottom: 14px;
+}
+
+@media (max-width: 768px) {
+	h4.update-title {
+		font-size: 19px;
+	}
+}
+
+
 .update-content {
 	display: flex;
 	flex-wrap: wrap;
