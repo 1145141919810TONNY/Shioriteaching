@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Shiori 系列产品使用说明文档</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+		<link rel="stylesheet" href="../style.css">
+		<link rel="icon" type="image/png" href="../icon/ico16.ico">
+		<style>
+			:root {
+				--primary-bg: #0a0a0a;
+				--secondary-bg: #1a1a1a;
+				--text-color: #ffffff;
+				--gold-color: #ffd700;
+				--gold-hover: #ffed4e;
+				--accent-color: #d4af37;
+				--border-color: #333;
+				--shadow-color: rgba(255, 215, 0, 0.1);
+			}
+
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			body {
+				font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+				background-color: var(--primary-bg);
+				color: var(--text-color);
+				line-height: 1.8;
+				position: relative;
+				min-height: 100vh;
+			}
+
+			.container {
+				display: flex;
+				max-width: 1400px;
+				margin: 0 auto;
+				padding: 20px;
+				gap: 30px;
+			}
+
+			/* ---- 侧边栏目录 ---- */
+			.sidebar {
+				width: 280px;
+				flex-shrink: 0;
+				position: sticky;
+				top: 20px;
+				max-height: 95vh;
+				display: flex;
+				flex-direction: column;
+				background: var(--secondary-bg);
+				border-radius: 12px;
+				padding: 25px;
+				border: 1px solid var(--border-color);
+				box-shadow: 0 8px 32px var(--shadow-color);
+			}
+
+			.sidebar-header {
+				display: flex;
+				align-items: baseline;
+				justify-content: space-between;
+				margin-bottom: 20px;
+				border-bottom: 2px solid var(--gold-color);
+				padding-bottom: 8px;
+				gap: 10px;
+				flex-shrink: 0;
+			}
+
+			.sidebar h3 {
+				color: var(--gold-color);
+				margin: 0;
+				font-size: 1.3rem;
+				border-bottom: none;
+				padding-bottom: 0;
+				line-height: 1;
+			}
+
+			.toc {
+				list-style: none;
+				flex: 1 1 auto;
+				min-height: 0;
+				overflow-y: auto;
+				overflow-x: hidden;
+				overscroll-behavior: contain;
+				padding-right: 6px;
+				scrollbar-width: thin;
+				scrollbar-color: var(--gold-color) rgba(255, 255, 255, 0.06);
+			}
+
+			.toc::-webkit-scrollbar {
+				width: 8px;
+			}
+
+			.toc::-webkit-scrollbar-track {
+				background: rgba(255, 255, 255, 0.06);
+				border-radius: 4px;
+			}
+
+			.toc::-webkit-scrollbar-thumb {
+				background: var(--gold-color);
+				border-radius: 4px;
+			}
+
+			.toc::-webkit-scrollbar-thumb:hover {
+				background: var(--gold-hover);
+			}
+
+			.toc li {
+				margin-bottom: 10px;
+			}
+
+			.toc a {
+				color: var(--text-color);
+				text-decoration: none;
+				display: block;
+				padding: 7px 12px;
+				border-radius: 6px;
+				transition: all 0.3s ease;
+				border-left: 3px solid transparent;
+				font-size: 0.95rem;
+			}
+
+		.toc a:hover {
+			background: rgba(255, 215, 0, 0.1);
+			color: var(--gold-color);
+			border-left-color: var(--gold-color);
+			transform: translateX(5px);
+		}
+
+		.toc a.active {
+			background: rgba(255, 215, 0, 0.15);
+			color: var(--gold-color);
+			border-left-color: var(--gold-color);
+			font-weight: bold;
+		}
+
+		.toc .toc-level-2 {
+				margin-left: 15px;
+				font-size: 0.9rem;
+			}
+
+			/* ---- 主内容区 ---- */
+			.main-content {
+				flex: 1;
+				background: var(--secondary-bg);
+				border-radius: 12px;
+				padding: 40px;
+				border: 1px solid var(--border-color);
+				box-shadow: 0 8px 32px var(--shadow-color);
+				min-width: 0;
+			}
+
+			.header-section {
+				text-align: center;
+				margin-bottom: 40px;
+				padding-bottom: 30px;
+				border-bottom: 2px solid var(--gold-color);
+			}
+
+			h1 {
+				color: var(--gold-color);
+				font-size: 2.6rem;
+				margin-bottom: 20px;
+				letter-spacing: 1px;
+				text-shadow: 0 2px 10px var(--shadow-color);
+			}
+
+			.meta-block {
+				background: rgba(255, 215, 0, 0.08);
+				border-left: 4px solid var(--gold-color);
+				padding: 20px 25px;
+				margin: 25px auto;
+				text-align: left;
+				max-width: 600px;
+				border-radius: 0 8px 8px 0;
+				line-height: 2;
+			}
+
+			.meta-block p {
+				margin-bottom: 4px;
+				font-size: 0.95rem;
+				color: #ccc;
+			}
+
+			h2 {
+				color: var(--gold-color);
+				font-size: 1.7rem;
+				margin: 45px 0 20px;
+				padding-bottom: 10px;
+				border-bottom: 1px solid var(--border-color);
+			}
+
+			h3 {
+				color: var(--accent-color);
+				font-size: 1.35rem;
+				margin: 30px 0 15px;
+			}
+
+			h4 {
+				color: #ddd;
+				font-size: 1.15rem;
+				margin: 25px 0 10px;
+			}
+
+			p {
+				margin-bottom: 14px;
+				font-size: 1rem;
+			}
+
+			/* 引用/提示块 */
+			blockquote,
+			.note-box {
+				background: rgba(255, 215, 0, 0.07);
+				border-left: 4px solid var(--gold-color);
+				padding: 18px 22px;
+				margin: 20px 0;
+				border-radius: 0 8px 8px 0;
+			}
+
+			blockquote p,
+			.note-box p {
+				margin-bottom: 8px;
+			}
+
+			.note-box strong {
+				color: var(--gold-color);
+			}
+
+			ul,
+			ol {
+				margin-left: 25px;
+				margin-bottom: 20px;
+			}
+
+			li {
+				margin-bottom: 8px;
+				padding-left: 4px;
+			}
+
+			/* 嵌套列表 */
+			li ul {
+				margin-top: 6px;
+				margin-bottom: 6px;
+			}
+
+			a {
+				color: var(--gold-color);
+				text-decoration: none;
+				font-weight: bold;
+				transition: color 0.3s ease;
+			}
+
+			a:hover {
+				color: var(--gold-hover);
+				text-decoration: none;
+			}
+
+			code {
+				background: rgba(0, 0, 0, 0.35);
+				padding: 2px 7px;
+				border-radius: 4px;
+				font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+				font-size: 0.92rem;
+				color: var(--gold-color);
+			}
+
+			/* 资源路径块 */
+			.resource-path {
+				background: rgba(0, 0, 0, 0.3);
+				border: 1px solid var(--border-color);
+				border-radius: 6px;
+				padding: 8px 14px;
+				font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+				margin: 6px 0;
+				color: var(--gold-color);
+				word-break: break-all;
+				font-size: 0.9rem;
+			}
+
+			.highlight {
+				color: var(--gold-color);
+				font-weight: bold;
+			}
+
+			/* 快捷键列表（单列） */
+			.shortcut-grid {
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+				margin: 20px 0;
+			}
+
+			.shortcut-item {
+				background: rgba(255, 215, 0, 0.05);
+				border: 1px solid var(--border-color);
+				border-radius: 8px;
+				padding: 12px 15px;
+				transition: border-color 0.3s ease;
+			}
+
+			.shortcut-item:hover {
+				border-color: var(--gold-color);
+			}
+
+			.shortcut-key {
+				color: var(--gold-color);
+				font-weight: bold;
+				font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+				background: rgba(0, 0, 0, 0.3);
+				padding: 2px 8px;
+				border-radius: 4px;
+				display: inline-block;
+				margin-right: 8px;
+				font-size: 0.9rem;
+			}
+
+			/* 功能分区 */
+			.feature-section {
+				background: rgba(255, 215, 0, 0.04);
+				border-radius: 10px;
+				padding: 20px 25px;
+				margin: 20px 0;
+				border: 1px solid var(--border-color);
+			}
+
+			.feature-section ul {
+				margin-bottom: 0;
+			}
+
+			/* 联系方式卡片 */
+			.contact-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+				gap: 20px;
+				margin: 25px 0;
+			}
+
+			.contact-item {
+				background: rgba(255, 215, 0, 0.05);
+				border: 1px solid var(--border-color);
+				border-radius: 8px;
+				padding: 20px;
+				text-align: center;
+				transition: all 0.3s ease;
+				display: block;
+				text-decoration: none;
+				color: inherit;
+			}
+
+			.contact-item:hover {
+				transform: translateY(-5px);
+				border-color: var(--gold-color);
+				box-shadow: 0 10px 20px var(--shadow-color);
+			}
+
+			.contact-item i {
+				font-size: 2rem;
+				color: var(--gold-color);
+				margin-bottom: 15px;
+			}
+
+			.contact-item h4 {
+				margin-bottom: 8px;
+			}
+
+			.contact-item p {
+				font-size: 0.92rem;
+				color: #aaa;
+			}
+
+			.contact-issues {
+				position: relative;
+				cursor: pointer;
+				overflow: hidden;
+			}
+
+			.contact-issues-overlay {
+				position: absolute;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.75);
+				display: flex;
+				flex-direction: column;
+				opacity: 0;
+				pointer-events: none;
+				transition: opacity 0.3s ease;
+				z-index: 10;
+				border-radius: inherit;
+			}
+
+			.contact-issues:hover .contact-issues-overlay {
+				opacity: 1;
+				pointer-events: auto;
+			}
+
+			.contact-issues-overlay a {
+				flex: 1;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				color: #fff;
+				font-weight: bold;
+				font-size: 1rem;
+				text-decoration: none;
+				transition: background 0.3s ease;
+			}
+
+			.contact-issues-overlay .overlay-manager {
+				border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+			}
+
+			.contact-issues-overlay a:hover {
+				background: rgba(255, 215, 0, 0.35);
+			}
+
+			/* 页脚 */
+			.footer {
+				margin-top: 50px;
+				padding-top: 25px;
+				border-top: 1px solid var(--border-color);
+			}
+
+			.footer-section {
+				font-size: 0.88rem;
+				color: #999;
+				line-height: 2;
+			}
+
+			.footer-section h4 {
+				color: var(--gold-color);
+				font-size: 1.05rem;
+				margin-bottom: 12px;
+			}
+
+			.footer-section p {
+				margin-bottom: 4px;
+				font-size: 0.88rem;
+				color: #aaa;
+			}
+
+			.footer-section a {
+				font-weight: normal;
+				font-size: 0.85rem;
+				color: #bbb;
+			}
+
+			.footer-section a:hover {
+				color: var(--gold-color);
+			}
+
+			.local-file-link {
+				color: var(--gold-color);
+				cursor: pointer;
+				text-decoration: none;
+			}
+
+			.local-file-link:hover {
+				color: var(--gold-hover);
+			}
+
+			/* 本地协议弹窗 */
+			.license-modal-overlay {
+				position: fixed;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.7);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				z-index: 10000;
+				opacity: 0;
+				visibility: hidden;
+				transition: opacity 0.25s ease, visibility 0.25s ease;
+			}
+
+			.license-modal-overlay.active {
+				opacity: 1;
+				visibility: visible;
+			}
+
+			.license-modal {
+				background: #000;
+				color: #ddd;
+				width: 75%;
+				max-height: 80vh;
+				overflow-y: auto;
+				border: 1px solid #333;
+				border-radius: 10px;
+				padding: 28px 32px;
+				position: relative;
+				font-size: 0.88rem;
+				line-height: 1.75;
+				white-space: pre-wrap;
+				word-break: break-word;
+			}
+
+			.license-modal::-webkit-scrollbar {
+				width: 6px;
+			}
+
+			.license-modal::-webkit-scrollbar-thumb {
+				background: #444;
+				border-radius: 3px;
+			}
+
+			.license-modal-close {
+				position: sticky;
+				float: right;
+				top: 0;
+				color: #888;
+				font-size: 1.5rem;
+				cursor: pointer;
+				background: none;
+				border: none;
+				line-height: 1;
+				padding: 0 0 8px 8px;
+				z-index: 2;
+			}
+
+			.license-modal-close:hover {
+				color: #fff;
+			}
+
+			.footer-disclaimer {
+				margin-top: 25px;
+				padding-top: 15px;
+				border-top: 1px solid rgba(255, 255, 255, 0.06);
+				text-align: center;
+				font-size: 0.8rem;
+				color: #666;
+			}
+
+			/* 图片占位 —— 始终居中 */
+			.image-placeholder {
+				text-align: center;
+				margin: 30px auto;
+				padding: 20px;
+				background: rgba(255, 215, 0, 0.04);
+				border: 2px dashed var(--border-color);
+				border-radius: 12px;
+				max-width: 600px;
+			}
+
+			.image-placeholder img {
+				max-width: 100%;
+				height: auto;
+				display: block;
+				margin: 0 auto;
+				border-radius: 6px;
+				cursor: pointer;
+				transition: transform 0.2s ease;
+			}
+
+			.image-placeholder img:hover {
+				transform: scale(1.02);
+			}
+
+			/* 图片灯箱 */
+			.lightbox-overlay {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(0, 0, 0, 0.85);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				z-index: 9999;
+				opacity: 0;
+				visibility: hidden;
+				transition: opacity 0.3s ease, visibility 0.3s ease;
+				cursor: pointer;
+			}
+
+			.lightbox-overlay.show {
+				opacity: 1;
+				visibility: visible;
+			}
+
+			.lightbox-hint {
+				position: absolute;
+				bottom: 24px;
+				left: 50%;
+				transform: translateX(-50%);
+				color: rgba(255, 255, 255, 0.5);
+				font-size: 13px;
+				pointer-events: none;
+				user-select: none;
+			}
+
+			.lightbox-overlay img {
+				max-width: 90vw;
+				max-height: 90vh;
+				border-radius: 8px;
+				box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+				transition: transform 0.15s ease;
+			}
+
+			/* 返回顶部 */
+			.back-to-top {
+				position: fixed;
+				bottom: 30px;
+				right: 30px;
+				width: 50px;
+				height: 50px;
+				background: var(--gold-color);
+				color: var(--primary-bg);
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 1.3rem;
+				font-weight: bold;
+				cursor: pointer;
+				opacity: 0;
+				visibility: hidden;
+				transition: all 0.3s ease;
+				box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+				z-index: 1000;
+				border: none;
+				line-height: 1;
+			}
+
+			.back-to-top.visible {
+				opacity: 1;
+				visibility: visible;
+			}
+
+			.back-to-top:hover {
+				background: var(--gold-hover);
+				transform: translateY(-5px);
+				box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+			}
+
+			/* ---- 响应式 ---- */
+			@media (max-width: 1024px) {
+				.container {
+					flex-direction: column;
+				}
+
+				.sidebar {
+					width: 100%;
+					position: static;
+					margin-bottom: 20px;
+					max-height: none;
+				}
+
+				.toc {
+					overflow: visible;
+					padding-right: 0;
+				}
+
+				.main-content {
+					padding: 30px;
+				}
+
+				h1 {
+					font-size: 2rem;
+				}
+			}
+
+			@media (max-width: 768px) {
+				.container {
+					padding: 12px;
+				}
+
+				.main-content {
+					padding: 20px;
+				}
+
+				h1 {
+					font-size: 1.6rem;
+				}
+
+				h2 {
+					font-size: 1.35rem;
+				}
+
+				.meta-block {
+					padding: 15px 18px;
+				}
+
+				.contact-grid {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			hr {
+				border: none;
+				border-top: 1px solid var(--border-color);
+				margin: 30px 0;
+			}
+
+			/* 图片右下角灰色斜体小字（图片窗口外部） */
+			.image-caption {
+				text-align: right;
+				color: #888;
+				font-style: italic;
+				font-size: 0.85rem;
+				margin-top: 8px;
+				max-width: 600px;
+				margin-left: auto;
+				margin-right: auto;
+			}
+
+			/* 返回主页按钮 */
+			.back-home-btn {
+				display: inline-flex;
+				align-items: center;
+				gap: 4px;
+				background: rgba(255, 215, 0, 0.1);
+				color: var(--gold-color);
+				border: 1px solid var(--gold-color);
+				padding: 4px 10px;
+				border-radius: 6px;
+				text-decoration: none;
+				font-weight: bold;
+				font-size: 0.8rem;
+				transition: all 0.3s ease;
+				cursor: pointer;
+				white-space: nowrap;
+			}
+
+			.back-home-btn:hover {
+				background: rgba(255, 215, 0, 0.2);
+				color: var(--gold-hover);
+				border-color: var(--gold-hover);
+				box-shadow: 0 4px 15px var(--shadow-color);
+			}
+		
+		#scrollToBottomBtn {
+			position: fixed;
+			right: 20px;
+			bottom: 20px;
+			padding: 10px 20px;
+			background-color: #e67e22;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			z-index: 999;
+			font-size: 14px;
+			outline: none;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+			font-weight: 600;
+			transition: background-color 0.3s, transform 0.3s;
+		}
+		#scrollToBottomBtn:hover {
+			background-color: #d35400;
+			transform: translateY(-2px);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+		}
+		#scrollToBottomBtn:active {
+			transform: translateY(1px);
+		}
+
+		#backToTopBtn {
+			position: fixed;
+			right: 20px;
+			bottom: 60px;
+			padding: 10px 20px;
+			background-color: #3498db;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			z-index: 999;
+			font-size: 14px;
+			outline: none;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+			font-weight: 600;
+			transition: background-color 0.3s, transform 0.3s;
+		}
+		#backToTopBtn:hover {
+			background-color: #2980b9;
+			transform: translateY(-2px);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+		}
+		#backToTopBtn:active {
+			transform: translateY(1px);
+		}
+
+		#scrollToBottomBtn, #backToTopBtn {
+			display: none;
+		}
+
+</style>
+	</head>
+	<body>
+		<div class="container">
+			<!-- ============ 左侧目录 ============ -->
+			<aside class="sidebar">
+				<div class="sidebar-header">
+					<h3>文档目录</h3>
+					<a href="../index.html" class="back-home-btn"><i class="fa-solid fa-arrow-left"></i> 返回主页</a>
+				</div>
+				<ul class="toc" id="toc">
+					<!-- 由JS动态生成 -->
+				</ul>
+			</aside>
+
+			<!-- ============ 主内容 ============ -->
+			<main class="main-content">
+				<!-- 标题区 -->
+				<header class="header-section">
+					<h1>Shiori 系列（视觉小说）产品使用说明文档</h1>
+
+					<div class="meta-block">
+						<p>最后编写日期：2026年10月7日</p>
+						<p>本文档对应版本：引擎核心 V3.0.0 · 启动器 V2.0.0 · 管理器 V1.1.0 · 签名发布器 V2.0.0</p>
+						<p>编写人：bilibili 月が綺麗ですね_</p>
+						<p>Copyright &copy; 2026 bilibili 月が綺麗ですね_ All Rights Reserved.</p>
+					</div>
+
+					<div class="note-box" style="text-align: left; max-width: 780px; margin-left: auto; margin-right: auto;">
+						<p><strong>本文档只讲「怎么用」：</strong>各组件在哪里启动、界面上的按钮与快捷键分别是做什么的。</p>
+						<p>版本变化与改动记录不在这里，请见文末的「延伸阅读」。</p>
+					</div>
+				</header>
+
+				<!-- ===== 组件速览 ===== -->
+				<section id="Shiori">
+					<h2>Shiori 系列组件速览</h2>
+
+					<p>Shiori 是一套围绕「自研 Web 视觉小说引擎」搭建的完整生态。下面几行说明各组件分别做什么，用来判断你该打开哪一个。</p>
+
+					<strong style="color: gold;">Shiori Engine（引擎核心）</strong>
+					<p>游戏的运行内核。画面、剧本、存档都由它负责呈现，是一套纯 HTML / JS 的轻量引擎。<span class="highlight">开源产品</span>。</p>
+
+					<strong style="color: gold;">Shiori Engine EXE（启动器）</strong>
+					<p>把引擎装进独立窗口的宿主程序（C# + WPF + WebView2）。玩家双击它来打开游戏，分辨率、渲染方式、调试窗口等开关都在它这里。<span class="highlight">开源产品</span>。</p>
+
+					<strong style="color: gold;">Shiori Game Manager（管理器）</strong>
+					<p>游戏库管理器。把电脑里的多个游戏集中列在一起，用来启动、排序、校检，也支持启动其他引擎的游戏。<span class="highlight">闭源产品</span>。</p>
+
+					<strong style="color: gold;">Shiori Signer（签名发布器 / 签发器）</strong>
+					<p>开发机上的发布工具，负责生成密钥、加密打包、生成增量补丁包与校检完整性。<span class="highlight">闭源产品</span>。</p>
+
+					<strong style="color: gold;">Shiori Verify（专属签发器）</strong>
+					<p>发布时产出、随游戏一起分发的校检小程序（ShioriVerify.exe）。玩家双击即可校检本游戏，无需安装管理器。体积约 0.2 MB。</p>
+
+					<strong style="color: gold;">Shiori Patch（补丁器）</strong>
+					<p>由签发器产出的单文件增量安装程序（ShioriPatch.exe），发给玩家用来更新游戏。</p>
+
+					<strong style="color: gold;">Shiori Editor（可视化编辑器）</strong>
+					<p>可视化配置立绘等内容的编辑器，目的是降低上手难度。当前仍是 Beta 版。<span class="highlight">开源产品</span>。</p>
+
+					<strong style="color: gold;">引擎插件</strong>
+					<p>可选装的小扩展，只调用引擎已公开的 API，移除引用即完全卸载。安装与参数说明见教学站<a href="../API/index.html">「引擎插件」页</a>。</p>
+				</section>
+
+				<!-- ===== Shiori Engine 引擎核心使用说明 ===== -->
+				<section id="engine">
+					<h2>Shiori Engine 引擎核心：怎么玩</h2>
+
+					<h3>启动游戏</h3>
+					<p>双击游戏根目录下的启动器即可进入游戏，启动器内已打包 .NET 运行时，无需另行安装运行库：</p>
+
+					<ul>
+						<li><strong style="color: gold;">Shiori.exe</strong>（标准模式，正常游玩用它）</li>
+						<li><strong style="color: gold;">Shiori_debug.exe</strong>（调试模式，多出 F1 开发者菜单、F2 变量面板、F9 立绘变更预览、F12 开发者工具等，供开发者检查使用）</li>
+					</ul>
+
+					<div class="image-placeholder">
+						<img src="../img/1.png">
+					</div>
+					<p class="image-caption">配图说明：游戏根目录的文件列表，<code>Shiori.exe</code>（标准模式）与 <code>Shiori_debug.exe</code>（调试模式）是两个启动器，双击任一个即可进入游戏。</p>
+
+					<h3>画面底部的按钮栏</h3>
+
+					<p>进入游戏后，画面底部这条按钮栏就是引擎内置的操作入口，各按钮作用如下：</p>
+
+					<div class="image-placeholder">
+						<img src="../img/3.png">
+					</div>
+					<p class="image-caption">配图说明：游戏画面底部的按钮栏，依次为 <code>SKIP/1</code>、<code>SKIP/2</code>、<code>AUTO</code>、<code>SAVE</code>、<code>OPTION</code>、<code>SYSTEM</code>、<code>LOG</code>、<code>HELP</code>、<code>BACK</code>、<code>QUIT</code>。</p>
+
+					<div class="shortcut-grid">
+						<div class="shortcut-item">
+							<span class="shortcut-key">SKIP/1</span> 快进剧本模式 1（持续快进）
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">SKIP/2</span> 快进剧本模式 2（持续快进，但到达选项自动停止）
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">AUTO</span> 缓慢自动推进剧情（受设置秒数影响）
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">SAVE</span> 进入精细化存档页面
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">SAVE\SCENES</span> 进入进度管理页面（SAVE 子菜单）
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">SAVE\MAP</span> 进入流程图页面（SAVE 子菜单）
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">SAVE\STORY</span> 进入小故事页面（SAVE 子菜单）
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">OPTION</span> 打开剧本上下文菜单
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">SYSTEM</span> 打开设置页面
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">HELP</span> 打开帮助页面
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">BACK</span> 返回主菜单
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">QUIT</span> 退出游戏
+						</div>
+					</div>
+
+					<h3>键盘与鼠标操作</h3>
+
+					<div class="shortcut-grid">
+						<div class="shortcut-item">
+							<span class="shortcut-key">F1</span> 打开开发者菜单（Debug 专属，Release 已屏蔽）
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">F2</span> 打开变量面板，查看 f. / sf. / tf. 变量当前值（Debug 专属）
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">F5</span> 快速保存当前游戏
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">F9</span> 打开立绘变更预览窗口（Debug 专属）
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">F10</span> 最大化窗口 / 退出最大化窗口
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">F11</span> 独占全屏 / 退出全屏
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">F12</span> 打开网页开发者工具（Debug 专属，Release 已屏蔽）
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">Ctrl</span> 快进剧本
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">右键</span> 跳过剧本中视频播放
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">鼠标滚轮向上</span> 打开剧本历史对话
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">+ / &uarr;</span> 放大主音量
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">- / &darr;</span> 减少主音量
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">Ctrl+F5</span> 重新加载引擎
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">Alt+F4</span> 退出游戏
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">Home</span> 返回标题页面
+						</div>
+						<div class="shortcut-item">
+							<span class="shortcut-key">Esc</span> 返回上一页（非剧本文件）/ 打开上下文菜单（剧本文件）
+						</div>
+					</div>
+
+					<div class="note-box">
+						<p><strong>游戏文件夹里都有什么：</strong>引擎根目录下有 <code>engine/</code>（运行核心）、<code>system/</code>（变量与系统服务）、<code>ui/</code>（界面）、<code>config/</code>（配置表）、<code>api/</code>（对外 API）、<code>macro/</code>（宏与 .ks）、<code>plugins/</code>（可选插件）、<code>html/</code>（鉴赏 / 存档 / 流程图等页面）、<code>scenes/</code>（剧本）与 <code>assets/</code>（bgm / cg / se / ui / video等素材），入口为 <code>index.html</code>。</p>
+						<p class="resource-path">shiori engine/ <br>
+							├─ engine/ · system/ · ui/ · config/ · api/ · macro/ · plugins/ <br>
+							├─ html/ · scenes/ · assets/(bgm|cg|se|ui|video|audio|chars|bg) <br>
+							└─ index.html · engine_manifest.json · game_info.json</p>
+					</div>
+				</section>
+
+				<!-- ===== 启动器菜单说明 ===== -->
+				<section id="launcher">
+					<h2>Shiori Engine EXE（启动器）：菜单怎么用</h2>
+
+					<p>启动器窗口顶部是主菜单栏，与游戏画面有关的开关基本都在这里。Debug 模式下还会多出一个「调试」菜单。</p>
+
+					<h3>菜单一览</h3>
+
+					<div class="feature-section">
+						<ul>
+							<li><strong style="color: gold;">文件</strong>：返回标题页面（<code>Home</code>）、打开引擎文件夹、重新加载引擎（<code>Ctrl+F5</code>）、清理无用缓存文件、退出（<code>Alt+F4</code>）</li>
+							<li><strong style="color: gold;">视图</strong>：刷新、分辨率、宽高比（16:9 宽屏 / 4:3 标准）、选择分辨率、最大化窗口（<code>F10</code>）、独占全屏（<code>F11</code>）</li>
+							<li><strong style="color: gold;">设置</strong>：系统设置、音量设置、AUTO 设置，以及与渲染相关的子菜单（见下一节）</li>
+							<li><strong style="color: gold;">帮助</strong>：GitHub 仓库、GitHub Pages 教学页面、WakuDemo 应用商店、Shiori Game Manager 下载、存档相关问题、UI 帮助、关于</li>
+							<li><strong style="color: gold;">调试（Debug 专属）</strong>：开发者工具（<code>F12</code>）、从头开始、剧本流程图（调试版）、清除所有存档、开启全部鉴赏、加载指定文件、立绘变更（<code>F9</code>）</li>
+						</ul>
+					</div>
+
+					<h3>设置 → 渲染</h3>
+
+					<p>「设置」菜单里可以切换画面的绘制方式，同一组内单选，各组之间互不影响，部分选项需要重启后生效。</p>
+
+					<div class="image-placeholder">
+						<img src="../img/11.png">
+					</div>
+					<p class="image-caption">配图说明：「设置 → 渲染」子菜单展开的实拍，图中正展开「硬件加速」（默认 / 强制 GPU 光栅化 / 强制软件）。</p>
+
+					<div class="feature-section">
+						<ul>
+							<li><strong style="color: gold;">磁盘缓存</strong>：1 MB / 256 MB / 1 GB 三档，用于缓存图片信息。<span class="highlight">默认且推荐 256 MB</span>。</li>
+							<li><strong style="color: gold;">硬件加速</strong>：默认 / 强制 GPU 光栅化 / 强制软件（仅诊断）三选一。</li>
+							<li><strong style="color: gold;">图像缩略图</strong>：独立开关，控制是否生成并使用缩略图。</li>
+							<li><strong style="color: gold;">帧缓存</strong>：独立开关，控制帧级缓存。</li>
+							<li><strong style="color: gold;">立绘渲染器</strong>：DOM / 预合成单图 / Canvas 舞台 / 自动 四选一。</li>
+							<li><strong style="color: gold;">布局模式</strong>：流式 / 等比画布 二选一。</li>
+						</ul>
+					</div>
+				</section>
+
+				<!-- ===== Shiori manager 管理器使用说明 ===== -->
+				<section id="manager">
+					<h2>Shiori Game Manager 管理器：怎么用</h2>
+
+					<p>双击 Shiori manager 文件夹中的 <code>ShioriManager.exe</code> 即可启动。</p>
+
+					<div class="image-placeholder">
+						<img src="../img/2.png">
+					</div>
+					<p class="image-caption">配图说明：管理器所在文件夹，红框圈出的 <code>ShioriManager.exe</code> 就是管理器本体，双击启动。</p>
+
+					<h3>上方：功能按钮区</h3>
+
+					<div class="feature-section">
+						<ul>
+							<li><strong style="color: gold;">扫描游戏</strong>：二次弹窗确认后，扫描电脑中的所有物理硬盘，寻找可识别的游戏</li>
+							<li><strong style="color: gold;">扫描本地 games</strong>：只扫描项目内 <code>games\</code> 文件夹中的游戏</li>
+							<li><strong style="color: gold;">添加游戏</strong>：手动添加本引擎的游戏（请勿用它添加其他引擎的游戏）</li>
+							<li><strong style="color: gold;">添加其他引擎游戏（+ Other）</strong>：手动添加其他引擎的游戏，如 Kirikiri、Ren'Py 等（请勿用它添加本引擎的游戏）</li>
+							<li><strong style="color: gold;">检查更新</strong>：读取线上版本信息，检查管理器是否有新版本</li>
+							<li><strong style="color: gold;">桌面快捷方式</strong>：在桌面创建一份管理器的启动快捷方式</li>
+							<li><strong style="color: gold;">一键清除游戏</strong>：清空列表中的所有游戏（不影响本地物理文件）</li>
+							<li><strong style="color: gold;">打开校验器</strong>：拉起管理器内置的完整性校验工具（只校检，不生成）</li>
+							<li><strong style="color: gold;">文件格式检测</strong>：读取文件开头的魔数，确认文件的真实格式（支持专有容器 <code>.sgd</code> 的识别）</li>
+							<li><strong style="color: gold;">语言切换</strong>：切换界面文字语言（简体中文 / 繁體中文 / English / 日本語）</li>
+						</ul>
+					</div>
+
+					<h3>中间：游戏列表</h3>
+
+					<div class="feature-section">
+						<ul>
+							<li><strong style="color: gold;">排序</strong>：呼出窗口，进行手动或自动排序</li>
+							<li><strong style="color: gold;">拖动游戏</strong>：改变排列顺序（可使用鼠标滚轮）</li>
+							<li><strong style="color: gold;">右键</strong>：置顶 / 取消置顶 / 重命名游戏</li>
+							<li><strong style="color: gold;">更新游戏信息</strong>：重新读取游戏目录下的 <code>game_info.json</code></li>
+						</ul>
+					</div>
+
+					<h3>右侧：启动栏</h3>
+
+					<div class="feature-section">
+						<ul>
+							<li><strong style="color: gold;">启动</strong>：快速启动游戏</li>
+							<li><strong style="color: gold;">启动调试</strong>：以 Debug 模式启动（本引擎游戏专属）</li>
+							<li><strong style="color: gold;">使用日语环境打开</strong>：用 <code>LEGUI</code>（Locale Emulator）以日语环境打开游戏（非本引擎游戏用）</li>
+							<li><strong style="color: gold;">校验游戏完整性</strong>：对游戏内容做一次完整的签名 / 哈希校检</li>
+							<li><strong style="color: gold;">[中·自] / [日]</strong>：指定该游戏在自动排序时使用中文还是日语的词典</li>
+							<li><strong style="color: gold;">打开文件夹</strong>：打开游戏所在文件夹</li>
+							<li><strong style="color: gold;">移除</strong>：把游戏移出列表（不影响本地物理文件）</li>
+							<li><strong style="color: gold;">安装 Locale Emulator</strong>：在未安装 LEGUI 的机器上快速安装</li>
+						</ul>
+					</div>
+
+					<h3>右下角：其他入口</h3>
+
+					<div class="feature-section">
+						<ul>
+							<li><strong style="color: gold;">JSON 数据测试</strong>：月幕 gal API 的数据排序测试页面</li>
+							<li><strong style="color: gold;">月幕 API 说明</strong>：月幕 gal API 的数据使用声明</li>
+							<li><strong style="color: gold;">安装 LEGUI</strong>：仅在电脑没有安装 <code>LEGUI</code> 时使用，会启动完整的安装向导</li>
+							<li><strong style="color: gold;">打开 LEGUI 文件夹</strong>：打开 <code>LEGUI</code> 所在文件夹，可自行替换文件切换版本</li>
+							<li><strong style="color: gold;">开发者注意事项</strong>：开发者使用管理器时需要注意的问题</li>
+							<li><strong style="color: gold;">玩家使用方法</strong>：玩家使用管理器时需要注意的问题</li>
+							<li><strong style="color: gold;">版权协议</strong>：管理器本体协议（SPDX-License-Identifier: LicenseRef-Shiori-manager）</li>
+							<li><strong style="color: gold;">第三方开源协议</strong>：管理器所用第三方依赖的开源协议合集</li>
+						</ul>
+					</div>
+
+					<h3>支持哪些引擎</h3>
+
+					<p>管理器除本引擎的游戏外，也能识别并启动这些引擎的游戏：Kirikiri2 / KirikiriZ、NEKOPACK、Ren'Py、WEBGal、Unity、UE等。</p>
+
+					<div class="note-box">
+						<p>若游戏中填写了网址，管理器可以直接用外部浏览器打开它。<strong style="color: gold;">这些链接是开发者写在游戏里的（大概率是游戏官网或补丁站），并非 Shiori 官方页面，请自行判断是否访问。</strong></p>
+					</div>
+				</section>
+
+				<!-- ===== 签名发布器（签发器） ===== -->
+				<section id="Signer">
+					<h2>Shiori Signer 签名发布器（签发器）：怎么用</h2>
+
+					<p>签发器是开发机上的发布工具。管理器中虽然也内置了同名工具，但只保留<strong style="color: gold;">校检</strong>功能；要生成密钥、加密打包或出补丁，请到管理器的 releases 中下载专用的 <code>ShioriSigner.exe</code>。</p>
+
+					<div class="note-box">
+						<p><strong>三个名字别混：</strong></p>
+						<p><strong style="color: gold;">签发器</strong> —— <code>ShioriSigner.exe</code>，开发机使用，负责密钥、签名、加密打包与出补丁。</p>
+						<p><strong style="color: gold;">补丁器</strong> —— <code>ShioriPatch.exe</code>，由签发器产出，是发给玩家的单文件增量安装程序。</p>
+						<p><strong style="color: gold;">专属签发器</strong> —— <code>ShioriVerify.exe</code>，随游戏分发，供玩家双击自校检。</p>
+					</div>
+
+					<h3>主窗口</h3>
+
+					<p>签发器主窗口有三个入口按钮：「加密与发布」「生成签名」「校验完整性」，按当前要做的事情点对应的那个。</p>
+
+					<div class="image-placeholder">
+						<img src="../img/12.png">
+					</div>
+					<p class="image-caption">配图说明：签发器主窗口，顶部填入 <code>Shiori Engine 目录</code>，下方是「加密与发布 / 生成签名 / 校验完整性」三个入口按钮，右侧为「严格模式」勾选框。</p>
+
+					<h3>「加密与发布」窗口</h3>
+
+					<p>该窗口内置三个页面，顶部页签可随时来回切换。</p>
+
+					<h4>① 密钥管理</h4>
+					<p>在这里生成或导入密钥：可生成密钥对、显示 / 复制公钥与私钥、导出密钥 txt、导入密钥 txt、清空密钥、把密钥应用到本次会话。生成或导入后会立即显示当前密钥的 <code>Key ID</code> 与位数。</p>
+
+					<div class="image-placeholder">
+						<img src="../img/13.png">
+					</div>
+					<p class="image-caption">配图说明：「① 密钥管理」页，选择密钥长度后生成或导入密钥，直接显示 <code>Key ID</code> 与公钥、私钥，底部为导出 / 导入 / 清空等操作。</p>
+
+					<div class="feature-section">
+						<ul>
+							<li>RSA 位数按下拉框选择执行（2048 / 3072 / 4096，默认 3072）。</li>
+							<li>打包默认使用当前会话的密钥；也可以改为「使用指定 PEM 文件」，这个选择会被记住。</li>
+							<li>「另存为 PEM」可把当前生效的打包密钥导出为 <code>launcher_priv.pem</code> 与 <code>launcher_pub.pem</code>。</li>
+							<li><code>Key ID</code> 全程可见：密钥页生成 / 导入后立即显示，打包页常驻显示「本次打包密钥 Key ID」，导出的密钥 txt 与 <code>launcher_priv.pem</code> 末尾也标注了它，离线保管时也能核对。</li>
+						</ul>
+					</div>
+
+					<h4>② 加密打包发布</h4>
+					<p>选好源目录与输出目录，勾选需要的打包选项，点「开始加密打包发布」即可。页面顶部有可折叠的「发布前置条件与注意事项」。</p>
+
+					<div class="image-placeholder">
+						<img src="../img/14.png">
+					</div>
+					<p class="image-caption">配图说明：「② 加密打包发布」页，依次填写打包密钥、游戏源目录、输出目录与发布选项，底部是「开始加密打包发布」。</p>
+
+					<div class="feature-section">
+						<ul>
+							<li>打包选项：编译专属启动器 <code>Shiori.exe</code> / 部署原生内核 <code>ShioriCore.dll</code> / 打包后自校验读取 / 生成 <code>.sig</code> 校验文件。</li>
+							<li>输出为发布根下的内容目录（含 <code>shiori engine</code>、<code>public_key.pem</code>、<code>release.sig</code> 与各 <code>.sig</code>，以及随游戏分发的 <code>ShioriVerify.exe</code>）与 <code>developer_keys</code> 密钥备份目录。</li>
+						</ul>
+					</div>
+
+					<div class="note-box">
+						<p><strong style="color: gold;">注意：请勿分发或发布你的密钥（尤其是私钥），也切勿遗失。密钥一旦丢失无法找回，该游戏也将无法再发布补丁式更新。请务必在本地或私有云端多处备份。</strong></p>
+					</div>
+
+					<h4>③ 发布补丁包</h4>
+					<p>指定被改 / 新增的源目录或散文件，以及已发布的完整游戏内容根，即可产出单个补丁安装程序 <code>ShioriPatch.exe</code>。</p>
+
+					<div class="image-placeholder">
+						<img src="../img/15.png">
+					</div>
+					<p class="image-caption">配图说明：「③ 发布补丁包」页，依次填写前身版本、开发者私钥、新版本源文件与补丁器选项，产出单个 <code>ShioriPatch.exe</code>。</p>
+
+					<div class="feature-section">
+						<ul>
+							<li>你只需给出被改动的文件，程序会自动识别目标当前的状态（加密 / 明文、是否带密钥），把它们归入对应的包或目录。</li>
+							<li>加密目标只改动受影响的条目，未变动的密文保持原样；明文目标只落地被改 / 新增的文件。</li>
+							<li>签名按补丁后的完整文件集重新签发，不是只覆盖改动的那几个文件。</li>
+							<li>加密目标需要你提供与该游戏公钥指纹一致的私钥 <code>.pem</code>，指纹不符会拒绝生成。</li>
+							<li>安装前会核对当前游戏是不是该补丁对应的上一个版本，不符时只提示，可选择「仍要安装」。</li>
+							<li>补丁自身带完整性自检，并对内置载荷验签；安装时会一并替换配套的 <code>ShioriVerify.exe</code>，因此只需分发这一个文件。</li>
+						</ul>
+					</div>
+
+					<h3>校检完整性</h3>
+
+					<h4>命令行方式</h4>
+					<div class="feature-section">
+						<ul>
+							<li>命令：<code>ShioriSigner.exe --verify --site &lt;目录&gt; [--pub &lt;公钥.pem&gt;]</code>。</li>
+							<li>结束后输出 <code>VERIFY_EXITCODE</code>（0 为通过，2 为存在失败），方便脚本直接调用。</li>
+							<li>校检会自动匹配发行包随附的 <code>public_key.pem</code>；日志中同时列出「签名记录 Key ID」与「当前公钥 Key ID」，是否配对一眼可辨。</li>
+						</ul>
+					</div>
+
+					<h4>专属签发器（玩家侧）</h4>
+
+					<div class="image-placeholder">
+						<img src="../img/16.png">
+					</div>
+					<p class="image-caption">配图说明：玩家双击 <code>ShioriVerify.exe</code> 后的校检窗口，抬头「校检通过：全部文件与发布记录一致」，末尾统计「共 25 项：通过 25 / 失败 0 / 缺失 0」。</p>
+
+					<div class="feature-section">
+						<ul>
+							<li>打开窗口后点「开始校检」才执行，过程逐条输出，大文件也能看到进度。</li>
+							<li>与发布的那一款游戏绑定：拷到别的游戏目录会被拒绝，替换同目录的公钥也无法蒙混通过。</li>
+							<li>只读、不联网、不提权，除你主动「导出报告」外不写任何文件。</li>
+							<li>签发时的记录与当前内容不一致时只给中性提示（常见于已装补丁或版本更新），不影响校检结论。</li>
+							<li>支持静默模式 <code>/silent</code>，返回退出码（0 通过 / 2 存在失败 / 3 自身被篡改 / 4 非本游戏）。</li>
+						</ul>
+					</div>
+
+					<h4>校检结果示例</h4>
+
+					<p>下图以管理器内置的「Shiori 完整性校验工具」为例（此处仍使用旧版截图）：指定游戏目录后点击校检，会逐条比对所有关键文件，并列出未注册文件。下面是文件都原封不动时的结果。</p>
+
+					<div class="image-placeholder">
+						<img src="../img/4.png">
+					</div>
+					<p class="image-caption">配图说明：校验全部通过，逐条为绿字 <code>[通过]</code>，末尾统计 <code>通过：29 整改：0 缺失：0 新增：0</code>。</p>
+
+					<p>为了看清「异常」长什么样，我们故意把引擎核心文件改坏一处 —— 在红框位置随手添了一个用不到的函数：</p>
+
+					<div class="image-placeholder">
+						<img src="../img/5.png">
+					</div>
+					<p class="image-caption">配图说明：修改 <code>engine.js</code> 中红框部分，示例为随意添加一个无用的函数。</p>
+
+					<p>此时我们再进行一次校检：</p>
+
+					<div class="image-placeholder">
+						<img src="../img/6.png">
+					</div>
+					<p class="image-caption">配图说明：被改动的 <code>engine.js</code> 已正确返回异常，该行标红并注明「哈希不匹配」，末尾统计 <code>通过：28 整改：1 缺失：0 新增：0</code>。</p>
+				</section>
+
+				<!-- ===== 引擎插件 ===== -->
+				<section id="plugins">
+					<h2>插件怎么装</h2>
+
+					<p>插件遵循「零侵入」原则：只调用引擎已公开的 API 与标准 DOM，移除引用即完全卸载，不产生硬依赖。每个插件的完整说明与「一键安装提示词」见<a href="../API/index.html">「引擎插件」页</a>。</p>
+
+					<div class="feature-section">
+						<ul>
+							<li>每个插件目录下的 <code>安装说明.md</code> 都写明了：插件作用、文件放哪里、要改哪个宿主文件、参数与开关、如何卸载，以及可以直接复制给 AI 的一键安装提示词。</li>
+							<li>引擎内部插件通常只需把 <code>.js</code> 放进对应目录，再在 <code>engine_manifest.json</code> 的 <code>official</code> 列表中引用；宿主会自动把它注入剧本页、<code>index.html</code> 与 <code>html/CG.html</code>。</li>
+							<li>若插件还要作用于注入范围之外的页面（如 <code>html/bgm.html</code>），需在该页 <code>&lt;/body&gt;</code> 之前手写一行引用。</li>
+							<li>外部 API 插件还需要放置宿主侧的桥接文件（如 <code>BiliLoginBridge.cs</code> 放在 Shiori 启动器工程根目录）。</li>
+						</ul>
+					</div>
+
+				</section>
+
+				<!-- ===== 可视化编辑器 ===== -->
+				<section id="editor">
+					<h2>Shiori Editor 可视化编辑器（Beta）</h2>
+
+					<p>可视化配置立绘等内容的编辑器，用来降低使用 Shiori 引擎的上手难度，并与生态内其他工具打通了一体化沟通与启动。</p>
+
+					<div class="note-box">
+						<p>编辑器目前仍是 Beta 版（<code>V0.1.1</code>），尚未适配新版引擎，待新功能稳定后再适配。</p>
+						<p>出于版权原因，编辑器内的部分立绘素材在公开截图中被暂时删除，实际使用时可以正常加载你自己的素材。</p>
+					</div>
+				</section>
+
+				<!-- ===== 延伸阅读 ===== -->
+				<section id="more">
+					<h2>延伸阅读</h2>
+
+					<p>本文档只讲使用。各组件的版本变化、改动记录与发展过程，请看下列页面：</p>
+
+					<div class="feature-section">
+						<ul>
+							<li><a href="Important_Update.html">重要联合更新日志</a></li>
+							<li><a href="versionengine.html">引擎更新日志</a> · <a href="versionexe.html">启动器更新日志</a> · <a href="versionpackage.html">专用补丁系统更新日志</a></li>
+							<li><a href="manager.html">管理器更新日志</a> · <a href="versioneditor.html">可视化编辑器更新日志</a></li>
+							<li>语法与指令：<a href="scripting.html">基础脚本语法与指令规范</a> · <a href="variables.html">变量与运算符</a> · <a href="KSmacro.html">KS 宏与 DSL 语法指南</a> · <a href="wait.html">[wait time] 标签使用指南</a> · <a href="API.html">引擎对外 API 参考</a></li>
+							<li>资源与演出：<a href="assets.html">资源管理与配置</a> · <a href="background.html">背景转场教程</a> · <a href="chars.html">立绘控制教程</a> · <a href="charsnew.html">高级立绘系统详细教学</a></li>
+							<li>系统机制：<a href="lovesystem.html">好感度系统详解</a> · <a href="archive_system.html">存档系统详细说明</a> · <a href="icon.html">品牌图标</a> · <a href="download.html">下载中心</a> · <a href="history.html">开发者手记</a> · <a href="../API/index.html">引擎插件</a></li>
+						</ul>
+					</div>
+				</section>
+
+			</main>
+		</div>
+
+	<button id="backToTopBtn">回到顶部</button>
+
+	<footer class="site-footer">
+		<div class="footer-col">
+			<h4>开源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">引擎本体与启动器</a> · <a href="license_engine.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/license.txt" target="_blank">GitHub</a></p>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-editor" target="_blank">可视化编辑器</a> · <a href="license_editor.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/license.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>闭源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-manager" target="_blank">管理器与签发器</a></p>
+			<p><a href="license_manager.html" target="_blank">管理器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/license.txt" target="_blank">GitHub</a></p>
+                <p><a href="license_signer.html" target="_blank">签发器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/licensesigner.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>第三方开源协议</h4>
+			<p><a href="opensource_engine.html" target="_blank">启动器</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_manager.html" target="_blank">管理器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES_SIGNER.txt" target="_blank">GitHub</a> <br/>
+				<a href="opensource_signer.html" target="_blank">签发器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_editor.html" target="_blank">编辑器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a></p>
+			
+		</div>
+		<p class="footer-copyright" style="text-align:center"><a href="MIT_LICENSE.html" target="_blank">本网页采用 MIT License 协议</a> · <a href="https://github.com/1145141919810TONNY/Shioriteaching/blob/main/LICENSE" target="_blank">GitHub</a>，与 Shiori 其他项目协议不同，详情请参照各自的协议文件<br>
+			<a href="https://1145141919810tonny.github.io/Shioriteaching/" target="_blank">GitHub Pages 在线服务</a> · <a href="https://wakudemo.cn/games/100266" target="_blank">WakuDemo 应用商店</a>
+				&nbsp;&nbsp;&nbsp;&nbsp;联系方式：<a href="mailto:3099637681@qq.com">QQ</a> · <a href="https://space.bilibili.com/87412647" target="_blank">bilibili</a><br>
+			Copyright &copy; <span class="footer-year"></span> bilibili 月が綺麗ですね_ All Rights Reserved.</p>
+	</footer>
+	
+	<script>document.querySelectorAll('.footer-year').forEach(function(e){e.textContent=new Date().getFullYear()})</script>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			// ===== 动态生成目录 =====
+			var toc = document.getElementById('toc');
+			var headings = document.querySelectorAll('.main-content h2, .main-content h3');
+			var html = '';
+
+			headings.forEach(function(heading, index) {
+				if (!heading.id) {
+					heading.id = 'section-' + index;
+				}
+				var level = heading.tagName === 'H2' ? 1 : 2;
+				var text = heading.textContent.trim();
+				var id = heading.id;
+				if (level === 1) {
+					html += '<li><a href="#' + id + '">' + text + '</a></li>';
+				} else {
+					html += '<li class="toc-level-2"><a href="#' + id + '">' + text + '</a></li>';
+				}
+			});
+
+			toc.innerHTML = html;
+
+			// ===== 目录高亮当前项：保证唯一高亮，且始终保持在目录可视区内 =====
+			var TOC_PAD = 12;			// 高亮项与目录可视区上下边缘的最小留白
+			var activeLink = null;
+
+			// 若高亮项超出目录可视区，则内部滚动到刚好完整可见的位置
+			function keepTocLinkVisible(link) {
+				if (!toc || !link) return;
+				// 目录内容未溢出（没有产生内部滚动）时无需处理
+				if (toc.scrollHeight <= toc.clientHeight + 1) return;
+				var tocRect = toc.getBoundingClientRect();
+				var linkRect = link.getBoundingClientRect();
+				var max = toc.scrollHeight - toc.clientHeight;
+				var top = toc.scrollTop;
+				if (linkRect.top - TOC_PAD < tocRect.top) {
+					top -= (tocRect.top - linkRect.top) + TOC_PAD;
+				} else if (linkRect.bottom + TOC_PAD > tocRect.bottom) {
+					top += (linkRect.bottom - tocRect.bottom) + TOC_PAD;
+				} else {
+					return;					// 已在可视区内，不做任何滚动
+				}
+				top = Math.max(0, Math.min(max, top));
+				if (Math.abs(top - toc.scrollTop) < 1) return;
+				if (toc.scrollTo) {
+					toc.scrollTo({ top: top, behavior: 'smooth' });
+				} else {
+					toc.scrollTop = top;
+				}
+			}
+
+			function setActiveTocLink(link) {
+				if (!link || link === activeLink) return;
+				activeLink = link;
+				document.querySelectorAll('.toc a').forEach(function(l) { l.classList.remove('active'); });
+				link.classList.add('active');
+				keepTocLinkVisible(link);
+			}
+
+			// 以视口上方 1/4 处为参考线，取其上方最后一个标题作为当前所在章节
+			function updateActiveTocLink() {
+				var current = null;
+				if (headings.length) {
+					var refLine = window.innerHeight * 0.25;
+					current = headings[0];
+					for (var i = 0; i < headings.length; i++) {
+						if (headings[i].getBoundingClientRect().top <= refLine) {
+							current = headings[i];
+						} else {
+							break;			// 标题按文档顺序排列，后续只会更低
+						}
+					}
+				}
+				if (!current) return;
+				var link = toc.querySelector('a[href="#' + current.id + '"]');
+				if (link) setActiveTocLink(link);
+			}
+
+			// ===== 平滑滚动（TOC 链接） =====
+			document.querySelectorAll('.toc a[href^="#"]').forEach(function(anchor) {
+				anchor.addEventListener('click', function(e) {
+					e.preventDefault();
+					var targetId = this.getAttribute('href');
+					if (targetId === '#') return;
+					var target = document.querySelector(targetId);
+					if (!target) return;
+					setActiveTocLink(this);
+					window.scrollTo({
+						top: target.offsetTop - 20,
+						behavior: 'smooth'
+					});
+				});
+			});
+
+			// ===== 滚动 / 尺寸变化时同步高亮（rAF 节流） =====
+			var tocTick = false;
+			function onScrollSyncToc() {
+				if (tocTick) return;
+				tocTick = true;
+				(window.requestAnimationFrame || function(fn) { return setTimeout(fn, 16); })(function() {
+					tocTick = false;
+					updateActiveTocLink();
+				});
+			}
+
+			window.addEventListener('scroll', onScrollSyncToc, { passive: true });
+			window.addEventListener('resize', onScrollSyncToc);
+			window.addEventListener('load', updateActiveTocLink);
+			window.addEventListener('hashchange', updateActiveTocLink);
+			updateActiveTocLink();
+
+			// ===== 回到顶部 / 滚到底部 =====
+			var backToTopBtn = document.getElementById('backToTopBtn');
+			var scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+
+			window.addEventListener('scroll', function() {
+				if (backToTopBtn) backToTopBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
+
+				if (scrollToBottomBtn) {
+					var scrollY = window.scrollY || window.pageYOffset;
+					var docHeight = document.documentElement.scrollHeight;
+					var winHeight = window.innerHeight;
+					var atBottom = (scrollY + winHeight) >= docHeight - 50;
+					scrollToBottomBtn.style.display = (docHeight > winHeight + 10 && !atBottom) ? 'block' : 'none';
+				}
+			});
+			if (backToTopBtn) {
+				backToTopBtn.addEventListener('click', function() {
+					window.scrollTo({ top: 0, behavior: 'smooth' });
+				});
+			}
+			if (scrollToBottomBtn) {
+				scrollToBottomBtn.addEventListener('click', function() {
+					window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+				});
+			}
+
+			// ===== 图片灯箱 =====
+			var lightbox = document.createElement('div');
+			lightbox.id = 'lightbox';
+			lightbox.className = 'lightbox-overlay';
+			lightbox.innerHTML = '<img id="lightboxImg" src="#" alt="预览"><span class="lightbox-hint">点击空白处关闭 · 滚轮缩放</span>';
+			document.body.appendChild(lightbox);
+
+			var lightboxImg = document.getElementById('lightboxImg');
+			var currentZoom = 1;
+
+			function applyZoom() {
+				lightboxImg.style.transform = 'scale(' + currentZoom + ')';
+			}
+
+			document.querySelectorAll('.image-placeholder img').forEach(function (img) {
+				img.addEventListener('click', function (e) {
+					e.stopPropagation();
+					lightboxImg.src = this.src;
+					currentZoom = 1;
+					applyZoom();
+					lightbox.classList.add('show');
+				});
+			});
+
+			lightbox.addEventListener('click', function (e) {
+				if (e.target === lightbox) {
+					lightbox.classList.remove('show');
+				}
+			});
+
+			lightbox.addEventListener('wheel', function (e) {
+				e.preventDefault();
+				var delta = e.deltaY > 0 ? -0.15 : 0.15;
+				currentZoom = Math.max(0.3, Math.min(5, currentZoom + delta));
+				applyZoom();
+			});
+		});
+	</script>
+</body>
+</html>

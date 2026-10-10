@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>变量与运算符 - Shiori 引擎</title>
+    <link rel="stylesheet" href="../style.css">
+	<link rel="icon" type="image/png" href="../icon/ico16.ico">
+<style>
+	#scrollToBottomBtn {
+		position: fixed;
+		right: 20px;
+		bottom: 20px;
+		padding: 10px 20px;
+		background-color: #e67e22;
+		color: white;
+		border: none;
+		border-radius: 5px;
+		cursor: pointer;
+		z-index: 999;
+		font-size: 14px;
+		outline: none;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		font-weight: 600;
+		transition: background-color 0.3s, transform 0.3s;
+	}
+	#scrollToBottomBtn:hover {
+		background-color: #d35400;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+	}
+	#scrollToBottomBtn:active {
+		transform: translateY(1px);
+	}
+
+	#backToTopBtn {
+		position: fixed;
+		right: 20px;
+		bottom: 60px;
+		padding: 10px 20px;
+		background-color: #3498db;
+		color: white;
+		border: none;
+		border-radius: 5px;
+		cursor: pointer;
+		z-index: 999;
+		font-size: 14px;
+		outline: none;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		font-weight: 600;
+		transition: background-color 0.3s, transform 0.3s;
+	}
+	#backToTopBtn:hover {
+		background-color: #2980b9;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+	}
+	#backToTopBtn:active {
+		transform: translateY(1px);
+	}
+
+	#scrollToBottomBtn, #backToTopBtn {
+		display: none;
+	}
+</style>
+
+</head>
+<body>
+    <div class="container doc-container">
+        <header>
+            <h1>变量与运算符</h1>
+            <p>归纳 Shiori 剧本里修改变量与书写条件的全部运算符、写法与限制<br>所有写法均以引擎当前实现为准，语法问题会在编译期与运行期两层给出诊断</p>
+            <a href="../index.html" class="nav-button">返回主页</a>
+        </header>
+        <div class="doc-layout">
+            <aside class="doc-sidebar">
+                <div class="doc-sidebar-header">
+                    <h3>目录</h3>
+                </div>
+                <ul class="doc-toc" id="docToc"></ul>
+            </aside>
+
+        <main class="tutorial-content">
+
+            <h2 id="ns">1. 三层变量命名空间</h2>
+            <p>Shiori 的变量系统借鉴 KAG / kirikiri 的命名空间语义，按<strong>存活范围</strong>分为三层。三层共用同一套运算符与写法，区别只在「活多久、进不进存档」。</p>
+            <table>
+                <thead>
+                    <tr><th>前缀</th><th>名称</th><th>存放位置 / 持久化</th><th>是否进存档槽</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>f.</code></td>
+                        <td>游戏变量（本局进度、好感度、标志位）</td>
+                        <td>sessionStorage 运行时镜像 + 存档槽</td>
+                        <td>是</td>
+                    </tr>
+                    <tr>
+                        <td><code>sf.</code></td>
+                        <td>系统变量（通关解锁、跨周目标记）</td>
+                        <td>localStorage（跨会话留存）</td>
+                        <td>否</td>
+                    </tr>
+                    <tr>
+                        <td><code>tf.</code></td>
+                        <td>临时变量（页面级缓存）</td>
+                        <td>纯内存</td>
+                        <td>否</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>变量名在 <code>$</code> 语句区里由引擎自行解析，允许 ASCII 字母、数字、下划线以及中日文字符，但<strong>不能以数字开头</strong>。例如 <code>f.aff_a</code>、<code>sf.通关</code>、<code>tf.tmp1</code> 都合法。</p>
+            <div class="tip-box">
+                <strong>相关文档：</strong>三层变量的读写时机、跨场景继承与存档 JSON 结构，请见 <a href="lovesystem.html" target="_blank">好感度系统详解</a> 与 <a href="archive_system.html" target="_blank">存档系统详解</a>；本页只讲运算符与写法。
+            </div>
+
+            <hr>
+
+            <h2 id="entry">2. 写变量的两个入口</h2>
+            <p>剧本里改变量有两条正式路径，二者写入的是同一个变量空间，区别在表达力：</p>
+            <table>
+                <thead>
+                    <tr><th>入口</th><th>写法位置</th><th>适合场景</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>vars</code> 动作</td>
+                        <td><code>action</code> 字段里的动作对象</td>
+                        <td>单条赋值、清空变量、重置系统。<code>op</code> 取值 <code>setF</code> / <code>setSF</code> / <code>setTF</code> / <code>clearF</code> / <code>resetSystem</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>$</code> 变量语句区</td>
+                        <td><code>command</code> 字段（整段以 <code>$</code> 开头）</td>
+                        <td>一次写多条语句、做条件分支、复合赋值与自增</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="code-block">
+<pre>// 入口一：vars 动作（单条赋值）
+{ text: "", action: { type: "vars", op: "setF", name: "aff_a", value: 10 } }
+
+// 入口二：$ 变量语句区（多语句 + 条件分支）
+{ text: "", command: "$f.aff_a += 5; f.flag = 1" }</pre>
+            </div>
+            <div class="tip-box">
+                <code>vars</code> 动作的完整参数说明见 <a href="lovesystem.html" target="_blank">好感度系统详解</a> 第 2 节方式四，<code>action</code> 字段本身的写法见 <a href="scripting.html" target="_blank">基础脚本语法与指令规范</a> 第 3 节。下面先对照两个入口的异同，第 3 节起全部围绕 <code>$</code> 变量语句区。
+            </div>
+
+            <h3 id="entry-same">2.1 两者一致的部分</h3>
+            <ul>
+                <li>写入的是同一个变量空间。两条路径最终落到 <code>stores.sf</code> 里的同一个键，再经 <code>persistSF()</code> 防抖写入 <code>localStorage</code>，跨会话留存。</li>
+                <li>受同一套系统变量规则约束。<code>sf.clear</code> 只能置 <code>1</code>、<code>tf.allclear</code> 完全不可写，两条路径都会被拦下（见 <a href="#sysvar">第 7 节</a>）。</li>
+                <li>都写在 <code>text: ""</code> 的空行上，本身不产生对白。</li>
+            </ul>
+
+            <h3 id="entry-diff">2.2 四个实际差异</h3>
+            <table>
+                <thead>
+                    <tr><th>差异</th><th><code>vars</code> 动作</th><th><code>$</code> 变量语句区</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>编译期校验</td>
+                        <td>没有。<code>type</code> / <code>op</code> / <code>name</code> / <code>value</code> 只在运行时解释，写错要等这一行真的执行到才暴露</td>
+                        <td>有。编译场景时即校验，问题写入 <code>lines[i].diagnostics</code>，F1 / F2 面板可查（见 <a href="#diag">第 9 节</a>）</td>
+                    </tr>
+                    <tr>
+                        <td>行推进</td>
+                        <td>这一行只有 <code>action</code>、没有 <code>command</code>，引擎不会自动换行，会停在空行等玩家点一下</td>
+                        <td>这一行的 <code>command</code> 以 <code>$</code> 开头，执行完 100ms 后自动进入下一行，玩家无感知</td>
+                    </tr>
+                    <tr>
+                        <td>能表达的操作</td>
+                        <td><code>op</code> 覆盖 <code>setF</code> / <code>setSF</code> / <code>setTF</code> / <code>clearF</code> / <code>resetSystem</code>，其中后两者是清档通道</td>
+                        <td>复合赋值、自增自减、<code>;</code> 多语句、<code>?条件 | 真分支 | 假分支</code>；没有清档操作</td>
+                    </tr>
+                    <tr>
+                        <td>变量名校验</td>
+                        <td><code>setF</code> / <code>setSF</code> / <code>setTF</code> 按名字直接写入，名字格式不做校验</td>
+                        <td>变量名必须匹配 <code>f.</code> / <code>sf.</code> / <code>tf.</code> 加标识符，不合法直接记 error</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="code-block">
+<pre>// 写法一：vars 动作。终态相同，但这一行没有 command，执行完停在空行等点击
+{ text: "", action: { type: "vars", op: "setSF", name: "clear", value: 1 } }
+
+// 写法二：$ 变量语句区。终态相同，执行完自动进入下一行
+{ text: "", command: "$sf.clear = 1" }</pre>
+            </div>
+            <div class="warning-box">
+                <strong>怎么选：</strong>
+                <ul>
+                    <li>只是写一两条变量，或者要调 <code>clearF</code> / <code>resetSystem</code> 这类清档操作，用 <code>vars</code> 动作（写法见 <a href="lovesystem.html" target="_blank">好感度系统详解</a> 第 2 节方式四）。<code>$</code> 变量语句区没有清档操作，例如清零 <code>sf.clear</code> 只能靠 <code>resetSystem</code>（见 <a href="#sysvar">第 7 节</a>）。</li>
+                    <li>要一次写多条、做复合运算或条件分支，用 <code>$</code> 变量语句区；好处是写错能在编译期被指出来，而且不打断玩家的点击节奏。</li>
+                    <li>同一行里 <code>command</code> 与 <code>action</code> 可以并存，执行顺序固定为先 <code>command</code> 后 <code>action</code>，两种写法能搭配使用。</li>
+                </ul>
+            </div>
+
+            <hr>
+
+            <h2 id="program">3. $ 变量语句区</h2>
+            <p><code>$</code> 变量语句区把一段变量操作写在 <code>command</code> 字段里。它由引擎自己解析执行，<strong>不执行任意 JS</strong>，因此没有注入面；也正因为它不走标签编译路径，纯网页环境下同样可用。</p>
+
+            <h3 id="p-syntax">3.1 引导符 $ 与语句分隔 ;</h3>
+            <ul>
+                <li><code>$</code> 必须引导<strong>整个</strong> <code>command</code> 字段。字段中段出现的 <code>$</code> 不会被解析，编译期会记一条 warn。</li>
+                <li><code>;</code> 分隔同组内的多条语句，按先后顺序逐条执行。</li>
+                <li><code>$</code> 之后没有任何语句会记一条 error。</li>
+            </ul>
+            <div class="code-block">
+<pre>{
+    text: "",
+    command: "$f.stage = 1; f.stage += 2; f.stage++"   // 三条语句依次执行
+}</pre>
+            </div>
+
+            <h3 id="p-assign">3.2 赋值与复合赋值</h3>
+            <p>赋值类运算符共 5 个，全部写作 <code>命名空间.变量名 运算符 右值</code>：</p>
+            <table>
+                <thead>
+                    <tr><th>运算符</th><th>含义</th><th>等价写法</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>=</code></td><td>直接赋值</td><td><code>f.a = 10</code></td></tr>
+                    <tr><td><code>+=</code></td><td>加上右值</td><td><code>f.a = f.a + 10</code></td></tr>
+                    <tr><td><code>-=</code></td><td>减去右值</td><td><code>f.a = f.a - 10</code></td></tr>
+                    <tr><td><code>*=</code></td><td>乘以右值</td><td><code>f.a = f.a * 10</code></td></tr>
+                    <tr><td><code>/=</code></td><td>除以右值</td><td><code>f.a = f.a / 10</code></td></tr>
+                </tbody>
+            </table>
+            <p>复合赋值先读取当前值再运算。当前值若不是数字，按 <code>0</code> 处理；右值若不是数字，同样按 <code>0</code> 处理。因此 <code>f.a *= 2</code> 在 <code>f.a</code> 未定义时结果是 <code>0</code>。</p>
+
+            <h3 id="p-inc">3.3 自增自减 ++ / --</h3>
+            <p><code>变量++</code> 与 <code>变量--</code> 是 <code>+= 1</code> / <code>-= 1</code> 的简写，只接受「变量名 + 运算符」的紧邻写法：</p>
+            <div class="code-block">
+<pre>$f.stage++        // 等价于 f.stage += 1
+$sf.runs--        // 等价于 sf.runs -= 1</pre>
+            </div>
+            <div class="warning-box">
+                <strong>建议：</strong>跨存档累加类计数器（如 <code>sf.runs</code>）优先用 <code>+= 1</code> 明示意图，避免与「一键置标记」的 <code>flag</code> 写法混淆；数值累加在循环剧本里容易被重复触发，改用布尔式标记 <code>f.routeA = 1</code> 更安全。
+            </div>
+
+            <h3 id="p-noop">3.4 占位符 ~</h3>
+            <p>单条语句写成 <code>~</code> 表示<strong>什么都不做</strong>。它的用途是在条件分支里保留一个空分支，让写法保持对称，例如「只在条件成立时清零，不成立时不动作」：</p>
+            <div class="code-block">
+<pre>$?f.stage &gt;= 4 | ~ | f.stage = 0</pre>
+            </div>
+            <p><code>~</code> 可以出现在语句组里的任意位置，执行时会被直接跳过，不留任何副作用。</p>
+
+            <h3 id="p-short">3.5 简写形式 x+1 / x-1</h3>
+            <p>变量名后面紧跟 <code>+数字</code> 或 <code>-数字</code> 时，按复合赋值处理，语义与写全完全一致：</p>
+            <div class="code-block">
+<pre>$sf.dead+1        // 等价于 sf.dead += 1
+$sf.dead-1        // 等价于 sf.dead -= 1
+$f.count + 2      // 运算符两侧的空格可有可无</pre>
+            </div>
+            <p>这种写法的适用范围比复合赋值窄：运算符只认 <code>+</code> 与 <code>-</code>，右值只能是数字字面量。<code>sf.dead*2</code> 会被判为无法识别的语句；右值想用变量、布尔值或字符串，仍然只能写 <code>+=</code> / <code>-=</code>。<strong>建议直接写复合赋值</strong>，意图更明确，也不受这条限制。</p>
+
+            <h3 id="p-value">3.6 右值允许的写法</h3>
+            <p>运算符右侧只接受下面几类值，超出范围会记一条 error 并拒绝执行该条语句：</p>
+            <table>
+                <thead>
+                    <tr><th>右值类型</th><th>写法示例</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>数字</td><td><code>f.a = 3</code>、<code>f.b = -1.5</code></td><td>支持负号与小数</td></tr>
+                    <tr><td>布尔值</td><td><code>f.flag = true</code></td><td><code>true</code> / <code>false</code></td></tr>
+                    <tr><td>字符串</td><td><code>tf.label = "结局一"</code></td><td>必须用引号包围，单双引号均可</td></tr>
+                    <tr><td>变量引用</td><td><code>f.copy = f.dead</code></td><td>取另一个 <code>f.</code> / <code>sf.</code> / <code>tf.</code> 变量的当前值</td></tr>
+                </tbody>
+            </table>
+            <div class="warning-box">
+                <strong>不支持算式：</strong>右值不能写成表达式，例如 <code>f.a = 1 + 2</code>、<code>f.a = f.b * 2</code> 都会被拒绝。需要计算请拆成多条语句，或用复合赋值：<code>f.a = f.b; f.a *= 2</code>。
+            </div>
+
+            <h3 id="p-divide">3.7 除法与除零</h3>
+            <p><code>/=</code> 的右值为 <code>0</code> 时，语句被视为无效操作，变量保持原值不变，不会抛错、不会变成 <code>Infinity</code>。</p>
+
+            <hr>
+
+            <h2 id="branch">4. 条件分支：?条件 | 真分支 | 假分支</h2>
+            <p>在 <code>$</code> 之后紧跟 <code>?</code> 即可写成条件分支，用 <code>|</code> 分隔三段：</p>
+            <div class="code-block">
+<pre>$?条件 | 真分支语句组 | 假分支语句组
+
+// 例：通关次数达到 3 就把 grade 置 1，否则保持 0 并累加尝试次数
+$?f.dead &gt;= 3 | f.grade = 1; sf.runs += 1 | f.grade = 0; sf.runs += 1</pre>
+            </div>
+            <ul>
+                <li><code>?</code> 之后必须写出条件表达式，写成空会记一条 error。</li>
+                <li><strong>假分支可以省略</strong>：<code>$?f.stage &lt; 0 | f.onlyThen = 1</code> 表示条件成立才执行，不成立时整段什么也不做。</li>
+                <li><code>|</code> 最多出现两次（即最多三段）。写成四段及以上会记一条 error。</li>
+                <li>条件写成 <code>#</code> 表示恒真，等同于无条件执行真分支。</li>
+            </ul>
+
+            <h3 id="branch-pipe">4.1 | 与 || 的区别</h3>
+            <p><code>|</code> 是<strong>分支分隔符</strong>，<code>||</code> 是<strong>逻辑或运算符</strong>。为了不让条件里的 <code>||</code> 被误当成两段，引擎在切分时把成对的 <code>||</code> 当作一个整体（按顶层切分），因此下面这条能正确工作：</p>
+            <div class="code-block">
+<pre>$?f.a == 1 || f.b == 2 | f.hit = 1</pre>
+            </div>
+            <p>条件里的 <code>||</code> 保持原样参与逻辑求值，只有单独出现、不成对的 <code>|</code> 才起分段作用。</p>
+
+            <hr>
+
+            <h2 id="cond">5. 条件表达式与白名单</h2>
+            <p>条件表达式的最终求值交给 JS，因此引擎对条件区做<strong>白名单校验</strong>，只放行确定安全的写法。编译期与运行期使用同一套口径。</p>
+
+            <h3 id="cond-allow">5.1 允许的运算符</h3>
+            <table>
+                <thead>
+                    <tr><th>类别</th><th>运算符</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>相等 / 不等</td><td><code>==</code> <code>!=</code></td><td>值比较</td></tr>
+                    <tr><td>大小比较</td><td><code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code></td><td>数值比较</td></tr>
+                    <tr><td>逻辑运算</td><td><code>&amp;&amp;</code> <code>||</code> <code>!</code></td><td>与 / 或 / 非</td></tr>
+                    <tr><td>分组</td><td><code>( )</code></td><td>改变求值优先级</td></tr>
+                </tbody>
+            </table>
+            <p>除此之外，条件里只能出现三个命名空间下的变量与数字字面量。<code>f.</code> / <code>sf.</code> / <code>tf.</code> 在条件中直接书写，无需前缀标记。</p>
+            <div class="code-block">
+<pre>$?sf.clear == 1 &amp;&amp; f.aff_a &gt;= 20 | f.route = 1
+$?!(f.mood &lt; 0) &amp;&amp; (f.stage &gt; 2 || f.dead == 0) | f.ok = 1</pre>
+            </div>
+
+            <h3 id="cond-eq">5.2 条件区里的 = 按 == 处理</h3>
+            <p>在 JS 里 <code>=</code> 是赋值而不是比较。若条件里误写单个 <code>=</code>，引擎会把它<strong>归一化为 <code>==</code></strong>，并记一条 warn 提示改写法：</p>
+            <div class="code-block">
+<pre>$?f.dead = 3 | f.eqCheck = 1 | f.eqCheck = 0
+// 条件里的 f.dead = 3 已按 f.dead == 3 处理（等价比较）
+// 真分支 / 假分支里的 = 仍是正常赋值</pre>
+            </div>
+            <p>位置语义的界线很清楚：<strong>条件区里的 <code>=</code> 是比较，分支体里的 <code>=</code> 是赋值</strong>。</p>
+
+            <h3 id="cond-reject">5.3 白名单之外的写法</h3>
+            <p>条件里出现全角符号或其他不受支持的片段时（常见于从文档里复制的 <code>≥</code> <code>≤</code> <code>＝</code> <code>＜</code> 以及全角括号），该条件会直接判为失败，并记一条 error 诊断：</p>
+            <div class="code-block">
+<pre>$?f.dead ≠ 3 | f.bad = 1 | f.bad = 999
+// ≠ 不在白名单 → 条件不成立，直接走假分支，并在 F1/F2 面板记一条 error</pre>
+            </div>
+            <div class="warning-box">
+                <strong>为什么必须显式报错：</strong>条件求值失败若被静默吞成 <code>undefined</code>，剧本表现会变成「这个分支永远走兜底」，极难反查。引擎因此把失败路径统一改成「条件不成立 + 记一条 error + 画面上提示一次」，保证问题可见。
+            </div>
+
+            <hr>
+
+            <h2 id="match">6. 分支项写法：when / flag / #</h2>
+            <p>除了 <code>$</code> 语句区里的 <code>?</code> 条件，<code>choices</code> 选项与 <code>action</code> 数组里的每个分支项也支持条件判定。判定按优先级取第一条成立的：</p>
+            <table>
+                <thead>
+                    <tr><th>写法</th><th>判定方式</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>when: "表达式"</code></td><td>按条件白名单求值，与 <code>$</code> 条件同一套规则</td></tr>
+                    <tr><td><code>flag: "#"</code> 或 <code>target: "#"</code></td><td>恒真，用作兜底项</td></tr>
+                    <tr><td><code>flag: "名称"</code></td><td>读 <code>f.&lt;名称&gt;</code>，非 0、非空、非 false 即命中</td></tr>
+                    <tr><td>都不写</td><td>恒真</td></tr>
+                </tbody>
+            </table>
+            <p><code>action</code> 字段写成<strong>数组</strong>时表示一条 else-if 链：下标即求值顺序，取首个命中项作为本行动作，其余整体跳过。省略 <code>when</code> 的分支项恒真，会遮蔽它后面的分支，因此应放在链末。编译期会校验：链末缺少兜底项、兜底项不在末位、空数组都会给出诊断。</p>
+            <div class="code-block">
+<pre>{
+    text: "",
+    action: [
+        { when: "f.aff_a &gt;= 20", type: "nextScene", target: "结局A.html" },
+        { when: "f.aff_a &gt;= 10", type: "nextScene", target: "结局B.html" },
+        { flag: "#",              type: "nextScene", target: "结局C.html" }   // 兜底，放链末
+    ]
+}</pre>
+            </div>
+
+            <hr>
+
+            <h2 id="sysvar">7. 系统变量的写入限制</h2>
+            <p>两个系统变量有硬性写入规则，<code>$</code> 语句区、<code>vars</code> 动作与直接调用 API 三条路径都会拦截：</p>
+            <table>
+                <thead>
+                    <tr><th>变量</th><th>规则</th><th>越界时的表现</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>sf.clear</code></td>
+                        <td>通关标识，<strong>只能置 <code>1</code></strong>。重复置 <code>1</code> 幂等，不报错；<code>0</code> 只是默认状态，不允许由剧本回退</td>
+                        <td>记 error 诊断并拒绝写入，变量保持原值</td>
+                    </tr>
+                    <tr>
+                        <td><code>tf.allclear</code></td>
+                        <td>宿主调试开关（「开启全部鉴赏」），剧本<strong>不可写</strong>。打开后对变量与分支的影响见 <a href="#sysvar-allclear">7.1</a></td>
+                        <td>记 error 诊断并拒绝写入</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="code-block">
+<pre>$sf.clear = 1        // 合法：标记已通关一次
+$sf.clear = 0        // 拒绝：0 只是默认值，不允许回退
+$sf.clear = 2        // 拒绝：取值越界
+$tf.allclear = 1     // 拒绝：宿主调试开关，剧本不可写</pre>
+            </div>
+            <div class="tip-box">
+                <strong>为什么是单向的：</strong>通关是既成事实，不允许「通关之后再走一段剧情就撤销解锁」。清零的唯一通道是「清除存档」/ 宿主清档信号（<code>resetSystem</code>），它直接重建 <code>sf.</code> 存储区，不经过普通写入，属设置里的特殊功能。
+            </div>
+
+            <h3 id="sysvar-allclear">7.1 tf.allclear 与变量运算的交互</h3>
+            <p><code>tf.allclear</code> 是宿主调试菜单「开启全部鉴赏」的开关（管理器与 debug 版启动器），写入 <code>1</code> 后靠 sessionStorage 承载键跨页面生效。剧本与插件都写不了它：<code>$tf.allclear = 1</code>、<code>VarSpace.setTF('allclear', 1)</code> 一律被拒绝并记一条 error 诊断，只有该调试菜单能写。</p>
+            <p>它打开之后<strong>只接管「分支怎么走」，不改变「变量是什么」</strong>。逐一说明：</p>
+            <table>
+                <thead>
+                    <tr><th>对象</th><th>打开 tf.allclear 后的行为</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>$</code> 变量语句区（含 <code>?条件 | 真 | 假</code>）</td>
+                        <td><strong>照常执行</strong>。变量该写什么写什么，<code>?</code> 条件分支也照常自动判定，语句区里没有任何 allclear 分支</td>
+                    </tr>
+                    <tr>
+                        <td><code>action</code> 数组（else-if 链）</td>
+                        <td><strong>被接管</strong>。不再自动取首个命中项、也不自动跳转，全部候选逐条列成按钮，点哪条执行哪条</td>
+                    </tr>
+                    <tr>
+                        <td>静默选项组（<code>text</code> 全空，或写了 <code>silent: true</code>）</td>
+                        <td><strong>被接管</strong>。不再按序求值后自动跳转，每条选项列成按钮；点击后的结算与交互模式一致（记已读、应用 <code>flag</code> + <code>add</code>、跳转 <code>target</code>）</td>
+                    </tr>
+                    <tr>
+                        <td>文字非空的普通 <code>choice</code></td>
+                        <td>不受影响，本来就是玩家点</td>
+                    </tr>
+                    <tr>
+                        <td>入口门禁、鉴赏页锁定</td>
+                        <td>属另一条线：<code>sf.clear === 1</code> 或 <code>tf.allclear</code> 为真即放行</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>被接管的两种都会<strong>停住这一行等点击</strong>，不会自动推进。按钮文字优先取分支项自己的 <code>label</code>；没写 <code>label</code> 时显示 <code>条件 → 去向</code>（条件为空则只显示去向），便于逐条核对每条分支究竟走向哪里。</p>
+            <div class="code-block">
+<pre>{
+    text: "",
+    command: "$f.aff_a += 5",       // 先执行：变量照常落地
+    action: [                       // 后执行：平时取首个命中项，全开时列按钮
+        { when: "f.aff_a &gt;= 20", type: "nextScene", target: "结局A.html" },
+        { when: "f.aff_a &gt;= 10", type: "nextScene", target: "结局B.html" },
+        { flag: "#",              type: "nextScene", target: "结局C.html" }
+    ]
+}</pre>
+            </div>
+            <p>同一行里 <code>command</code> 先执行、<code>action</code> 后执行，所以上例中 <code>f.aff_a</code> 的加法一定先生效；随后这条链在普通流程下按 <code>when</code> 自动挑一条走，在全开状态下则把三条都列出来由开发者手点。关闭开关（写 <code>0</code> 或删除）后立即恢复自动判定，变量也不会被回滚。</p>
+            <p><strong>有多条不同分支时，先让你选分支项：</strong>只要同一条 <code>action</code> 链里存在多条互不相同的分支（不同 <code>when</code> 条件指向不同去向，或末位的兜底项），全开状态下引擎<strong>不会替你自动挑一条</strong>，而是把这些分支逐条列成按钮，先由你选定走哪一条；其中某一条本身是选择组（<code>type: "choice"</code>）时，点中它后还会继续展开该组的选项，也就是「先选分支、再选选项」。静默选项组同理：平时按序求值后自动跳转，全开时改成每条选项各一个按钮。这样调试时能把每条分支都实际走一遍，不必反复改变量去复现。</p>
+
+            <hr>
+
+            <h2 id="table">8. 运算符速查表</h2>
+            <table>
+                <thead>
+                    <tr><th>运算符</th><th>出现位置</th><th>作用</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>$</code></td><td><code>command</code> 字段开头</td><td>引导一段变量语句区</td></tr>
+                    <tr><td><code>;</code></td><td>语句组内</td><td>分隔多条语句</td></tr>
+                    <tr><td><code>?</code></td><td><code>$</code> 之后紧邻</td><td>引导条件分支</td></tr>
+                    <tr><td><code>|</code></td><td>条件分支内</td><td>分隔「条件 / 真分支 / 假分支」</td></tr>
+                    <tr><td><code>=</code></td><td>语句 / 条件</td><td>分支体里是赋值；条件里按 <code>==</code> 处理</td></tr>
+                    <tr><td><code>+=</code> <code>-=</code> <code>*=</code> <code>/=</code></td><td>语句</td><td>复合赋值（读原值再运算）</td></tr>
+                    <tr><td><code>++</code> <code>--</code></td><td>语句</td><td>自增 / 自减 1</td></tr>
+                    <tr><td><code>+</code> <code>-</code></td><td>语句（变量名与数字之间）</td><td>简写：<code>sf.a+1</code> 等价于 <code>sf.a += 1</code>，右值只能是数字</td></tr>
+                    <tr><td><code>~</code></td><td>语句</td><td>占位符，不改变任何变量</td></tr>
+                    <tr><td><code>==</code> <code>!=</code></td><td>条件</td><td>相等 / 不等比较</td></tr>
+                    <tr><td><code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code></td><td>条件</td><td>大小比较</td></tr>
+                    <tr><td><code>&amp;&amp;</code> <code>||</code> <code>!</code></td><td>条件</td><td>逻辑与 / 或 / 非</td></tr>
+                    <tr><td><code>( )</code></td><td>条件</td><td>分组，改变求值优先级</td></tr>
+                    <tr><td><code>#</code></td><td>条件 / 分支项</td><td>恒真（<code>? #</code>、<code>flag: "#"</code>、<code>target: "#"</code>）</td></tr>
+                </tbody>
+            </table>
+
+            <hr>
+
+            <h2 id="diag">9. 错误表现与诊断</h2>
+            <p>变量与条件的写法问题分两层收集，都在 F1 / F2 调试面板里显示：</p>
+            <ul>
+                <li><strong>编译期诊断</strong>：随每行编译结果产出，挂在 <code>story[i].diagnostics</code>。覆盖 <code>$</code> 位置、条件白名单、<code>action</code> 链结构等静态可判定的问题。</li>
+                <li><strong>运行期诊断</strong>：由变量系统在求值与执行时收集，通过 <code>VarSpace.getDiagnostics()</code> 读取，面板里显示在 <code>Runtime（变量 / 条件）</code> 区。同一问题只提示一次，避免推进剧本时刷屏。</li>
+            </ul>
+            <table>
+                <thead>
+                    <tr><th>写法问题</th><th>级别</th><th>引擎行为</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>条件里有白名单之外的内容</td><td>error</td><td>条件判失败（走假分支），记诊断</td></tr>
+                    <tr><td>条件区里写了单个 <code>=</code></td><td>warn</td><td>按 <code>==</code> 处理并记诊断</td></tr>
+                    <tr><td>右值不受支持（算式等）</td><td>error</td><td>该条语句被跳过，其余语句照常执行</td></tr>
+                    <tr><td>变量语句位写了 <code>==</code></td><td>error</td><td>该条语句被跳过（赋值请用 <code>=</code>）</td></tr>
+                    <tr><td>改写 <code>sf.clear</code> / <code>tf.allclear</code></td><td>error</td><td>拒绝写入，变量保持原值</td></tr>
+                    <tr><td>字段中段出现 <code>$</code></td><td>warn</td><td>该 <code>$</code> 不被解析</td></tr>
+                    <tr><td><code>action</code> 链缺兜底 / 兜底不在末位</td><td>warn</td><td>照常执行，提示补兜底项</td></tr>
+                </tbody>
+            </table>
+            <p>脚本里一句话写错，不会导致整段静默失效：已解析出的合法语句照常执行，出问题的语句单独被跳过。</p>
+
+            <hr>
+
+            <h2 id="example">10. 完整示例（语法速览）</h2>
+            <p>下面这段覆盖了赋值、复合赋值、自增、变量引用、条件真假分支、<code>~</code> 占位、条件里 <code>=</code> 按 <code>==</code> 处理以及系统变量限制：</p>
+            <div class="code-block">
+<pre>// 初始化
+{ text: "", command: "$f.stage = 0; f.copy = 0; f.grade = 0; f.eqCheck = 0; f.bad = 0" }
+
+// 赋值 / 复合赋值 / 自增
+{ text: "", command: "$f.stage = 1" }
+{ text: "", command: "$f.stage += 2; f.stage++" }          // 结果 4
+
+// 变量引用
+{ text: "", command: "$f.copy = f.dead" }
+
+// 条件真假分支：条件成立走真分支，否则走假分支
+{ text: "", command: "$?f.dead &gt;= 3 | f.grade = 1; sf.runs += 1 | f.grade = 0; sf.runs += 1" }
+
+// ~ 占位：条件成立才清零，不成立不动作
+{ text: "", command: "$?f.stage &gt;= 4 | ~ | f.stage = 0" }
+
+// 只写真分支，省略假分支
+{ text: "", command: "$?f.stage &lt; 0 | f.onlyThen = 1" }
+
+// 条件区里的 = 按 == 处理
+{ text: "", command: "$?f.dead = 3 | f.eqCheck = 1 | f.eqCheck = 0" }
+
+// 系统变量：只能置 1
+{ text: "", command: "$sf.clear = 1" }
+
+// 白名单之外的写法：条件不成立，记 error，走假分支
+{ text: "", command: "$?f.dead ≠ 3 | f.bad = 1 | f.bad = 999" }</pre>
+            </div>
+            <p>上例执行完毕后各变量终值：<code>f.stage = 4</code>、<code>f.copy = 3</code>、<code>f.grade = 1</code>、<code>f.eqCheck = 1</code>、<code>f.onlyThen</code> 未定义、<code>f.bad = 999</code>、<code>sf.runs = 1</code>、<code>sf.clear = 1</code>；其中两处写法问题（条件里的单个 <code>=</code> 按 <code>==</code> 处理、条件里的 <code>≠</code> 不受支持）会各记入诊断，收集方式见第 9 节。</p>
+
+            <hr>
+
+            <h2 id="case">11. 完整案例：死亡次数与结局走向</h2>
+            <p>前一节逐条演示单个写法，这一节给出一段可以直接照抄的<strong>终局前分岔</strong>剧本：用死亡次数、信任度与通关标识三条线，把玩家分流到四个结局。案例全部使用 <code>$</code> 语句区加 <code>action</code> 链，并演示 <code>sf.clear</code> 的单向语义。</p>
+
+            <h3 id="case-vars">11.1 变量分工</h3>
+            <table>
+                <thead>
+                    <tr><th>变量</th><th>存活范围</th><th>在本案例中的作用</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>f.trust</code></td><td>本存档</td><td>与角色B的信任度，决定「疏离线」是否触发，也是隐藏结局的门槛之一</td></tr>
+                    <tr><td><code>sf.deadHere</code></td><td>跨存档</td><td>「当前这个死亡点是否已经记过账」的站点标记，防止同一处反复刷线路点数</td></tr>
+                    <tr><td><code>sf.dead</code></td><td>跨存档</td><td>这条线路上记过账的死亡点数，达到门槛即解锁「共感结局」</td></tr>
+                    <tr><td><code>sf.deads</code></td><td>跨存档</td><td>全游戏累计死亡次数，同一处重复死亡也计，供统计与演出文案使用</td></tr>
+                    <tr><td><code>sf.clear</code></td><td>跨存档</td><td>通关标识：只可置 <code>1</code>，置过就不能回退；本案例用它把隐藏结局限定为二周目</td></tr>
+                    <tr><td><code>f.ending</code></td><td>本存档</td><td>本局走的是哪条线（<code>1</code> 隐藏 / <code>2</code> 共感 / <code>3</code> 疏离 / <code>4</code> 寻常），供汇合之后分流到各自的结局剧本</td></tr>
+                </tbody>
+            </table>
+            <p>三个命名空间各管一段：<code>f.</code> 跟着这一周目的存档走，读档重来会回到存档当时的值；<code>sf.</code> 跨周目留在本机，所以「累计死亡」与「通关过没有」都必须落在它上面，写成 <code>f.clear</code> 就丢了；<code>tf.</code> 关页即失，适合做本次运行内的临时标记，本案例用不到。</p>
+            <p><code>f.ending</code> 记的是「本局拿到哪个结局」，跨文件跳转时 <code>f.</code> 会跟着一起走，所以这里用 <code>f.</code> 而不是 <code>tf.</code> —— 汇合处的分流正需要它。</p>
+
+            <h3 id="case-death">11.2 死亡结算：同一处只记一次线路点数</h3>
+            <p>玩家从失败点重来时先走这一段。真分支负责「第一次在此处死亡」的记账，假分支只累加全游戏总数；随后再按累计次数把台词分成两种：</p>
+            <div class="code-block">
+<pre>// ---------- 1. 死亡结算 ----------
+{
+    text: "",
+    // ?条件 | 真分支 | 假分支
+    // 真分支：这个点还没记过账（未定义，或不是 1）→ 记上，线路点数 +1，全局次数 +1
+    // 假分支：这个点已经记过账 → 只累加全局次数，线路点数不重复计
+    command: "$?sf.deadHere != 1 | sf.deadHere = 1; sf.dead += 1; sf.deads += 1 | sf.deads += 1"
+},
+
+// 台词分流：全游戏第一次死亡说「倒在了这里」，第二次及以后才说「又一次」。
+// sf.deads == 1 走首次分支，其余（2 次及以上）全部落进省略 when 的兜底项
+{
+    text: "",
+    action: [
+        { when: "sf.deads == 1", type: "nextScene", target: "死亡首次" },
+        { type: "nextScene", target: "死亡重复" }
+    ]
+},
+
+{ text: "", command: "[死亡首次]" },
+{ text: "你倒在了这里。", speaker: "系统" },
+// 首次分支说完就跳到收口标签，否则会顺着往下把「又一次」也念一遍
+{ text: "", action: { type: "nextScene", target: "死亡汇合" } },
+
+{ text: "", command: "[死亡重复]" },
+{ text: "你又一次倒在了这里。", speaker: "系统" },
+
+{ text: "", command: "[死亡汇合]" },</pre>
+            </div>
+            <p>台词不能写死成「你又一次倒在了这里」—— 玩家第一次死在这里时还没「又」过，这句话当场穿帮。所以宁可多分一次岔：用 <code>sf.deads</code> 判断，等于 <code>1</code> 走首次分支，2 次及以上的情况全部交给省略 <code>when</code> 的兜底项（就是 <a href="#match">第 6 节</a> 说的「同一条链上，兜底项管住所有剩余情况」）。两条分支各自用 <code>nextScene</code> 跳到 <code>死亡汇合</code> 收口，首次分支必须先跳走，否则顺序执行会接着把第二段台词也念一遍。</p>
+            <div class="warning-box">
+                <strong>未初始化的变量不是 <code>0</code>：</strong>这里判断写的是 <code>sf.deadHere != 1</code>，而不是 <code>sf.deadHere == 0</code>。剧本从未给 <code>sf.deadHere</code> 赋过值时它是 <code>undefined</code>，而 <code>undefined == 0</code> 在 JS 里是假，写成 <code>== 0</code> 会让第一次经过这里就直接走进假分支，线路点数永远加不上去。右侧链上的 <code>sf.clear == 1</code> 不受这条影响：未通关时 <code>undefined == 1</code> 本来就是假，正是想要的结果。
+            </div>
+            <p>门槛取 <strong>2 至 3 次</strong>比较合适。死亡次数是「玩家试错成本」的刻度：定到 5 次，多数人还没触发就放弃了；定到 1 次，等于人人都能拿到，失去区分度。</p>
+
+            <h3 id="case-chain">11.3 终局分岔：一行一条 else-if 链</h3>
+            <p>四条线路写在同一个 <code>action</code> 数组里，<strong>数组下标即求值顺序</strong>，取首个命中项，所以条件按「由严到宽」排列，兜底项放最后一项：</p>
+            <div class="code-block">
+<pre>// ---------- 2. 终局前分岔 ----------
+{
+    text: "",
+    command: "[msgoff]",
+    action: [
+        // if：二周目 + 这条线死够 2 点 + 信任够 → 隐藏结局
+        { when: "sf.clear == 1 &amp;&amp; sf.dead &gt;= 2 &amp;&amp; f.trust &gt;= 10",
+          type: "nextScene", target: "隐藏结局", label: "隐藏结局" },
+
+        // else if：这条线死够 3 点 → 共感结局
+        { when: "sf.dead &gt;= 3",
+          type: "nextScene", target: "共感结局", label: "共感结局" },
+
+        // else if：信任太低 → 疏离线
+        { when: "f.trust &lt; 5",
+          type: "nextScene", target: "疏离线",   label: "疏离线" },
+
+        // else：兜底（省略 when 即恒真，必须放最后一项）
+        { type: "nextScene", target: "寻常结局", label: "寻常结局" }
+    ]
+},</pre>
+            </div>
+            <p>省略 <code>when</code> 即恒真，所以兜底项只能放链尾；写在链首会把后面全部遮蔽，编译期会记一条 warn。<code>label</code> 平时不显示，只在调试开关打开时当按钮文字用，写上便于核对每条分支的去向。</p>
+
+            <h3 id="case-routes">11.4 线路落点、通关标识与结局分流</h3>
+            <p>每条线路都用 <code>nextScene</code> 汇到同一个 <code>[汇合]</code> 标签，块与块之间才不会顺流下去；跳走之前先把自己的去向写进 <code>f.ending</code>，汇合之后才有依据分流。到达任一结局都算通关，所以在汇合处统一写入通关标识：</p>
+            <div class="code-block">
+<pre>// ---------- 3. 各线路落点 ----------
+// 每段结尾都是两件事：先记下「本局走的是哪条线」，再跳到 [汇合]。
+// 少了那次跳转就会顺着往下执行，把后面几条线的台词一起演完。
+{ text: "", command: "[隐藏结局]" },
+{ text: "她早就知道你会回来。", speaker: "角色B" },
+{ text: "", command: "$f.ending = 1" },
+{ text: "", action: { type: "nextScene", target: "汇合" } },
+
+{ text: "", command: "[共感结局]" },
+{ text: "你已经倒在这里很多次了。", speaker: "系统" },
+{ text: "", command: "$f.ending = 2" },
+{ text: "", action: { type: "nextScene", target: "汇合" } },
+
+{ text: "", command: "[疏离线]" },
+{ text: "……", speaker: "角色B" },
+{ text: "", command: "$f.ending = 3" },
+{ text: "", action: { type: "nextScene", target: "汇合" } },
+
+{ text: "", command: "[寻常结局]" },
+{ text: "就这样吧。", speaker: "角色B" },
+{ text: "", command: "$f.ending = 4" },
+
+// ---------- 4. 汇合：只做所有结局共同的事，不做去向判定 ----------
+{ text: "", command: "[汇合]" },
+{
+    text: "",
+    // 通关标识：只能置 1，置过之后剧本无法写回 0（设置里的「清除存档」除外）
+    // 下一周目走到这里时 sf.clear == 1 成立，隐藏结局才会进入候选
+    command: "$sf.clear = 1"
+},
+{ text: "", command: "[msgon]" },
+
+// ---------- 5. 汇合之后：按 f.ending 分流到各自的结局剧本 ----------
+// 四个结局都从同一个 [汇合] 标签往下走，到这里已经分不清谁是谁；
+// 若就此收尾，本文件会继续往下执行，四个结局会一股脑淌进同一段剧本。
+// 所以按前面记下的 f.ending 各跳各的 html，每个结局都有自己的落点。
+{
+    text: "",
+    action: [
+        { when: "f.ending == 1", type: "nextScene", target: "ending_hidden.html" },
+        { when: "f.ending == 2", type: "nextScene", target: "ending_empathy.html" },
+        { when: "f.ending == 3", type: "nextScene", target: "ending_apart.html" },
+        { when: "f.ending == 4", type: "nextScene", target: "ending_normal.html" },
+        // 兜底：f.ending 万一没被赋值（日后新增线路忘了写），退回寻常结局，而不是停在这一行
+        { type: "nextScene", target: "ending_normal.html" }
+    ]
+}</pre>
+            </div>
+            <p><code>target</code> 只要带 <code>.html</code> 就会被当成跨文件目标跳走，只写标签名则在本场景文件内跳转；两种写法共用同一个字段，靠字符串形状区分，不需要额外的开关。</p>
+            <div class="warning-box">
+                <strong>汇合之后必须再分一次：</strong><code>[汇合]</code> 只承担「所有结局共同要做的事」（写通关标识、恢复文本框），它本身不带任何去向。四条线都跳到这里以后，谁是从哪条线来的一概看不出来 —— 就此收尾的话，同一个场景文件会继续往下跑，四个结局淌进同一段剧本，玩家也分不清自己拿到的是哪个。所以每条线在跳走之前先用 <code>f.ending</code> 记下身份，汇合之后再按它跳到各自的 <code>ending_*.html</code>。
+            </div>
+            <div class="warning-box">
+                <strong>方向不能反：</strong><code>sf.clear</code> 是本案例里唯一「只进不退」的变量。写成 <code>$sf.clear = 0</code> 不会清零，引擎会记一条 error 并拒绝写入；要回到未通关状态只能用设置里的「清除存档」。自定义变量（例如 <code>sf.clear1</code>）不受这条限制，可以自由置 0 置 1。
+            </div>
+
+            <h3 id="case-walk">11.5 几种走法的判定结果</h3>
+            <table>
+                <thead>
+                    <tr><th>状态（<code>sf.clear</code> / <code>sf.dead</code> / <code>f.trust</code>）</th><th>首个命中的分支项</th><th>分支标签 → <code>f.ending</code></th><th>汇合后跳往</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>一周目（<code>0</code> / <code>1</code> / <code>12</code>）</td><td>第 4 项，兜底</td><td>寻常结局 → <code>4</code></td><td><code>ending_normal.html</code></td></tr>
+                    <tr><td>一周目（<code>0</code> / <code>3</code> / <code>12</code>）</td><td>第 2 项 <code>sf.dead &gt;= 3</code></td><td>共感结局 → <code>2</code></td><td><code>ending_empathy.html</code></td></tr>
+                    <tr><td>二周目（<code>1</code> / <code>2</code> / <code>12</code>）</td><td>第 1 项，隐藏条件三项全中</td><td>隐藏结局 → <code>1</code></td><td><code>ending_hidden.html</code></td></tr>
+                    <tr><td>二周目（<code>1</code> / <code>4</code> / <code>3</code>）</td><td>第 2 项 <code>sf.dead &gt;= 3</code></td><td>共感结局 → <code>2</code></td><td><code>ending_empathy.html</code></td></tr>
+                    <tr><td>二周目（<code>1</code> / <code>0</code> / <code>3</code>）</td><td>第 3 项 <code>f.trust &lt; 5</code></td><td>疏离线 → <code>3</code></td><td><code>ending_apart.html</code></td></tr>
+                </tbody>
+            </table>
+            <p>规则是「首个命中即止」，所以条件越严越靠前。第 4 行走法里 <code>f.trust &lt; 5</code> 其实也成立，但共感项排在它前面，先被截走；第 3 行说明隐藏项放在链首是对的，否则 <code>sf.dead = 2</code> 命不中第 2 项，会被最后的兜底吃掉。</p>
+            <p>「分支标签 → <code>f.ending</code>」这一列不是引擎给的，是各线路在跳向 <code>[汇合]</code> 之前自己写下的标记 —— 汇合处的分流链就靠读它决定跳哪个 <code>ending_*.html</code>。两条链的结论因此必须对得上：日后增删线路，分岔链与分流链要一起改，只改一处就会出现「走到了某个结局，最后却跳进另一个剧本」。</p>
+
+            <h3 id="case-allclear">11.6 调试开关打开时的表现</h3>
+            <p>把 <code>tf.allclear</code> 打开（宿主调试菜单「开启全部鉴赏」）后，本案例里两条 <code>action</code> 链都不再自动挑一条，而是逐条列成按钮：终局分岔链写了 <code>label</code>，按「隐藏结局 / 共感结局 / 疏离线 / 寻常结局」显示；汇合后的分流链没写 <code>label</code>，就按「条件 → 去向」显示成 <code>f.ending == 1 → ending_hidden.html</code> 的样子。点哪条强制走哪条，变量不会被改写，关掉开关即恢复自动判定。完整说明见 <a href="#sysvar-allclear">第 7.1 节</a>。</p>
+
+            <hr>
+
+            <h2 id="ref">12. 相关文档</h2>
+            <div class="tip-box">
+                <ul>
+                    <li><a href="scripting.html" target="_blank">基础脚本语法与指令规范</a>：<code>sceneData</code> 结构、<code>command</code> / <code>action</code> 字段与跳转方式（本页 <a href="#entry">第 2 节</a> 用到的 <code>action</code> 字段写法在其第 3 节）。</li>
+                    <li><a href="lovesystem.html" target="_blank">好感度系统详解</a>：三层变量的读写时机、条件分支路由、<code>vars</code> 动作与 <code>WATCHED_F_VARS</code> 面板（<code>vars</code> 动作的完整 <code>op</code> 清单在其第 2 节方式四，与 <a href="#entry">本页第 2 节</a> 互为对照）。</li>
+                    <li><a href="archive_system.html" target="_blank">存档系统详解</a>：变量如何进入存档槽、读档恢复流程与持久化键名。</li>
+                    <li><a href="API.html" target="_blank">引擎对外 API 参考</a>：<code>VarSpace</code> 的完整方法签名与返回值。</li>
+                    <li><a href="KSmacro.html" target="_blank">KS 宏与 DSL 语法指南</a>：<code>command</code> 字段的编译顺序与指令降级映射。</li>
+                </ul>
+            </div>
+
+        </main>
+        </div>
+        </div>
+
+	<button id="scrollToBottomBtn">滚到底部</button>
+	<button id="backToTopBtn">回到顶部</button>
+
+	<footer class="site-footer">
+		<div class="footer-col">
+			<h4>开源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">引擎本体与启动器</a> · <a href="license_engine.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/license.txt" target="_blank">GitHub</a></p>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-editor" target="_blank">可视化编辑器</a> · <a href="license_editor.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/license.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>闭源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-manager" target="_blank">管理器与签发器</a></p>
+			<p><a href="license_manager.html" target="_blank">管理器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/license.txt" target="_blank">GitHub</a></p>
+                <p><a href="license_signer.html" target="_blank">签发器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/licensesigner.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>第三方开源协议</h4>
+			<p><a href="opensource_engine.html" target="_blank">启动器</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_manager.html" target="_blank">管理器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES_SIGNER.txt" target="_blank">GitHub</a> <br/>
+				<a href="opensource_signer.html" target="_blank">签发器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_editor.html" target="_blank">编辑器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a></p>
+			
+		</div>
+		<p class="footer-copyright" style="text-align:center"><a href="MIT_LICENSE.html" target="_blank">本网页采用 MIT License 协议</a> · <a href="https://github.com/1145141919810TONNY/Shioriteaching/blob/main/LICENSE" target="_blank">GitHub</a>，与 Shiori 其他项目协议不同，详情请参照各自的协议文件<br>
+			<a href="https://1145141919810tonny.github.io/Shioriteaching/" target="_blank">GitHub Pages 在线服务</a> · <a href="https://wakudemo.cn/games/100266" target="_blank">WakuDemo 应用商店</a>
+			&nbsp;&nbsp;&nbsp;&nbsp;联系方式：<a href="mailto:3099637681@qq.com">QQ</a> · <a href="https://space.bilibili.com/87412647" target="_blank">bilibili</a><br>
+			Copyright &copy; <span class="footer-year"></span> bilibili 月が綺麗ですね_ All Rights Reserved.</p>
+	</footer>
+	
+	<script>document.querySelectorAll('.footer-year').forEach(function(e){e.textContent=new Date().getFullYear()})</script>
+
+	<script>
+var backToTopBtn = document.getElementById('backToTopBtn');
+		var scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+
+		window.addEventListener('scroll', function() {
+			if (backToTopBtn) backToTopBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
+
+			if (scrollToBottomBtn) {
+				var scrollY = window.scrollY || window.pageYOffset;
+				var docHeight = document.documentElement.scrollHeight;
+				var winHeight = window.innerHeight;
+				var atBottom = (scrollY + winHeight) >= docHeight - 50;
+				scrollToBottomBtn.style.display = (docHeight > winHeight + 10 && !atBottom) ? 'block' : 'none';
+			}
+		});
+		backToTopBtn.addEventListener('click', function() {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		});
+		if (scrollToBottomBtn) {
+			scrollToBottomBtn.addEventListener('click', function() {
+				window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+			});
+		}
+	</script>
+	<script>
+		/* ===== 左侧目录：从正文 h2 / h3 自动生成，随滚动同步高亮 ===== */
+		document.addEventListener('DOMContentLoaded', function () {
+			var toc = document.getElementById('docToc');
+			var scope = document.querySelector('.tutorial-content') || document.querySelector('main');
+			if (!toc || !scope) return;
+
+			function esc(s) {
+				return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+			}
+
+			var headings = scope.querySelectorAll('h2, h3');
+			var html = '';
+			for (var i = 0; i < headings.length; i++) {
+				var h = headings[i];
+				if (!h.id) h.id = 'doc-sec-' + i;
+				var text = esc(h.textContent.trim());
+				html += (h.tagName === 'H2')
+					? '<li><a href="#' + h.id + '">' + text + '</a></li>'
+					: '<li class="doc-toc-level-2"><a href="#' + h.id + '">' + text + '</a></li>';
+			}
+			toc.innerHTML = html;
+
+			/* 高亮项若超出目录可视区，则把目录内部滚到刚好完整可见 */
+			var TOC_PAD = 12;
+			var activeLink = null;
+
+			function keepTocLinkVisible(link) {
+				if (!toc || !link) return;
+				if (toc.scrollHeight <= toc.clientHeight + 1) return;
+				var tocRect = toc.getBoundingClientRect();
+				var linkRect = link.getBoundingClientRect();
+				var max = toc.scrollHeight - toc.clientHeight;
+				var top = toc.scrollTop;
+				if (linkRect.top - TOC_PAD < tocRect.top) {
+					top -= (tocRect.top - linkRect.top) + TOC_PAD;
+				} else if (linkRect.bottom + TOC_PAD > tocRect.bottom) {
+					top += (linkRect.bottom - tocRect.bottom) + TOC_PAD;
+				} else {
+					return;
+				}
+				top = Math.max(0, Math.min(max, top));
+				if (Math.abs(top - toc.scrollTop) < 1) return;
+				if (toc.scrollTo) {
+					toc.scrollTo({ top: top, behavior: 'smooth' });
+				} else {
+					toc.scrollTop = top;
+				}
+			}
+
+			function setActiveTocLink(link) {
+				if (!link || link === activeLink) return;
+				activeLink = link;
+				var all = toc.querySelectorAll('a');
+				for (var k = 0; k < all.length; k++) { all[k].classList.remove('active'); }
+				link.classList.add('active');
+				keepTocLinkVisible(link);
+			}
+
+			/* 以视口上方 1/4 处为参考线，取其上方最后一个标题为当前章节 */
+			function updateActiveTocLink() {
+				var current = null;
+				if (headings.length) {
+					var refLine = window.innerHeight * 0.25;
+					current = headings[0];
+					for (var j = 0; j < headings.length; j++) {
+						if (headings[j].getBoundingClientRect().top <= refLine) {
+							current = headings[j];
+						} else {
+							break;
+						}
+					}
+				}
+				if (!current) return;
+				var link = toc.querySelector('a[href="#' + current.id + '"]');
+				if (link) { setActiveTocLink(link); }
+			}
+
+			var anchors = toc.querySelectorAll('a[href^="#"]');
+			for (var n = 0; n < anchors.length; n++) {
+				anchors[n].addEventListener('click', function (e) {
+					e.preventDefault();
+					var id = this.getAttribute('href');
+					if (id === '#') return;
+					var target = document.querySelector(id);
+					if (!target) return;
+					setActiveTocLink(this);
+					window.scrollTo({ top: target.offsetTop - 20, behavior: 'smooth' });
+				});
+			}
+
+			var tick = false;
+			function onScrollSync() {
+				if (tick) return;
+				tick = true;
+				(window.requestAnimationFrame || function (fn) { return setTimeout(fn, 16); })(function () {
+					tick = false;
+					updateActiveTocLink();
+				});
+			}
+
+			window.addEventListener('scroll', onScrollSync, { passive: true });
+			window.addEventListener('resize', onScrollSync);
+			window.addEventListener('load', updateActiveTocLink);
+			window.addEventListener('hashchange', updateActiveTocLink);
+			updateActiveTocLink();
+		});
+	</script>
+</body>
+</html>

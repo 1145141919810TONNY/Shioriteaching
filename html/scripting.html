@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脚本语法教程 - Shiori 引擎</title>
+    <link rel="stylesheet" href="../style.css">
+	<link rel="icon" type="image/png" href="../icon/ico16.ico">
+<style>
+		#scrollToBottomBtn {
+			position: fixed;
+			right: 20px;
+			bottom: 20px;
+			padding: 10px 20px;
+			background-color: #e67e22;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			z-index: 999;
+			font-size: 14px;
+			outline: none;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+			font-weight: 600;
+			transition: background-color 0.3s, transform 0.3s;
+		}
+		#scrollToBottomBtn:hover {
+			background-color: #d35400;
+			transform: translateY(-2px);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+		}
+		#scrollToBottomBtn:active {
+			transform: translateY(1px);
+		}
+
+		#backToTopBtn {
+			position: fixed;
+			right: 20px;
+			bottom: 60px;
+			padding: 10px 20px;
+			background-color: #3498db;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			z-index: 999;
+			font-size: 14px;
+			outline: none;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+			font-weight: 600;
+			transition: background-color 0.3s, transform 0.3s;
+		}
+		#backToTopBtn:hover {
+			background-color: #2980b9;
+			transform: translateY(-2px);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+		}
+		#backToTopBtn:active {
+			transform: translateY(1px);
+		}
+
+		#scrollToBottomBtn, #backToTopBtn {
+			display: none;
+		}
+	</style>
+
+</head>
+<body>
+    <div class="container doc-container">
+        <header>
+            <h1>基础脚本语法与指令规范</h1>
+            <p>掌握 sceneData 结构与 Command 字段的核心用法</p>
+            <a href="../index.html" class="nav-button">返回主页</a>
+        </header>
+        <div class="doc-layout">
+            <aside class="doc-sidebar">
+                <div class="doc-sidebar-header">
+                    <h3>目录</h3>
+                </div>
+                <ul class="doc-toc" id="docToc"></ul>
+            </aside>
+
+        <main class="tutorial-content">
+
+            <h2>1. 场景数据结构 (sceneData)</h2>
+            <p>每个场景文件包含一个 `sceneData` 对象，定义了背景、音频和故事脚本。</p>
+            <div class="code-block">
+<pre><span class="code-keyword">const</span> sceneData = {
+    <span class="code-property">background</span>: BG_CONFIG_SUB,
+    <span class="code-property">bgm</span>: BGM_CONFIG_SUB,
+    <span class="code-property">story</span>: [
+        {
+            <span class="code-property">text</span>: <span class="code-string">"对话文本内容"</span>,
+            <span class="code-property">speaker</span>: <span class="code-string">"说话者姓名"</span>,
+            <span class="code-property">background</span>: <span class="code-string">"bg_001_00_00"</span>,
+            <span class="code-property">command</span>: <span class="code-string">"[pov 主角]"</span>
+        }
+    ]
+};</pre>
+            </div>
+
+            <h2>2. Command 字段使用规范</h2>
+            <div class="warning-box">
+                <strong>黄金法则：</strong> 一行只做一件事。要么显示文本，要么执行命令，不要混用。（有特殊说明的除外）
+            </div>
+
+            <h3>[避免] 不推荐：命令与文本混用</h3>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">"这段文字会先显示，但立刻被淡出盖住"</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[fadeout time=1000]"</span>
+}</pre>
+            </div>
+            <p>这一行的文字<strong>仍会正常渲染</strong>——不是被跳过。只是 <code>command</code> 紧跟着执行，<code>[fadeout]</code> 把画面立刻淡出，玩家几乎看不到这句话。所以这里的问题是“刚显示就被盖住”，而不是“文字丢失”；要让玩家看清，就应该拆成两行。</p>
+
+            <h3>[正确] 正确用法：独立成行</h3>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">"即将开始转场..."</span>,
+    <span class="code-property">speaker</span>: <span class="code-string">"旁白"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[fadeout time=1000]"</span>
+}</pre>
+            </div>
+
+            <h3>多指令并行支持</h3>
+            <p>可以在单个 <code>command</code> 属性中使用英文逗号 <code>,</code> 分隔多个指令，引擎会按顺序依次执行：</p>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[normal],[pov 主角],[lock]"</span> <span class="code-comment">// 切换模式、显示POV、锁定点击</span>
+}</pre>
+            </div>
+            <p>这种方式可以大幅减少代码行数，提高编写效率。多个指令会在同一帧内按顺序执行，适合不需要间隔的连续操作。</p>
+
+            <h3>command 与 action 共存</h3>
+            <p>可以在同一个剧情对象中同时使用 <code>command</code> 和 <code>action</code> 属性，引擎会先执行 <code>command</code> 指定的指令，再执行 <code>action</code> 指定的动作：</p>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[msgoff]"</span>, <span class="code-comment">// 先隐藏文本框</span>
+    <span class="code-property">action</span>: { <span class="code-comment">// 然后显示选项菜单</span>
+        <span class="code-property">type</span>: <span class="code-string">"choice"</span>,
+        <span class="code-property">choices</span>: [
+            { <span class="code-property">text</span>: <span class="code-string">"选项1"</span>, <span class="code-property">target</span>: <span class="code-string">"scene2.html"</span> },
+            { <span class="code-property">text</span>: <span class="code-string">"选项2"</span>, <span class="code-property">target</span>: <span class="code-string">"scene3.html"</span> }
+        ]
+    }
+}</pre>
+            </div>
+            <p>这种写法简化了代码结构，常用于在显示选项前执行一些预处理指令（如隐藏文本框、切换模式、锁定点击等）。</p>
+
+            <h2>3. Action 动作对象</h2>
+            <p><code>action</code> 属性用于执行特殊动作，如场景跳转、显示选项等。</p>
+
+            <h3>直接跳转到下一个页面</h3>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">action</span>: {
+        <span class="code-property">type</span>: <span class="code-string">"nextScene"</span>,
+        <span class="code-property">target</span>: <span class="code-string">"scene2.html"</span> <span class="code-comment">// 输入需要跳转的网页名称</span>
+    }
+}</pre>
+            </div>
+
+            <h3>通过选项跳转到对应页面</h3>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">action</span>: {
+        <span class="code-property">type</span>: <span class="code-string">"choice"</span>,
+        <span class="code-property">choices</span>: [
+            { <span class="code-property">text</span>: <span class="code-string">"前往场景1"</span>, <span class="code-property">target</span>: <span class="code-string">"scene1.html"</span> },
+            { <span class="code-property">text</span>: <span class="code-string">"返回主菜单"</span>, <span class="code-property">target</span>: <span class="code-string">"../index.html"</span> }
+        ]
+    }
+}</pre>
+            </div>
+
+            <h3>target 的三种跳转方式</h3>
+            <p><code>target</code> 字段支持三种不同的跳转方式，可灵活控制剧本流程：</p>
+
+            <table>
+                <thead>
+                    <tr><th>写法</th><th>行为</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>target: "xxx.html"</code></td>
+                        <td>跳转到其他场景文件</td>
+                        <td>跳转到指定的 HTML 场景页面，支持相对路径（如 <code>"scene2.html"</code>、<code>"../index.html"</code>）</td>
+                    </tr>
+                    <tr>
+                        <td><code>target: "任意标签"</code></td>
+                        <td><strong>本文件内跳转</strong>到标签位置</td>
+                        <td>在本场景的 <code>story</code> 数组中，查找 <code>command: "[标签]"</code> 所在的行，从那一行的<strong>下一行</strong>开始继续运行。标签可以是任意字符、任意语言。适用于分支剧情的选择后汇合。<br>注意：<code>target</code> 中只要出现 <code>/</code>、<code>\</code> 或 <code>.html</code>，就会被当作跨文件跳转，因此标签名请避开这些字符</td>
+                    </tr>
+                    <tr>
+                        <td><code>target: "#"</code></td>
+                        <td><strong>不跳转</strong>，继续往下运行</td>
+                        <td>选择后不进行任何跳转，直接执行选项之后的下一个 <code>story</code> 数组元素。适用于「不做任何事」「再想想」等不改变流程的选项</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="tip-box">
+                <strong>标签定义方式</strong>：在一条独立的剧情对象中，使用 <code>command: "[标签名]"</code> 即可定义一个标签。标签名必须与 <code>target</code> 中的值完全一致（区分大小写），且不要包含 <code>/</code>、<code>\</code> 或 <code>.html</code>——含这些字符的值会被引擎优先判定为跨文件跳转。
+            </div>
+
+            <h4>示例：本文件内标签跳转（完整三分支写法）</h4>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">action</span>: {
+        <span class="code-property">type</span>: <span class="code-string">"choice"</span>,
+        <span class="code-property">choices</span>: [
+            { <span class="code-property">text</span>: <span class="code-string">"站在原地"</span>, <span class="code-property">target</span>: <span class="code-string">"#"</span> },
+            { <span class="code-property">text</span>: <span class="code-string">"向东走"</span>, <span class="code-property">target</span>: <span class="code-string">"向东走"</span> },
+            { <span class="code-property">text</span>: <span class="code-string">"向西走"</span>, <span class="code-property">target</span>: <span class="code-string">"向西走"</span> }
+        ]
+    }
+},
+<span class="code-comment">// —— 原地分支：target="#" 不跳转，直接运行后续行 ——</span>
+{
+    <span class="code-property">text</span>: <span class="code-string">"你站在了原地等候"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">"你选择了原地等候，没有走向任何方向。"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">action</span>: { <span class="code-property">type</span>: <span class="code-string">"nextScene"</span>, <span class="code-property">target</span>: <span class="code-string">"原地等候.html"</span> }
+},
+<span class="code-comment">// —— 向东走分支：跳转到 command: "[向东走]" 的下一行 ——</span>
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[向东走]"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">"你向东走去，看到了美丽的日出。"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">action</span>: { <span class="code-property">type</span>: <span class="code-string">"nextScene"</span>, <span class="code-property">target</span>: <span class="code-string">"向东走.html"</span> }
+},
+<span class="code-comment">// —— 向西走分支 ——</span>
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[向西走]"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">"你向西走去，听到了悠扬的歌声。"</span>
+},
+{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">action</span>: { <span class="code-property">type</span>: <span class="code-string">"nextScene"</span>, <span class="code-property">target</span>: <span class="code-string">"向西走.html"</span> }
+}</pre>
+            </div>
+
+            <div class="warning-box">
+                <strong>注意</strong>：标签跳转时，引擎的执行目标<strong>恒为标签所在行的下一行</strong>——这是跳转的固定行为，与那一行 <code>text</code> 是否为空没有关系。也就是说，标签行本身永远会被跨过，写在上面的文字不会显示。因此定义标签时请把该行写成 <code>text: ""</code>。每个分支末尾通常配合 <code>nextScene</code> 跳转到对应的独立场景文件。
+            </div>
+
+            <div class="tip-box">
+                <strong>更高级的跳转功能：</strong>以上是 <code>target</code> 最基本的三种去向，够支撑「直线剧情」的流程控制。一旦跳转需要自己按条件挑一条走，或要把同一段跳转逻辑反复复用，就要换更进阶的写法 —— 需要按条件分支跳转时，请见 <a href="variables.html" target="_blank">变量与运算符</a> 的 <a href="variables.html#match" target="_blank">分支项写法：when / flag / #</a>：把 <code>action</code> 写成一个数组就是一条 else-if 链，引擎按序求值、取首个命中项跳转，省掉一层层嵌套的 <code>choices</code>；想把「跳转 + 变量落地」封装成一条可反复调用的指令时，请见 <a href="KSmacro.html" target="_blank">KS 宏与 DSL 语法指南</a> 中的宏定义与 <code>[标签 属性=值]</code> 词面；若要在脚本里用代码直接驱动跳转（例如从自定义界面或插件里触发），请见 <a href="API.html" target="_blank">引擎对外 API 参考</a> 收录的 <code>goTarget</code> / <code>jumpToLabel</code> / <code>goToScene</code> / <code>findLabelLine</code>。
+            </div>
+
+            <h3>保持选项页面整洁</h3>
+            <p>在显示选项前，可以配合 <code>command</code> 属性隐藏文本框，使选项界面更加整洁：</p>
+            <div class="code-block">
+<pre>{
+    <span class="code-property">text</span>: <span class="code-string">""</span>,
+    <span class="code-property">command</span>: <span class="code-string">"[msgoff]"</span>, <span class="code-comment">// 隐藏文本框</span>
+    <span class="code-property">action</span>: {
+        <span class="code-property">type</span>: <span class="code-string">"choice"</span>,
+        <span class="code-property">choices</span>: [
+            { <span class="code-property">text</span>: <span class="code-string">"前往场景1"</span>, <span class="code-property">target</span>: <span class="code-string">"scene1.html"</span> },
+            { <span class="code-property">text</span>: <span class="code-string">"返回主菜单"</span>, <span class="code-property">target</span>: <span class="code-string">"../index.html"</span> }
+        ]
+    }
+}</pre>
+            </div>
+
+            <div class="tip-box">
+                <strong>延伸阅读：变量与运算符。</strong>本节的 <code>command</code> / <code>action</code> 只负责演出与跳转；若要在剧本里修改变量或做条件分支，请见 <a href="variables.html" target="_blank">变量与运算符</a>：<code>$</code> 变量语句区的赋值与复合赋值（<code>=</code> <code>+=</code> <code>-=</code> <code>*=</code> <code>/=</code>）、自增自减（<code>++</code> <code>--</code>）、占位符 <code>~</code>、条件分支 <code>?条件 | 真分支 | 假分支</code>、条件表达式白名单，以及 <code>action</code> 数组（else-if 链）与 <code>choices</code> 的 <code>when</code> / <code>flag</code> / <code>#</code> 判定规则。
+            </div>
+
+            <h2>4. 常用指令速查</h2>
+            <table>
+                <thead>
+                    <tr><th>指令</th><th>功能说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>[pov 角色名]</code></td><td>在右上角显示当前叙事视角</td></tr>
+                    <tr><td><code>[pov stop]</code></td><td>隐藏视角指示器</td></tr>
+                    <tr><td><code>[s]</code></td><td>分段符，等价于一次“点击等待”，点击后继续显示同一行的下一段文本</td></tr>
+                    <tr><td><code>[wait]</code></td><td>暂停剧情，等待用户点击</td></tr>
+                    <tr><td><code>[wait time=1000]</code></td><td>定时等待 1000 毫秒后自动继续（毫秒数可改）</td></tr>
+                    <tr><td><code>[msgoff]</code> / <code>[msgon]</code></td><td>隐藏 / 显示消息框</td></tr>
+                    <tr><td><code>[clearname]</code></td><td>清除姓名框内容（别名 <code>[clear]</code>）</td></tr>
+                    <tr><td><code>[fadeout time=1000]</code></td><td>屏幕淡出效果，可用 <code>color</code> 指定淡出颜色</td></tr>
+                    <tr><td><code>[fadein time=1000]</code></td><td>屏幕淡入效果，可用 <code>color</code> 指定淡入颜色</td></tr>
+                    <tr><td><code>[finish]</code> / <code>[finishwhite]</code></td><td>淡入黑屏 / 白屏，用于收尾（可用 <code>time</code>、<code>bgcolor</code>）</td></tr>
+                    <tr><td><code>[novel]</code></td><td>开启全屏小说模式</td></tr>
+                    <tr><td><code>[normal]</code></td><td>关闭全屏小说模式</td></tr>
+                    <tr><td><code>[lock]、[阻止]</code></td><td>锁定鼠标点击，屏蔽非快进模式的点击（按住 Ctrl 仍可快进）</td></tr>
+                    <tr><td><code>[free]、[解锁]</code></td><td>解除鼠标点击锁定，恢复正常点击交互</td></tr>
+                    <tr><td><code>[BGM play storage=bgm1.ogg vol=80% time=1000]</code></td><td>播放背景音乐，<code>time</code> 为渐入时长；<code>[BGM stop time=800]</code> 为淡出停止</td></tr>
+                    <tr><td><code>[SE play storage=se001.ogg]</code></td><td>播放音效。<code>se</code> 与 <code>bgm</code> 共用 storage / vol / time 参数，但音效为单次播放、不会循环</td></tr>
+                    <tr><td><code>[Voice play storage=voice001.ogg]</code></td><td>播放语音。语音同样为单次播放、不循环</td></tr>
+                    <tr><td><code>[char 角色名]</code></td><td>按角色名显示立绘（完整语法见 <a href="chars.html" target="_blank">立绘控制系统</a>）</td></tr>
+                    <tr><td><code>[background storage=背景.png]</code></td><td>替换背景；带 <code>size</code> / <code>x</code> / <code>y</code> / <code>zoom</code> / <code>time</code> 时改为图层模式并播放动画</td></tr>
+                    <tr><td><code>[off storage=背景.png]</code></td><td>移除指定图层（也可写成 <code>[背景.png off]</code>）</td></tr>
+                    <tr><td><code>[quake who=角色名 level=中]</code></td><td>画面震动；<code>[quake-stop]</code> 停止（<code>[发抖]</code> 是它的宏封装）</td></tr>
+                </tbody>
+            </table>
+            <p class="tip-box">上表只是最常用的一小部分，完整指令清单请见 <a href="KSmacro.html" target="_blank">KS 宏与 DSL 语法指南</a> 与 <a href="API.html" target="_blank">引擎对外 API 参考</a>。</p>
+
+            <div class="tip-box">
+                <strong>延伸阅读：</strong>以上指令的完整参数、媒体指令的图层与音量渐变写法、以及 <code>.ks</code> 宏的定义与展开规则，请见 <a href="KSmacro.html" target="_blank">KS 宏与 DSL 语法指南</a>；剧本里的变量读写与条件运算符（<code>$</code> 语句区、条件白名单、else-if 链）请见 <a href="variables.html" target="_blank">变量与运算符</a>；若需要在脚本里直接调用引擎方法（变量读写、跳转、演出控制），请见 <a href="API.html" target="_blank">引擎对外 API 参考</a>。
+            </div>
+
+            <h2>5. 文本格式标签</h2>
+            <ul>
+                <li><code>\n</code>：换行符，用于在同一段落内换行。</li>
+                <li><code>[br]</code>：换行标签，效果与 <code>\n</code> 相同（HTML 的 <code>&lt;br&gt;</code> 也会被识别）。</li>
+                <li><code>[s]</code>：分段符，点击鼠标后显示下一段文本。</li>
+                <li><code>[汉字,拼音]</code>：注音标注，为文字添加上方注音（类似日语假名）。</li>
+                <li><code>[a]</code>：音频序列分隔符。写在 <code>story</code> 行的 <code>audio</code> / <code>se</code> 字段里，把多段音频拆开、随分段点击逐段播放，例如 <code>audio: "voice1[a]voice2"</code>。</li>
+            </ul>
+            
+            <h3>注音功能示例</h3>
+            <p>使用 <code>[汉字,拼音]</code> 语法可以为文本添加注音标注：</p>
+            <div class="code-block">
+<pre><span class="code-property">text</span>: <span class="code-string">"这是一段[测试,ce shi]文本"</span></pre>
+            </div>
+            <p>显示效果："测试"二字上方会显示拼音 "ce shi"。</p>
+            
+            <h4>多语言支持</h4>
+            <div class="code-block">
+<pre><span class="code-comment">// 中文拼音标注</span>
+<span class="code-property">text</span>: <span class="code-string">"这是[中文,zhong wen]注音"</span>
+
+<span class="code-comment">// 日语假名标注</span>
+<span class="code-property">text</span>: <span class="code-string">"这是[日语,にほんご]标注"</span>
+
+<span class="code-comment">// 混合使用</span>
+<span class="code-property">text</span>: <span class="code-string">"[你好,ni hao]，[世界,shi jie]！"</span></pre>
+            </div>
+            
+            <p><strong>注意事项：</strong></p>
+            <ul>
+                <li>注音功能自动适配常规模式和全屏小说模式</li>
+                <li>适用于所有HTML支持的语言</li>
+                <li>注音内容会以内联方式显示在对应文字上方</li>
+            </ul>
+            <div class="code-block">
+<pre><span class="code-property">text</span>: <span class="code-string">"第一段文字[s]第二段文字\n第三行文字"</span></pre>
+            </div>
+        </main>
+        </div>
+        </div>
+
+	<button id="scrollToBottomBtn">滚到底部</button>
+	<button id="backToTopBtn">回到顶部</button>
+
+	<footer class="site-footer">
+		<div class="footer-col">
+			<h4>开源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">引擎本体与启动器</a> · <a href="license_engine.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/license.txt" target="_blank">GitHub</a></p>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-editor" target="_blank">可视化编辑器</a> · <a href="license_editor.html" target="_blank">使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/license.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>闭源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-manager" target="_blank">管理器与签发器</a></p>
+			<p><a href="license_manager.html" target="_blank">管理器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/license.txt" target="_blank">GitHub</a></p>
+                <p><a href="license_signer.html" target="_blank">签发器使用协议</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/licensesigner.txt" target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>第三方开源协议</h4>
+			<p><a href="opensource_engine.html" target="_blank">启动器</a> · <a href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_manager.html" target="_blank">管理器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES_SIGNER.txt" target="_blank">GitHub</a> <br/>
+				<a href="opensource_signer.html" target="_blank">签发器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a> | <a href="opensource_editor.html" target="_blank">编辑器</a> · <a href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/OPEN_SOURCE_LICENSES.txt" target="_blank">GitHub</a></p>
+			
+		</div>
+		<p class="footer-copyright" style="text-align:center"><a href="MIT_LICENSE.html" target="_blank">本网页采用 MIT License 协议</a> · <a href="https://github.com/1145141919810TONNY/Shioriteaching/blob/main/LICENSE" target="_blank">GitHub</a>，与 Shiori 其他项目协议不同，详情请参照各自的协议文件<br>
+			<a href="https://1145141919810tonny.github.io/Shioriteaching/" target="_blank">GitHub Pages 在线服务</a> · <a href="https://wakudemo.cn/games/100266" target="_blank">WakuDemo 应用商店</a>
+				&nbsp;&nbsp;&nbsp;&nbsp;联系方式：<a href="mailto:3099637681@qq.com">QQ</a> · <a href="https://space.bilibili.com/87412647" target="_blank">bilibili</a><br>
+			Copyright &copy; <span class="footer-year"></span> bilibili 月が綺麗ですね_ All Rights Reserved.</p>
+	</footer>
+	
+	<script>document.querySelectorAll('.footer-year').forEach(function(e){e.textContent=new Date().getFullYear()})</script>
+
+	<script>
+var backToTopBtn = document.getElementById('backToTopBtn');
+		var scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+
+		window.addEventListener('scroll', function() {
+			if (backToTopBtn) backToTopBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
+
+			if (scrollToBottomBtn) {
+				var scrollY = window.scrollY || window.pageYOffset;
+				var docHeight = document.documentElement.scrollHeight;
+				var winHeight = window.innerHeight;
+				var atBottom = (scrollY + winHeight) >= docHeight - 50;
+				scrollToBottomBtn.style.display = (docHeight > winHeight + 10 && !atBottom) ? 'block' : 'none';
+			}
+		});
+		backToTopBtn.addEventListener('click', function() {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		});
+		if (scrollToBottomBtn) {
+			scrollToBottomBtn.addEventListener('click', function() {
+				window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+			});
+		}
+	</script>
+	<script>
+		/* ===== 左侧目录：从正文 h2 / h3 自动生成，随滚动同步高亮 ===== */
+		document.addEventListener('DOMContentLoaded', function () {
+			var toc = document.getElementById('docToc');
+			var scope = document.querySelector('.tutorial-content') || document.querySelector('main');
+			if (!toc || !scope) return;
+
+			function esc(s) {
+				return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+			}
+
+			var headings = scope.querySelectorAll('h2, h3');
+			var html = '';
+			for (var i = 0; i < headings.length; i++) {
+				var h = headings[i];
+				if (!h.id) h.id = 'doc-sec-' + i;
+				var text = esc(h.textContent.trim());
+				html += (h.tagName === 'H2')
+					? '<li><a href="#' + h.id + '">' + text + '</a></li>'
+					: '<li class="doc-toc-level-2"><a href="#' + h.id + '">' + text + '</a></li>';
+			}
+			toc.innerHTML = html;
+
+			/* 高亮项若超出目录可视区，则把目录内部滚到刚好完整可见 */
+			var TOC_PAD = 12;
+			var activeLink = null;
+
+			function keepTocLinkVisible(link) {
+				if (!toc || !link) return;
+				if (toc.scrollHeight <= toc.clientHeight + 1) return;
+				var tocRect = toc.getBoundingClientRect();
+				var linkRect = link.getBoundingClientRect();
+				var max = toc.scrollHeight - toc.clientHeight;
+				var top = toc.scrollTop;
+				if (linkRect.top - TOC_PAD < tocRect.top) {
+					top -= (tocRect.top - linkRect.top) + TOC_PAD;
+				} else if (linkRect.bottom + TOC_PAD > tocRect.bottom) {
+					top += (linkRect.bottom - tocRect.bottom) + TOC_PAD;
+				} else {
+					return;
+				}
+				top = Math.max(0, Math.min(max, top));
+				if (Math.abs(top - toc.scrollTop) < 1) return;
+				if (toc.scrollTo) {
+					toc.scrollTo({ top: top, behavior: 'smooth' });
+				} else {
+					toc.scrollTop = top;
+				}
+			}
+
+			function setActiveTocLink(link) {
+				if (!link || link === activeLink) return;
+				activeLink = link;
+				var all = toc.querySelectorAll('a');
+				for (var k = 0; k < all.length; k++) { all[k].classList.remove('active'); }
+				link.classList.add('active');
+				keepTocLinkVisible(link);
+			}
+
+			/* 以视口上方 1/4 处为参考线，取其上方最后一个标题为当前章节 */
+			function updateActiveTocLink() {
+				var current = null;
+				if (headings.length) {
+					var refLine = window.innerHeight * 0.25;
+					current = headings[0];
+					for (var j = 0; j < headings.length; j++) {
+						if (headings[j].getBoundingClientRect().top <= refLine) {
+							current = headings[j];
+						} else {
+							break;
+						}
+					}
+				}
+				if (!current) return;
+				var link = toc.querySelector('a[href="#' + current.id + '"]');
+				if (link) { setActiveTocLink(link); }
+			}
+
+			var anchors = toc.querySelectorAll('a[href^="#"]');
+			for (var n = 0; n < anchors.length; n++) {
+				anchors[n].addEventListener('click', function (e) {
+					e.preventDefault();
+					var id = this.getAttribute('href');
+					if (id === '#') return;
+					var target = document.querySelector(id);
+					if (!target) return;
+					setActiveTocLink(this);
+					window.scrollTo({ top: target.offsetTop - 20, behavior: 'smooth' });
+				});
+			}
+
+			var tick = false;
+			function onScrollSync() {
+				if (tick) return;
+				tick = true;
+				(window.requestAnimationFrame || function (fn) { return setTimeout(fn, 16); })(function () {
+					tick = false;
+					updateActiveTocLink();
+				});
+			}
+
+			window.addEventListener('scroll', onScrollSync, { passive: true });
+			window.addEventListener('resize', onScrollSync);
+			window.addEventListener('load', updateActiveTocLink);
+			window.addEventListener('hashchange', updateActiveTocLink);
+			updateActiveTocLink();
+		});
+	</script>
+</body>
+</html>

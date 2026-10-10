@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>插件：B 站粉丝牌等级 - Shiori 引擎教学中心</title>
+	<link rel="stylesheet" href="../style.css">
+	<link rel="icon" type="image/png" href="../icon/ico16.ico">
+	<style>
+		.api-container {
+			max-width: 960px;
+			margin: 0 auto;
+			padding: 30px 20px 60px;
+		}
+
+		.download-bar {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			margin: 10px 0 30px;
+		}
+
+		.download-btn {
+			display: inline-block;
+			background: linear-gradient(to right, #8e0e00, #a52a2a);
+			color: #fff;
+			padding: 12px 30px;
+			border-radius: 8px;
+			text-decoration: none;
+			font-weight: 600;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			transition: all 0.3s ease;
+		}
+
+		.download-btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 7px 14px rgba(0, 0, 0, 0.15);
+		}
+
+		.back-link {
+			color: #8e0e00;
+			text-decoration: none;
+			font-weight: 600;
+		}
+
+		.api-h2 {
+			font-size: 24px;
+			color: #8e0e00;
+			margin: 36px 0 14px;
+			padding-left: 12px;
+			border-left: 5px solid #a52a2a;
+		}
+
+		.api-container p,
+		.api-container li {
+			line-height: 1.8;
+			color: #333;
+		}
+
+		.api-container code {
+			background: #f4f4f4;
+			padding: 2px 6px;
+			border-radius: 4px;
+			font-family: Consolas, Menlo, monospace;
+			font-size: 14px;
+		}
+
+		.prompt-box {
+			position: relative;
+			margin-top: 14px;
+		}
+
+		.prompt-box textarea {
+			width: 100%;
+			height: 420px;
+			box-sizing: border-box;
+			padding: 16px;
+			border: 1px solid #ddd;
+			border-radius: 8px;
+			font-family: Consolas, Menlo, monospace;
+			font-size: 13px;
+			line-height: 1.6;
+			background: #fafafa;
+			resize: vertical;
+		}
+
+		.copy-btn {
+			position: absolute;
+			top: 10px;
+			right: 12px;
+			background: #8e0e00;
+			color: #fff;
+			border: none;
+			border-radius: 6px;
+			padding: 8px 16px;
+			cursor: pointer;
+			font-weight: 600;
+		}
+
+		.copy-btn:hover {
+			background: #a52a2a;
+		}
+
+		.note-box {
+			background: #fff7e6;
+			border: 1px solid #ffd591;
+			border-radius: 8px;
+			padding: 14px 18px;
+			color: #ad6800;
+			margin: 16px 0;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			margin: 14px 0;
+		}
+
+		th,
+		td {
+			border: 1px solid #e0e0e0;
+			padding: 10px 12px;
+			text-align: left;
+			line-height: 1.6;
+		}
+
+		th {
+			background: #f7f7f7;
+			color: #8e0e00;
+		}
+	</style>
+</head>
+
+<body>
+	<section class="hero-section">
+		<h1 class="hero-title">插件：B 站粉丝牌等级</h1>
+		<a href="../index.html" class="nav-button">返回主页</a>
+	</section>
+
+	<div class="api-container">
+		<div class="download-bar">
+			<a class="download-btn" href="#">下载插件（GitHub）</a>
+			<a class="back-link" href="index.html">← 返回插件总览</a>
+		</div>
+
+		<div class="note-box">
+			分类：外部 API 插件。本插件对接引擎之外的 B 站服务，需要配套的宿主（启动器）侧桥接文件；
+			未安装时引擎完全不受影响。<br>
+			<strong style="color: #8e0e00;">引擎是否默认装载：否</strong>
+		</div>
+
+		<h2 class="api-h2">插件说明</h2>
+		<p>
+			在引擎里新增一个页面，通过启动器内置登录窗口登录 B 站，经启动器本地代理读取「当前账号对目标主播持有的粉丝牌等级」，
+			把等级写入一个<strong>独立字段</strong>。引擎在条件判定 / 分支跳转时按「独立字段 + 剧本内 <code>f.变量</code>」之和计算，
+			其余读取（F2 面板 / 存档序列化）仍是 <code>f.变量</code> 原值 —— 只影响判定口径，不改动剧本内变量。
+		</p>
+
+		<h2 class="api-h2">隐私与数据说明</h2>
+		<div class="note-box">
+			本插件只与 B 站官方服务通信，不经过任何第三方服务器，也不采集你的账号或设备信息。
+		</div>
+		<ul>
+			<li><strong>登录与鉴权全部在 B 站官网完成。</strong>登录、扫码与身份验证都在启动器的内置登录窗口中打开 B 站官方页面进行（该窗口与插件页共享登录 Cookie）；插件本身既不接管也不保存你的账号、密码或任何登录凭据。</li>
+			<li><strong>接口返回的 JSON 不会被保存，也不会上传到任何网络。</strong>粉丝牌接口返回的完整 JSON 仅用于当前即时读取等级，用完即弃：不落磁盘、不写入存档，也不发送到除 B 站官方接口以外的任何地址。</li>
+			<li><strong>本地只保存一个等级数值。</strong>插件最终只在本地持久化「粉丝牌等级」这一个数字，存入独立字段 <code>localStorage['shiori_f_initial']</code>（与所有存档槽分离）；除此之外没有任何其它数据被写入本地。</li>
+			<li><strong>仅访问 B 站官方域名。</strong>所有请求都指向 B 站自身的接口（<code>api.bilibili.com</code>、<code>api.live.bilibili.com</code>），并经由启动器本地代理转发以复用登录态，不存在任何中转或外部数据通道。</li>
+			<li><strong>可随时清除与卸载。</strong>移除本插件后，本地残留的也只有一个等级数值，可在插件页将其重置为 0；卸载插件不影响引擎其它功能。</li>
+		</ul>
+
+		<h2 class="api-h2">涉及文件</h2>
+		<table>
+			<tr><th>文件</th><th>放置位置</th><th>作用</th></tr>
+			<tr><td><code>BiliLoginBridge.cs</code></td><td>Shiori 启动器工程根目录</td><td>可移植补丁文件：内置登录窗口 + 本地代理 + <code>BiliLevelStore</code></td></tr>
+			<tr><td><code>bilibili.html</code></td><td>引擎目录根</td><td>插件页面：登录、获取等级、写入独立字段</td></tr>
+			<tr><td><code>fans_medal_f2.js</code></td><td>引擎 <code>system/</code></td><td>F2 变量面板中 <code>f.变量</code> 行的金色括号装饰</td></tr>
+			<tr><td><code>index.html</code></td><td>引擎目录根</td><td>标题页入口链接（示例放在信息栏；正式集成请改为菜单按钮）</td></tr>
+		</table>
+
+		<h2 class="api-h2">AI 一键安装提示词</h2>
+		<p>把下面整段复制给 AI，并附上你的项目目录结构，即可按步骤完成安装与排错。</p>
+		<div class="prompt-box">
+			<textarea id="prompt" readonly>你是 Shiori 引擎（原生 HTML/JS 视觉小说引擎 + WPF WebView2 启动器）项目的助手。
+请帮我在当前项目中安装「B 站粉丝牌等级」插件，并给出改动后的代码。
+
+【动手前请先确认】
+若我没有特别说明目标主播的 UID 和剧本内使用的 f 变量名，请先向我提问、确认后再替换到对应位置，
+不要擅自套用示例值。
+
+【插件做什么】
+在引擎里新增一个页面，通过启动器内置登录窗口登录 B 站，经启动器本地代理读取
+「当前登录账号对目标主播持有的粉丝牌等级」，写入一个独立字段；引擎在条件判定 /
+分支跳转时按「独立字段 + 剧本内 f.变量」之和计算。仅影响判定，不改动剧本内变量。
+
+【要放进项目的文件】
+1. Shiori 启动器工程根目录：BiliLoginBridge.cs
+   （可移植补丁文件，自带 BiliLevelStore / BiliMedal，无需新增其它 .cs）
+2. 引擎目录根：bilibili.html（插件页面）
+3. 引擎 system/ 目录：fans_medal_f2.js（F2 变量面板的显示装饰）
+
+【需要改动的代码】
+A. Shiori/MainWindow.xaml.cs
+   在 WebView2 首次导航之前的初始化处（AddHostObjectToScript 附近）新增一行：
+       BiliLoginBridge.Attach(webView);
+
+B. Shiori/HttpServer.cs
+   1) 在 API 路由分发（形如 if / else if (path == "api/xxx") 的那串分支）中新增：
+          else if (path == "api/fans_medal_info")
+          {
+              await HandleFansMedalRequest(response);
+          }
+   2) 新增处理函数 HandleFansMedalRequest(HttpListenerResponse response)：
+          调 BiliLoginBridge.FetchFansMedalJsonAsync() 取回 JSON，直接写回响应体；
+          响应头设 application/json; charset=utf-8 与 Cache-Control: no-store；
+          取回失败时回一个 {"code":-1,"message":"..."} 的 JSON，不要抛 500。
+
+C. 引擎 engine_manifest.json
+   在 official 列表中加入（顺序建议放在 system/vars.js 之后、ui/ui_layout.js 之前）：
+       { "type": "js", "path": "system/fans_medal_f2.js" }
+
+D. BiliLoginBridge.cs 与 bilibili.html
+   1) BiliLoginBridge.cs 里把 AnchorUid 常量替换为目标主播的 UID（纯数字）；
+   2) bilibili.html 与 fans_medal_f2.js 里把 SEED_VAR 替换为剧本内实际使用的变量名
+      （即 f.变量 中的「变量」）；
+   3) bilibili.html 里写死的代理基址按需改（走同源代理时留空即可）。
+
+E. 引擎 index.html（入口链接）
+   在标题页加入指向 bilibili.html 的入口链接。示例只把它放在信息栏（#info-container，
+   测试位置）用于快速验证；正式集成时请提升为正式 UI —— 移入 #menu-container，
+   改成与其它菜单项一致的按钮，例如：
+       <a href="bilibili.html" class="menu-btn">粉丝牌等级</a>
+
+【必须遵守的约束】
+- 登录一律走启动器内置窗口（与主页面共享 Cookie）；页面里不要直接跳转
+  passport.bilibili.com，该导航会被启动器的 NavigationStarting 拦截取消，表现为「点了没反应」。
+- 桥接只在 WebView2 环境生效；普通浏览器打开 bilibili.html 时只做页面内部逻辑。
+- 除上述文件外不要改动引擎其它源文件；本插件可插拔，移除上述引用即完全卸载。
+
+【完成后请自检】
+- 启动器编译无报错；
+- 打开 bilibili.html 能弹出内置登录窗口；
+- 登录后能取到等级并写入独立字段；
+- F2 面板 f.变量 行末尾出现金色括号数字；
+- 标题页能通过入口链接进入插件页。</textarea>
+			<button class="copy-btn" onclick="copyPrompt()">复制提示词</button>
+		</div>
+
+		<h2 class="api-h2">独立字段与判定口径</h2>
+		<ul>
+			<li>独立字段存放在 <code>localStorage['shiori_f_initial']</code>，形如 <code>{ "变量": &lt;等级&gt; }</code>，与所有存档槽分离。</li>
+			<li>剧本内 <code>f.变量</code> 只记剧本自身推进的增量；更新等级只改独立字段，绝不动 <code>f.变量</code>。</li>
+			<li>只有条件判定 / 分支跳转时取「独立字段 + f.变量」之和；示例：独立字段 10 + 剧本增量 20 → 判定按 30 计算。</li>
+		</ul>
+	</div>
+
+	<footer class="site-footer">
+		<div class="footer-col">
+			<h4>开源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/webgalgameengine" target="_blank">引擎本体与启动器</a> · <a
+					href="../html/license_engine.html" target="_blank">使用协议</a> · <a
+					href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/license.txt"
+					target="_blank">GitHub</a></p>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-editor" target="_blank">可视化编辑器</a> · <a
+					href="../html/license_editor.html" target="_blank">使用协议</a> · <a
+					href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/license.txt"
+					target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>闭源项目</h4>
+			<p><a href="https://github.com/1145141919810TONNY/Shiori-manager" target="_blank">管理器与签发器</a></p>
+			<p><a href="../html/license_manager.html" target="_blank">管理器使用协议</a> · <a
+					href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/license.txt"
+					target="_blank">GitHub</a></p>
+			<p><a href="../html/license_signer.html" target="_blank">签发器使用协议</a> · <a
+					href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/licensesigner.txt"
+					target="_blank">GitHub</a></p>
+		</div>
+		<div class="footer-col">
+			<h4>第三方开源协议</h4>
+			<p><a href="../html/opensource_engine.html" target="_blank">启动器</a> · <a
+					href="https://github.com/1145141919810TONNY/webgalgameengine/blob/main/OPEN_SOURCE_LICENSES.txt"
+					target="_blank">GitHub</a> | <a href="../html/opensource_manager.html" target="_blank">管理器</a> · <a
+					href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES_SIGNER.txt"
+					target="_blank">GitHub</a> <br />
+				<a href="../html/opensource_signer.html" target="_blank">签发器</a> · <a
+					href="https://github.com/1145141919810TONNY/Shiori-manager/blob/main/OPEN_SOURCE_LICENSES.txt"
+					target="_blank">GitHub</a> | <a href="../html/opensource_editor.html" target="_blank">编辑器</a> · <a
+					href="https://github.com/1145141919810TONNY/Shiori-editor/blob/main/OPEN_SOURCE_LICENSES.txt"
+					target="_blank">GitHub</a>
+			</p>
+		</div>
+		<p class="footer-copyright" style="text-align:center"><a href="../html/MIT_LICENSE.html" target="_blank">本网页采用
+				MIT
+				License 协议</a> · <a href="https://github.com/1145141919810TONNY/Shioriteaching/blob/main/LICENSE"
+				target="_blank">GitHub</a>，与 Shiori 其他项目协议不同，详情请参照各自的协议文件<br>
+			<a href="https://1145141919810tonny.github.io/Shioriteaching/" target="_blank">GitHub Pages 在线服务</a> ·
+			<a href="https://wakudemo.cn/games/100266" target="_blank">WakuDemo 应用商店</a>
+			&nbsp;&nbsp;&nbsp;&nbsp;联系方式：<a href="mailto:3099637681@qq.com">QQ</a> · <a
+				href="https://space.bilibili.com/87412647" target="_blank">bilibili</a><br>
+			Copyright &copy; <span class="footer-year"></span> bilibili 月が綺麗ですね_ All Rights Reserved.
+		</p>
+	</footer>
+
+	<script>
+		function copyPrompt() {
+			var ta = document.getElementById('prompt');
+			ta.select();
+			try {
+				document.execCommand('copy');
+				alert('提示词已复制');
+			} catch (e) {
+				if (navigator.clipboard) {
+					navigator.clipboard.writeText(ta.value).then(function () { alert('提示词已复制'); });
+				}
+			}
+		}
+		document.querySelectorAll('.footer-year').forEach(function (e) {
+			e.textContent = new Date().getFullYear()
+		})
+	</script>
+</body>
+
+</html>
