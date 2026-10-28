@@ -373,7 +373,7 @@ $?!(f.mood &lt; 0) &amp;&amp; (f.stage &gt; 2 || f.dead == 0) | f.ok = 1</pre>
             <hr>
 
             <h2 id="sysvar">7. 系统变量的写入限制</h2>
-            <p>两个系统变量有硬性写入规则，<code>$</code> 语句区、<code>vars</code> 动作与直接调用 API 三条路径都会拦截：</p>
+            <p>三个系统变量有硬性写入规则，<code>$</code> 语句区、<code>vars</code> 动作与直接调用 API 三条路径都会拦截：</p>
             <table>
                 <thead>
                     <tr><th>变量</th><th>规则</th><th>越界时的表现</th></tr>
@@ -389,13 +389,19 @@ $?!(f.mood &lt; 0) &amp;&amp; (f.stage &gt; 2 || f.dead == 0) | f.ok = 1</pre>
                         <td>宿主调试开关（「开启全部鉴赏」），剧本<strong>不可写</strong>。打开后对变量与分支的影响见 <a href="#sysvar-allclear">7.1</a></td>
                         <td>记 error 诊断并拒绝写入</td>
                     </tr>
+                    <tr>
+                        <td><code>tf.isReplay</code></td>
+                        <td>回放模式载荷，由存档页「指定内容回放」入口维护，剧本<strong>不可写</strong>；配套的 <code>tf.isReplayBegin</code> / <code>tf.isReplayEnd</code> 是回放范围标记，解析层直接丢弃。见 <a href="#sysvar-replay">7.2</a></td>
+                        <td>写 <code>tf.isReplay</code> 记 error 诊断并拒绝；写两个 <code>isReplay*</code> 标记则静默丢弃（不落值、不报错）</td>
+                    </tr>
                 </tbody>
             </table>
             <div class="code-block">
 <pre>$sf.clear = 1        // 合法：标记已通关一次
 $sf.clear = 0        // 拒绝：0 只是默认值，不允许回退
 $sf.clear = 2        // 拒绝：取值越界
-$tf.allclear = 1     // 拒绝：宿主调试开关，剧本不可写</pre>
+$tf.allclear = 1     // 拒绝：宿主调试开关，剧本不可写
+$tf.isReplay = 1     // 拒绝：由存档页回放入口维护</pre>
             </div>
             <div class="tip-box">
                 <strong>为什么是单向的：</strong>通关是既成事实，不允许「通关之后再走一段剧情就撤销解锁」。清零的唯一通道是「清除存档」/ 宿主清档信号（<code>resetSystem</code>），它直接重建 <code>sf.</code> 存储区，不经过普通写入，属设置里的特殊功能。
@@ -445,6 +451,45 @@ $tf.allclear = 1     // 拒绝：宿主调试开关，剧本不可写</pre>
             </div>
             <p>同一行里 <code>command</code> 先执行、<code>action</code> 后执行，所以上例中 <code>f.aff_a</code> 的加法一定先生效；随后这条链在普通流程下按 <code>when</code> 自动挑一条走，在全开状态下则把三条都列出来由开发者手点。关闭开关（写 <code>0</code> 或删除）后立即恢复自动判定，变量也不会被回滚。</p>
             <p><strong>有多条不同分支时，先让你选分支项：</strong>只要同一条 <code>action</code> 链里存在多条互不相同的分支（不同 <code>when</code> 条件指向不同去向，或末位的兜底项），全开状态下引擎<strong>不会替你自动挑一条</strong>，而是把这些分支逐条列成按钮，先由你选定走哪一条；其中某一条本身是选择组（<code>type: "choice"</code>）时，点中它后还会继续展开该组的选项，也就是「先选分支、再选选项」。静默选项组同理：平时按序求值后自动跳转，全开时改成每条选项各一个按钮。这样调试时能把每条分支都实际走一遍，不必反复改变量去复现。</p>
+
+            <h3 id="sysvar-replay">7.2 tf.isReplay 家族：回放范围标记</h3>
+            <p><code>tf.isReplay</code> 由存档页的「指定内容回放」入口写入，进入回放时带着一份载荷（记录 id、标题、起止文件、跳转链）跨页面存活，回放抵达终点即被清掉。和它配套的两个名字<strong>不是变量</strong>，只是写在剧本里的范围标记：</p>
+            <table>
+                <thead>
+                    <tr><th>名字</th><th>形态</th><th>规则</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>tf.isReplay</code></td>
+                        <td>真变量（对象载荷）</td>
+                        <td>由存档页回放入口维护，剧本写它记 error 并拒绝；查询当前是否处于回放用 <code>VarSpace.isReplaying()</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>tf.isReplayBegin</code></td>
+                        <td>回放起点标记，<strong>不是真变量</strong></td>
+                        <td>解析层直接丢弃：不落值、不报错，只在剧本里当范围标记</td>
+                    </tr>
+                    <tr>
+                        <td><code>tf.isReplayEnd</code></td>
+                        <td>回放终点标记，<strong>不是真变量</strong></td>
+                        <td>同上；正片跑到它才写解锁记录</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>两个标记都必须是<strong>整行严格形</strong>：整行只有这一句，不带 <code>?</code> 条件、不带别的语句。</p>
+            <div class="code-block">
+<pre>{ text: "", command: "$tf.isReplayBegin = 1" }   // 起点标记
+{ text: "", command: "$tf.isReplayEnd = 1" }     // 终点标记
+
+$tf.isReplayEnd = 1               // 正确：整行只有这一句
+tf.isReplayEnd = 1                // 漏了 $ 引导：不执行、不识别
+$tf.isReplayEnd = 1; $f.x = 1     // 混入别的语句：不识别</pre>
+            </div>
+            <p>标记行写成<strong>纯标记行</strong>（<code>text</code> 为空，只留 <code>command</code>）时，起点取标记的下一行、终点取标记所在处；标记行本身也带台词时，起点变成该行本身、终点是该行显示完之后。</p>
+            <div class="tip-box">
+                <strong>解锁只发生在正片：</strong>普通播放跑到 <code>$tf.isReplayEnd = 1</code> 时才把这条回放记进解锁表（键 = 存档页记录里的 <code>end</code> 文件名）；跑到 <code>$tf.isReplayBegin = 1</code> 什么也不做。所以「先在正片里真的走完这一段」是重看的前提。<code>tf.allclear</code> 开启时一个字都不写 —— 它只改「能不能看见、能不能点」。
+            </div>
+            <p>回放期间 <code>f.</code> 与 <code>sf.</code> 的写入被<strong>冻结</strong>（剧本、插件、控制台一视同仁），<code>tf.</code> 照常可用；通关标识、场景完成标记、进度快照、存档槽一律不写。因此回放读到的是「进入回放时的那份状态」，退出后真实进度不受影响。</p>
 
             <hr>
 
@@ -702,8 +747,8 @@ $tf.allclear = 1     // 拒绝：宿主调试开关，剧本不可写</pre>
                 <ul>
                     <li><a href="scripting.html" target="_blank">基础脚本语法与指令规范</a>：<code>sceneData</code> 结构、<code>command</code> / <code>action</code> 字段与跳转方式（本页 <a href="#entry">第 2 节</a> 用到的 <code>action</code> 字段写法在其第 3 节）。</li>
                     <li><a href="lovesystem.html" target="_blank">好感度系统详解</a>：三层变量的读写时机、条件分支路由、<code>vars</code> 动作与 <code>WATCHED_F_VARS</code> 面板（<code>vars</code> 动作的完整 <code>op</code> 清单在其第 2 节方式四，与 <a href="#entry">本页第 2 节</a> 互为对照）。</li>
-                    <li><a href="archive_system.html" target="_blank">存档系统详解</a>：变量如何进入存档槽、读档恢复流程与持久化键名。</li>
-                    <li><a href="API.html" target="_blank">引擎对外 API 参考</a>：<code>VarSpace</code> 的完整方法签名与返回值。</li>
+                    <li><a href="archive_system.html#replay" target="_blank">存档系统详解</a>：变量如何进入存档槽、读档恢复流程与持久化键名，以及「指定内容回放」的用法（第 1 节）。</li>
+                    <li><a href="API.html#replay" target="_blank">引擎对外 API 参考</a>：<code>VarSpace</code> 的完整方法签名与返回值，以及回放系统的运行期接口（第 20 节）。</li>
                     <li><a href="KSmacro.html" target="_blank">KS 宏与 DSL 语法指南</a>：<code>command</code> 字段的编译顺序与指令降级映射。</li>
                 </ul>
             </div>
