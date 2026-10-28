@@ -277,17 +277,50 @@
 			<div class="accordion-content">
 
 				<div class="version-block">
+					<h3>V3.0.1 <span class="version-date">(2026/10/28)</span> 小型更新</h3>
+					<ul>
+						<li>新增「指定内容回放」功能：在剧本正片首尾各写入一行严格形标记 <code>$tf.isReplayBegin = 1</code> 与 <code>$tf.isReplayEnd = 1</code>（整行仅此一句，不含 <code>?</code> 条件），引擎进入回放态后以只读方式播放该段，全程冻结变量写入，跑到结束标记即返回进度管理页。</li>
+						<li>回放解锁键为记录 <code>end</code> 标记所在文件名（不含 .html），正片首次跑到 end 时写入 <code>localStorage</code>；「开启全部鉴赏」（<code>tf.allclear</code>）为不变显示开关，开启时回放照常解锁、但一个字都不写。</li>
+						<li>标记识别走 <code>engine_text.js</code> 的 <code>handleReplayMarker(line, index)</code> 局部行号判定，编译期静默丢弃，运行期不报错；相关 API、存储键与冻结清单见教学页 <a href="API.html#replay" target="_blank" rel="noopener noreferrer" style="color: #007bff;">API 接口 20</a> 与 <a href="archive_system.html#replay" target="_blank" rel="noopener noreferrer" style="color: #007bff;">鉴赏系统</a>。</li>
+					</ul>
+				</div>
+
+			</div>
+		</div>
+
+		<!-- V3.0 系列 -->
+		<div class="accordion">
+			<button class="accordion-header">V3.0.x 系列</button>
+			<div class="accordion-content">
+
+				<div class="version-block">
+					<h3>V3.0.0 <span class="version-date">(2026/10/11)</span> 大型联合更新</h3>
+					<ul>
+						<li>本版本为跨模块重要联合更新（引擎核心 V2.2.0 → V3.0.0、启动器 V1.2.7 → V2.0.0 等），详细内容已在「重要联合更新日志」中统一记录，此处不再重复书写。</li>
+						<li>完整更新说明请前往：<a href="Important_Update.html#v300" target="_blank" rel="noopener noreferrer" style="color: #007bff;">Shiori 重要联合更新页面（V2.2.0 → V3.0.0）</a>。</li>
+					</ul>
+				</div>
+
+			</div>
+		</div>
+
+		<!-- V2.2 系列 -->
+		<div class="accordion">
+			<button class="accordion-header">V2.2.x 系列</button>
+			<div class="accordion-content">
+
+				<div class="version-block">
 					<h3>V2.2.0 <span class="version-date">(2026/9/4)</span> 中型更新</h3>
 					<ul>
 						<li>现在完整的补齐了历史遗留问题，好感度系统在旧版本时有严重的bug完全无法正常使用，现已修复，详情语法请参照<code><a href="lovesystem.html" target="_blank" rel="noopener noreferrer" style="color: #007bff;">好感度系统详解页面</a></code></li>
-						<li>借鉴了kirikiri的“f./sf./tf.”变量体系，用于集成在好感度系统中。其中“sf.clear”为系统级变量，用于记录是否通关</li>
-						<li>在index中，功能页面已支持使用“sf.clear”变量来决定是否在主页面显示，请在<code>vars.js</code>的硬编码目录中进行修改</li>
+						<li>借鉴了kirikiri的"f./sf./tf."变量体系，用于集成在好感度系统中。其中"sf.clear"为系统级变量，用于记录是否通关</li>
+						<li>在index中，功能页面已支持使用"sf.clear"变量来决定是否在主页面显示，请在<code>vars.js</code>的硬编码目录中进行修改</li>
 						<li>更多详细的内容请参照好感度系统详解页面，因内容过多此处不再过多介绍</li>
 						<li>修复了右键不能打开上下文菜单的问题</li>
 					</ul>
 					<p>注：由于好感度系统可能尚未完全稳定（至少在我这看来），需要再更多的进行测试，因此并未同步至可视化编辑器中。此功能目前建议有一定js基础的用户以直接修改json的方式使用。</p>
 				</div>
-				
+
 			</div>
 		</div>
 
