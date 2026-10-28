@@ -183,6 +183,62 @@
                             <li>无视觉反馈和状态提示</li>
                         </ul>
                     </div>
+                    <h3 id="replay">指定内容回放</h3>
+                    <p>除底层接口外，saves.html 还提供一处面向玩家的交互：页面上的"指定内容回放"列出已解锁的段落，点一下就从该段起点重看，跑到终点标记自动返回本页。它由三部分组成 —— 剧本里的起止标记、变量系统里的回放状态与解锁记录，以及页面里的登记表与运行器。</p>
+                    <div class="code-block">
+<pre>// 剧本侧：在要回看的段落首尾各放一行标记（整行只有这一句）
+{ text: "", command: "$tf.isReplayBegin = 1" }
+...
+{ text: "", command: "$tf.isReplayEnd = 1" }</pre>
+                    </div>
+                    <p>两个标记都必须是<strong>整行严格形</strong>：整行只有这一句，不带 <code>?</code> 条件、不混别的语句；写成 <code>text</code> 字段里的台词不会被识别。它们<strong>不是变量</strong>，解析层直接丢弃，只在剧本里当范围哨兵。</p>
+                    <ul>
+                        <li><strong>取行规则</strong>：标记行是纯标记行（没有台词）时，起点取下一行、终点停在标记处；标记行本身带台词时，起点就是该行、终点在该行显示完之后。</li>
+                        <li><strong>解锁只发生在正片</strong>：普通播放跑到 <code>$tf.isReplayEnd = 1</code> 才把这段记进解锁表（键 = 登记的结束文件名），跑到开始标记什么也不做 —— 所以"先在正片里真的走完这一段"是重看的前提。</li>
+                        <li><strong>"全部鉴赏"不解锁</strong>：开启时只把未解锁的条目一并列出来（卡片带"（全部鉴赏预览）"后缀），一个字都不写；此时正片跑到终点也不会记解锁。</li>
+                        <li><strong>回放期间冻结写入</strong>：<code>f.</code> 与 <code>sf.</code> 的写入被拦截（剧本、插件、控制台一视同仁），<code>tf.</code> 照常可用；场景完成标记、进度快照、存档槽一律不写，快进（SKIP）也被禁用。回放读到的是进入时的那份状态，退出后真实进度不受影响。</li>
+                        <li><strong>结束方式</strong>：跑到终点标记即返回本页；剧本若先一步结束（走到末尾或跳到别处），同样直接返回。</li>
+                    </ul>
+                    <p>登记表是页面里的 <code>REPLAY_RECORDS</code> 数组，每条记录可用字段如下：</p>
+                    <div class="comparison-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>字段</th>
+                                    <th>含义</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>title</code></td>
+                                    <td>卡片上显示的名字，必填</td>
+                                </tr>
+                                <tr>
+                                    <td><code>begin</code></td>
+                                    <td>起点剧本文件名（不含 <code>.html</code>），必填</td>
+                                </tr>
+                                <tr>
+                                    <td><code>again</code></td>
+                                    <td>可选：跨多个文件时中间经过的文件名数组</td>
+                                </tr>
+                                <tr>
+                                    <td><code>end</code></td>
+                                    <td>终点剧本文件名；省略时等于 <code>begin</code>（单文件回放）</td>
+                                </tr>
+                                <tr>
+                                    <td><code>id</code></td>
+                                    <td>可选：条目标识；省略时按 <code>title</code> 自动生成</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>按跨度分三种情况：单文件（只填 <code>begin</code>）、两个文件（<code>begin</code> + <code>end</code>）、跨三个及以上文件（再补 <code>again</code>）。中间文件只负责串场，里面不该出现起止标记。</p>
+                    <p>解锁记录写在独立的 <code>localStorage.shiori_replay_unlocked</code> 里（键 = 结束文件名），不属于 <code>gameProgress</code>：页面上的"重置进度"不会清掉它，调试菜单的"清除所有存档"会连它一起清。</p>
+                    <div class="highlight-box">
+                        <strong>自查：</strong>
+                        带 <code>?debug=1</code> 打开本页，或在"全部鉴赏"开启时，回放区下方会出现"检查回放配置"按钮。它逐条核对剧本文件是否存在、标记是否为严格形、跳转链是否连通，报出的行号是 <code>scenes/</code> 下磁盘源文件的物理行号（已剔除服务端注入行）；结果可复制或导出为 log。
+                    </div>
+
                 </section>
 
                 <section class="module-section">
@@ -534,6 +590,11 @@ localStorage.gameProgress = {
                         <div class="faq-question">Q5: 流程图节点太多导致混乱怎么办？</div>
                         <p><strong>A:</strong> 建议合理分组相关场景、使用偏移量微调节点位置、考虑未来扩展折叠/展开功能和颜色区分不同类型节点。可在 flowchart_debug.html 中预览完整布局后再设置。</p>
                     </div>
+                    <div class="faq-item">
+                        <div class="faq-question">Q6: 存档页的"指定内容回放"里为什么是空的？</div>
+                        <p><strong>A:</strong> 回放条目要先在正片里解锁才会显示 —— 普通播放走到该段的 <code>$tf.isReplayEnd = 1</code> 标记时才记一笔；还没登记任何条目时同样是空的。如果想先看效果，开启"全部鉴赏"会把未解锁的条目一并列出来（带"（全部鉴赏预览）"后缀），但这种方式不会写解锁记录。</p>
+                    </div>
+
                 </section>
 
                 <section class="module-section">
@@ -553,6 +614,7 @@ localStorage.gameProgress = {
                                 <li>覆盖所有分支路线，确保无死胡同</li>
                                 <li>验证存档/读档功能的稳定性</li>
                                 <li>测试极端情况（大量存档、快速切换场景等）</li>
+                                <li>给要回看的段落首尾加上 <code>$tf.isReplayBegin = 1</code> / <code>$tf.isReplayEnd = 1</code> 标记，用存档页的"检查回放配置"核对行号与跳转链</li>
                             </ul>
                         </li>
                         <li><strong>发布前</strong>：
@@ -569,11 +631,12 @@ localStorage.gameProgress = {
                         <li><strong>定期备份</strong>：每完成一个重要章节后导出存档，将 JSON 文件保存在安全位置</li>
                         <li><strong>合理使用多存档位</strong>：在关键选择前创建多个存档点，为不同路线保留独立存档</li>
                         <li><strong>利用流程图导航</strong>：通过 flowchart.html 查看已探索的剧情，发现遗漏的场景并及时补全</li>
+                        <li><strong>回看已看过的段落</strong>：正片里走到过某段结尾后，它会出现在存档页的"指定内容回放"里，点一下即可重看，不必从头再走一遍</li>
                     </ol>
                 </section>
             </div>
             <div class="tip-box">
-                <strong>延伸阅读：</strong>存档里保存的 <code>f.</code> 变量、以及 <code>sf.</code> 为何不随存档回退请见 <a href="variables.html#ns" target="_blank">变量与运算符</a> 第 1 节；好感度等具体变量的含义请见 <a href="lovesystem.html" target="_blank">好感度系统详解</a>；引擎层的存档 / 进度接口请见 <a href="API.html#archive" target="_blank">引擎对外 API 参考</a> 第 19 节；玩家侧的存档操作入口请见 <a href="readme.html" target="_blank">使用说明文档</a>。
+                <strong>延伸阅读：</strong>存档里保存的 <code>f.</code> 变量、以及 <code>sf.</code> 为何不随存档回退请见 <a href="variables.html#ns" target="_blank">变量与运算符</a> 第 1 节；好感度等具体变量的含义请见 <a href="lovesystem.html" target="_blank">好感度系统详解</a>；引擎层的存档 / 进度接口请见 <a href="API.html#archive" target="_blank">引擎对外 API 参考</a> 第 19 节，回放相关接口（标记、回放状态与解锁记录、存档页运行器）见其 <a href="API.html#replay" target="_blank">第 20 节</a>；玩家侧的存档操作入口请见 <a href="readme.html" target="_blank">使用说明文档</a>。 回放标记的写法与写入限制请见 <a href="variables.html#sysvar-replay" target="_blank">变量与运算符</a> 第 7.2 节。
             </div>
 
         </main>
