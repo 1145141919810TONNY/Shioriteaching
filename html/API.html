@@ -104,7 +104,7 @@
             <p>此外，<code>macro/</code> 目录下的 <code>*.js</code> 会作为原生 JS 宏在清单之后装载（<code>media_impl.js</code>、<code>quake_impl.js</code>），它们通过 <code>__reg</code> 登记指令实现。</p>
 
             <div class="warning-box">
-                <strong>范围声明：</strong>本页正文（第 1~18 节）仅整理“对外可用”的运行期接口。与<b>存档 / 读档 / 进度管理</b>相关的 API 已从正文移出：其中 <code>VarSpace</code> 的存档序列化方法（<code>serializeF()</code> / <code>restoreF()</code> / <code>clearF()</code> / <code>resetSystem()</code>）已在 <a href="lovesystem.html" target="_blank">好感度系统详解</a> 中完整说明；其余存档 / 进度接口（<code>engine_save.js</code>、<code>GalgameProgressAPI</code>、系统模块的存档页导航等）统一收录于本页 <a href="#archive">第 19 节</a>。
+                <strong>范围声明：</strong>本页正文（第 1~18 节）仅整理“对外可用”的运行期接口。与<b>存档 / 读档 / 进度管理</b>相关的 API 已从正文移出：其中 <code>VarSpace</code> 的存档序列化方法（<code>serializeF()</code> / <code>restoreF()</code> / <code>clearF()</code> / <code>resetSystem()</code>）已在 <a href="lovesystem.html" target="_blank">好感度系统详解</a> 中完整说明；其余存档 / 进度接口（<code>engine_save.js</code>、<code>GalgameProgressAPI</code>、系统模块的存档页导航等）统一收录于本页 <a href="#archive">第 19 节</a>，<b>回放系统接口</b>（起止标记、回放状态与解锁记录、存档页运行器）收录于 <a href="#replay">第 20 节</a>。
             </div>
 
             <h3>方法命名约定</h3>
@@ -520,6 +520,9 @@ VarSpace.tf.tmp = Date.now();      // 临时变量</pre>
             <div class="warning-box">
                 <strong>已排除的存档相关方法：</strong><code>serializeF()</code>、<code>restoreF()</code>、<code>clearF()</code>、<code>resetSystem()</code> 属于存档 / 系统重置语义，正文不予收录。<b>完整说明见 <a href="lovesystem.html" target="_blank">好感度系统详解</a> 第 5、7、11 节</b>，本页不再重复。
             </div>
+            <div class="tip-box">
+                <strong>回放相关方法：</strong><code>isReplaying()</code>、<code>getReplay()</code>、<code>clearReplay()</code>、<code>readReplayUnlocked()</code>、<code>isReplayUnlocked()</code>、<code>unlockReplay()</code> 属于回放系统语义，见 <a href="#replay">第 20 节</a>。
+            </div>
 
             <hr>
 
@@ -785,8 +788,100 @@ if (host &amp;&amp; typeof host.invoke === 'function') {
             <div class="highlight-box">
                 <strong>说明：</strong>以上接口均与存档 / 进度强相关，稳定性与语义以引擎实现为准；常规剧本制作无需直接调用，了解其存在即可。
             </div>
+
+            <hr>
+
+            <h2 id="replay">20. 回放系统接口（补充收录）</h2>
+            <p>「指定内容回放」让玩家在存档页选一段已解锁的剧情重看，跑到该段的结束标记自动返回存档页。它由三部分组成：剧本里的<b>起止标记</b>、<code>VarSpace</code> 里的<b>回放状态与解锁记录</b>，以及存档页的<b>登记表与运行器</b>。运行期遇到异常一律静默跳过，不影响剧情推进；玩家侧用法见 <a href="archive_system.html#replay" target="_blank">存档系统详细说明</a>，标记语法与写入限制见 <a href="variables.html#sysvar-replay" target="_blank">变量与运算符</a> 第 7.2 节。</p>
+
+            <h3>20.1 存储键与剧本标记</h3>
+            <table>
+                <tr><th>名称</th><th>位置</th><th>说明</th></tr>
+                <tr><td><code>shiori_tf_isreplay</code></td><td>sessionStorage</td><td>回放模式载荷（<code>tf.isReplay</code> 的承载键）。只在回放期间存在，抵达终点即清；场景页 <code>init()</code> 时恢复进 <code>tf</code>，并校验版本号与跳转链</td></tr>
+                <tr><td><code>shiori_replay_unlocked</code></td><td>localStorage</td><td>解锁记录，形如 <code>{ "&lt;end 文件名&gt;": 1 }</code>。键 = 条目的 <code>end</code> 字段（不含 .html）</td></tr>
+                <tr><td><code>shiori_tf_allclear</code></td><td>sessionStorage</td><td>「全部鉴赏」开关（宿主维护）。开启时回放条目照常显示，但<b>不写任何解锁记录</b></td></tr>
+            </table>
+            <p>剧本侧的起止标记写在 <code>$</code> 变量语句区，<b>必须严格形</b> —— 整行只有这一句、无 <code>?</code> 条件、无其它语句：</p>
+            <div class="code-block">
+<pre>{ text: "", command: "$tf.isReplayBegin = 1" }   // 回放起点
+{ text: "", command: "$tf.isReplayEnd = 1" }     // 回放终点（也是解锁点）</pre>
+            </div>
             <div class="tip-box">
-                <strong>延伸阅读：</strong>本页只列「有哪些接口」。剧本里怎么用指令触发这些能力请见 <a href="scripting.html" target="_blank">基础脚本语法与指令规范</a> 与 <a href="KSmacro.html" target="_blank">KS 宏与 DSL 语法指南</a>；变量读写的语义与限制请见 <a href="variables.html" target="_blank">变量与运算符</a>；立绘接口的完整配置请见 <a href="chars.html" target="_blank">立绘控制教程</a> 与 <a href="charsnew.html" target="_blank">高级立绘系统详细教学</a>；背景接口请见 <a href="background.html" target="_blank">背景转场教程</a>；存档与进度接口的语义请见 <a href="archive_system.html" target="_blank">存档系统详细说明</a> 与 <a href="lovesystem.html" target="_blank">好感度系统详解</a>。
+                <strong>注意：</strong><code>tf.isReplayBegin</code> / <code>tf.isReplayEnd</code> 并不是真正的变量 —— 它们在语句编译阶段被静默丢弃，只由文本层按整行的严格形正则识别。写成台词、尾部混入其它语句、放进 <code>?</code> 条件分支都会导致运行时识别不到（存档页的「检查回放配置」会把这些写法逐条报出来）。
+            </div>
+
+            <h3>20.2 VarSpace 的回放 API</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>isReplaying()</code></td><td>—</td><td>boolean</td><td>当前是否处于回放模式（<code>tf.isReplay</code> 存在）</td></tr>
+                <tr><td><code>getReplay()</code></td><td>—</td><td>Object|null</td><td>回放载荷本体（只读用途）：<code>{ v, title, begin, chain, … }</code>；非回放期返回 null</td></tr>
+                <tr><td><code>clearReplay()</code></td><td>—</td><td>void</td><td>退出回放：清 <code>tf.isReplay</code> 与承载键。不触碰 <code>f.</code> / <code>sf.</code>，不写解锁</td></tr>
+                <tr><td><code>readReplayUnlocked()</code></td><td>—</td><td>Object</td><td>读取解锁记录（键不存在或损坏时返回空对象）</td></tr>
+                <tr><td><code>isReplayUnlocked(file)</code></td><td><code>file</code> 条目的 <code>end</code> 字段</td><td>boolean</td><td>该回放是否已解锁</td></tr>
+                <tr><td><code>unlockReplay(file)</code></td><td><code>file</code> 当前剧本文件名（不含 .html）</td><td>boolean</td><td>写解锁记录。回放期调用返回 false；<code>tf.allclear</code> 开启时返回 false；已解锁时幂等返回 false；确实写入才返回 true</td></tr>
+            </table>
+            <p><code>isTempAllClear()</code> 查询 <code>tf.allclear</code> 状态；<code>unlockReplay()</code> 内部的 <code>_isAllClearOn()</code> 会同时看内存与 sessionStorage 承载键 —— 宿主的「开启全部鉴赏」是注入 JS 直接写键，页面不重载时内存尚未同步。</p>
+
+            <h3>20.3 gameEngine 的回放 API</h3>
+            <table>
+                <tr><th>方法</th><th>参数</th><th>返回值</th><th>说明</th></tr>
+                <tr><td><code>isReplayMode()</code></td><td>—</td><td>boolean</td><td>转调 <code>VarSpace.isReplaying()</code>；无 <code>VarSpace</code> 时返回 false</td></tr>
+                <tr><td><code>initReplayMode()</code></td><td>—</td><td>boolean</td><td>场景页开局调用：校验载荷有效、且当前文件在 <code>chain</code> 内，并收掉残留快进；校验失败会清掉回放模式</td></tr>
+                <tr><td><code>returnFromReplay()</code></td><td>—</td><td>void</td><td>结束回放并返回存档页：停 AUTO / 快进 → 清回放模式 → 清 <code>gameStateSnapshot</code> / <code>archiveLoadTarget</code> 残留</td></tr>
+                <tr><td><code>handleReplayMarker(line, index)</code></td><td><code>line</code> story 元素；<code>index</code> 该元素下标</td><td>string</td><td>标记分派，取值见下表</td></tr>
+            </table>
+            <p><code>handleReplayMarker()</code> 的三种返回：</p>
+            <table>
+                <tr><th>返回值</th><th>触发条件</th><th>结果</th></tr>
+                <tr><td><code>none</code></td><td>非标记行；或起点标记；或正片跑到终点标记</td><td>照常渲染与推进（正片跑到终点时顺带写解锁）</td></tr>
+                <tr><td><code>exit-now</code></td><td>回放中跑到终点标记，且该行除标记外无可见内容</td><td>立即返回存档页，不显示空文本框</td></tr>
+                <tr><td><code>exit-after</code></td><td>回放中跑到终点标记，但该行还带台词 / 立绘 / 背景等</td><td>先正常显示该行，等推进时再返回存档页</td></tr>
+            </table>
+            <div class="tip-box">
+                <strong>识别必须用 <code>displayLine</code> 的局部 <code>index</code>：</strong><code>gameEngine.state.currentLine</code> 在该函数尾部才赋值，命令执行期间读它会拿到上一行。
+            </div>
+
+            <h3>20.4 存档页 ReplayManager 与 REPLAY_RECORDS</h3>
+            <p>存档页 <code>html/saves.html</code> 不加载 <code>vars.js</code>（页面上没有 <code>VarSpace</code> / <code>gameEngine</code>），因此回放区自带一个页面级 <code>ReplayManager</code>，一切读写都直接走上面那三个 storage 键。条目表与开关写在同一个内联脚本里：</p>
+            <div class="code-block">
+<pre>const REPLAY_ENABLED = true;   // false 时整个回放区旁路，页面行为与旧版一致
+const REPLAY_RECORDS = [
+  { id: 'r1', title: '标题', begin: '1', again: ['2', '3'], end: '4' },
+  'id:r2;title:标题;begin:5;end:6'   // 也支持紧凑字符串写法
+];</pre>
+            </div>
+            <table>
+                <tr><th>字段</th><th>必填</th><th>说明</th></tr>
+                <tr><td><code>title</code></td><td>是</td><td>条目名，显示在卡片上</td></tr>
+                <tr><td><code>begin</code></td><td>是</td><td>起点剧本文件名（不含 .html，不带路径）</td></tr>
+                <tr><td><code>again</code></td><td>否</td><td>中间文件，单个字符串或数组；跨三个以上文件时用</td></tr>
+                <tr><td><code>end</code></td><td>否</td><td>终点剧本文件名；缺省等于 <code>begin</code>（单文件回放），同时是解锁键</td></tr>
+                <tr><td><code>id</code></td><td>否</td><td>条目标识；缺省按 <code>title</code> 生成</td></tr>
+            </table>
+            <table>
+                <tr><th>主要成员</th><th>说明</th></tr>
+                <tr><td><code>init()</code></td><td>读解锁记录与 allclear 状态、渲染回放卡片（页面加载时自动调用）</td></tr>
+                <tr><td><code>enter(rec)</code></td><td>进入回放：写载荷与承接键后跳 <code>../scenes/&lt;begin&gt;.html?startLine=</code></td></tr>
+                <tr><td><code>runCheck()</code></td><td>逐条检查配置与剧本，输出诊断报告（错误 / 警告 / 需确认 / 通过）</td></tr>
+                <tr><td><code>copyReport()</code> / <code>downloadReport()</code></td><td>复制报告 / 导出 log 文件</td></tr>
+                <tr><td><code>normalize()</code> / <code>scanStory()</code> / <code>normalizeInjected()</code></td><td>记录归一化、剧本 story 扫描、服务端注入行剔除（检查器内部使用）</td></tr>
+            </table>
+            <p><code>runCheck()</code> 报出的诊断码（英文短码 + 中文括号）：配置层 <code>E-FIELD-MISSING</code> / <code>E-UNKNOWN-FIELD</code> / <code>E-ID-DUP</code> / <code>E-FILE-INVALID</code> / <code>E-FILE-NOT-FOUND</code> / <code>E-STORY-PARSE</code>；剧本层 <code>E-BEGIN-MISSING</code> / <code>E-END-MISSING</code> / <code>E-MARK-NOT-STRICT</code> / <code>E-MARK-IN-AGAIN</code> / <code>W-END-BEFORE-BEGIN</code> / <code>E-CHAIN-BREAK</code> / <code>W-END-SHARED</code> / <code>W-LINE-SHIFT</code> / <code>I-OK</code>。运行期遇到任何一项都不报错，只在检查器里呈现。</p>
+
+            <h3>20.5 回放期被冻结的写入</h3>
+            <p>回放只是「重看」，绝不能污染真实进度。进入回放后，以下写入被冻结：</p>
+            <table>
+                <tr><th>层面</th><th>冻结范围</th></tr>
+                <tr><td>变量系统</td><td><code>f.</code> / <code>sf.</code> 的一切写入（<code>$</code> 语句区、<code>vars</code> 动作、<code>set()</code> / <code>setSF()</code> / <code>clearF()</code>、命名空间代理直写）；<code>tf.</code> 放行</td></tr>
+                <tr><td>存档模块</td><td><code>markSceneCompleted()</code>、<code>saveProgress()</code>、<code>saveCurrentSceneMarker()</code>、<code>saveStateSnapshot()</code>、<code>writeSceneEntrySnapshot()</code></td></tr>
+                <tr><td>演出控制</td><td>SKIP 快进被禁用（<code>toggleSkipMode()</code> 直接返回）</td></tr>
+                <tr><td>分支呈现</td><td><code>tf.allclear</code> 的按钮化分支被旁路，恢复默认的按序求值自动推进（否则中间文件的无条件直跳不会自动走）</td></tr>
+            </table>
+            <div class="highlight-box">
+                <strong>两条硬口径：</strong>① 解锁只发生在<b>正片</b> —— 普通播放跑到 <code>$tf.isReplayEnd = 1</code> 才写一笔；回放中跑到同一个标记只返回，不写解锁。② <code>tf.allclear</code>（「全部鉴赏」）只改「显示 / 可点」，开启时<b>绝不写任何存档、绝不解锁任何进度</b>。
+            </div>
+            <div class="tip-box">
+                <strong>延伸阅读：</strong>本页只列「有哪些接口」。剧本里怎么用指令触发这些能力请见 <a href="scripting.html" target="_blank">基础脚本语法与指令规范</a> 与 <a href="KSmacro.html" target="_blank">KS 宏与 DSL 语法指南</a>；变量读写的语义与限制请见 <a href="variables.html" target="_blank">变量与运算符</a>（回放标记见其 <a href="variables.html#sysvar-replay" target="_blank">7.2 节</a>）；立绘接口的完整配置请见 <a href="chars.html" target="_blank">立绘控制教程</a> 与 <a href="charsnew.html" target="_blank">高级立绘系统详细教学</a>；背景接口请见 <a href="background.html" target="_blank">背景转场教程</a>；存档、进度与回放用法的语义请见 <a href="archive_system.html#replay" target="_blank">存档系统详细说明</a> 与 <a href="lovesystem.html" target="_blank">好感度系统详解</a>。
             </div>
 
         </main>
