@@ -277,11 +277,9 @@
 			<div class="accordion-content">
 
 				<div class="version-block">
-					<h3>V3.0.1 <span class="version-date">(2026/10/28)</span> 小型更新</h3>
+					<h3>V3.0.2 <span class="version-date">(2026/11/14)</span> 小型补丁</h3>
 					<ul>
-						<li>新增「指定内容回放」功能：在剧本正片首尾各写入一行严格形标记 <code>$tf.isReplayBegin = 1</code> 与 <code>$tf.isReplayEnd = 1</code>（整行仅此一句，不含 <code>?</code> 条件），引擎进入回放态后以只读方式播放该段，全程冻结变量写入，跑到结束标记即返回进度管理页。</li>
-						<li>回放解锁键为记录 <code>end</code> 标记所在文件名（不含 .html），正片首次跑到 end 时写入 <code>localStorage</code>；「开启全部鉴赏」（<code>tf.allclear</code>）为不变显示开关，开启时回放照常解锁、但一个字都不写。</li>
-						<li>标记识别走 <code>engine_text.js</code> 的 <code>handleReplayMarker(line, index)</code> 局部行号判定，编译期静默丢弃，运行期不报错；相关 API、存储键与冻结清单见教学页 <a href="API.html#replay" target="_blank" rel="noopener noreferrer" style="color: #007bff;">API 接口 20</a> 与 <a href="archive_system.html#replay" target="_blank" rel="noopener noreferrer" style="color: #007bff;">鉴赏系统</a>。</li>
+						<li>修复了旧版立绘无法显示说话人头像的问题</li>
 					</ul>
 				</div>
 
@@ -292,6 +290,15 @@
 		<div class="accordion">
 			<button class="accordion-header">V3.0.x 系列</button>
 			<div class="accordion-content">
+
+				<div class="version-block">
+					<h3>V3.0.1 <span class="version-date">(2026/10/28)</span> 小型更新</h3>
+					<ul>
+						<li>新增「指定内容回放」功能：在剧本正片首尾各写入一行严格形标记 <code>$tf.isReplayBegin = 1</code> 与 <code>$tf.isReplayEnd = 1</code>（整行仅此一句，不含 <code>?</code> 条件），引擎进入回放态后以只读方式播放该段，全程冻结变量写入，跑到结束标记即返回进度管理页。</li>
+						<li>回放解锁键为记录 <code>end</code> 标记所在文件名（不含 .html），正片首次跑到 end 时写入 <code>localStorage</code>；「开启全部鉴赏」（<code>tf.allclear</code>）为不变显示开关，开启时回放照常解锁、但一个字都不写。</li>
+						<li>标记识别走 <code>engine_text.js</code> 的 <code>handleReplayMarker(line, index)</code> 局部行号判定，编译期静默丢弃，运行期不报错；相关 API、存储键与冻结清单见教学页 <a href="API.html#replay" target="_blank" rel="noopener noreferrer" style="color: #007bff;">API 接口 20</a> 与 <a href="archive_system.html#replay" target="_blank" rel="noopener noreferrer" style="color: #007bff;">鉴赏系统</a>。</li>
+					</ul>
+				</div>
 
 				<div class="version-block">
 					<h3>V3.0.0 <span class="version-date">(2026/10/11)</span> 大型联合更新</h3>
