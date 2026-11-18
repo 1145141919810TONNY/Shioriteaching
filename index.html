@@ -117,6 +117,193 @@
 			background: linear-gradient(to right, #a52a2a, #8e0e00);
 		}
 
+		/* ===== 历史公告：二级折叠 =====
+		   一级：整块历史公告默认收成一个「查看历史公告」按钮
+		   二级：展开后每条仍是独立的折叠项，互斥展开 */
+		.notice-history {
+			margin-top: 18px;
+			border-top: 2px dashed rgba(142, 14, 0, 0.25);
+			padding-top: 14px;
+		}
+
+		.notice-history-toggle {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 14px;
+			width: 100%;
+			padding: 12px 20px;
+			background: #fff;
+			border: 1px solid rgba(142, 14, 0, 0.2);
+			border-radius: 10px;
+			cursor: pointer;
+			text-align: left;
+			font-family: inherit;
+			transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+		}
+
+		.notice-history-toggle:hover {
+			background: rgba(142, 14, 0, 0.05);
+			border-color: rgba(142, 14, 0, 0.35);
+		}
+
+		.notice-history-toggle:focus-visible {
+			outline: 2px solid #8e0e00;
+			outline-offset: -2px;
+		}
+
+		.nh-label {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			min-width: 0;
+		}
+
+		.nh-title {
+			font-size: 16px;
+			font-weight: 600;
+			color: #6b5a52;
+		}
+
+		.nh-count {
+			flex: none;
+			padding: 1px 9px;
+			border-radius: 999px;
+			background: rgba(142, 14, 0, 0.1);
+			color: #8e0e00;
+			font-size: 12px;
+			line-height: 1.7;
+		}
+
+		.notice-history-toggle[aria-expanded="true"] {
+			border-color: rgba(142, 14, 0, 0.35);
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+		}
+
+		.notice-history-toggle[aria-expanded="true"] .notice-arrow {
+			transform: rotate(180deg);
+		}
+
+		.notice-history-toggle[aria-expanded="true"] .nh-title {
+			color: #8e0e00;
+		}
+
+		/* 高度由 JS 精确赋值；JS 未执行时 history 仍然是可滚动可见的，不会导致打不开 */
+		.notice-history-body {
+			max-height: 0;
+			overflow: hidden;
+			transition: max-height 0.4s ease;
+		}
+
+		.notice-history-body .notice-item {
+			margin-top: 12px;
+			margin-bottom: 0;
+		}
+
+		.notice-history-body .notice-item:first-child {
+			margin-top: 16px;
+		}
+
+		/* 最新公告（联动）用一点色彩区分，但不喧宾夺主 */
+		.notice-item.is-collab {
+			border-color: rgba(142, 14, 0, 0.4);
+			background: linear-gradient(180deg, rgba(255, 201, 60, 0.16), #fff 60%);
+		}
+
+		/* ===== 联动入口 ===== */
+		.collab-entry {
+			display: grid;
+			grid-template-columns: 1fr auto;
+			gap: 26px;
+			align-items: center;
+			padding: 28px 32px;
+			margin-bottom: 50px;
+			border-radius: 18px;
+			background:
+				radial-gradient(circle at 88% 20%, rgba(255, 201, 60, 0.35), transparent 45%),
+				linear-gradient(120deg, #8e0e00, #c72c3a 62%, #a61b2b);
+			color: #fff;
+			box-shadow: 0 10px 26px rgba(142, 14, 0, 0.28);
+			position: relative;
+			overflow: hidden;
+		}
+
+		.collab-entry::after {
+			content: "";
+			position: absolute;
+			right: -40px;
+			bottom: -60px;
+			width: 200px;
+			height: 200px;
+			border: 10px solid rgba(255, 255, 255, 0.09);
+			border-radius: 50%;
+			pointer-events: none;
+		}
+
+		.collab-entry .ce-tag {
+			display: inline-block;
+			padding: 2px 12px;
+			margin-bottom: 8px;
+			border: 1px solid rgba(255, 255, 255, 0.55);
+			border-radius: 999px;
+			font-size: 12px;
+			letter-spacing: 2px;
+		}
+
+		.collab-entry h3 {
+			margin: 0 0 8px;
+			font-size: 24px;
+			line-height: 1.35;
+		}
+
+		.collab-entry p {
+			margin: 0;
+			max-width: 660px;
+			font-size: 14.5px;
+			line-height: 1.75;
+			color: rgba(255, 255, 255, 0.85);
+		}
+
+		.collab-entry .ce-btn {
+			flex: none;
+			display: inline-block;
+			padding: 12px 30px;
+			border-radius: 999px;
+			background: #fff;
+			color: #8e0e00;
+			font-weight: 700;
+			text-decoration: none;
+			white-space: nowrap;
+			box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+			transition: transform 0.2s ease, box-shadow 0.2s ease;
+			position: relative;
+			z-index: 1;
+		}
+
+		.collab-entry .ce-btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 9px 20px rgba(0, 0, 0, 0.26);
+		}
+
+		@media (max-width: 768px) {
+			.collab-entry {
+				grid-template-columns: 1fr;
+				padding: 22px;
+			}
+
+			.collab-entry h3 {
+				font-size: 20px;
+			}
+
+			.collab-entry .ce-btn {
+				justify-self: start;
+			}
+
+			.nh-title {
+				font-size: 15px;
+			}
+		}
+
 		/* 响应式 */
 		@media (max-width: 768px) {
 			.section-title {
@@ -148,7 +335,7 @@
 <body>
 	<section class="hero-section">
 		<h1 class="hero-title">Shiori 引擎教学中心 V2.0</h1>
-		<h2 class="hero-title">最后更新日期：2026/11/14</h2>
+		<h2 class="hero-title">最后更新日期：2026/11/18</h2>
 		<h3 class="hero-title">engine:V3.0.2(53) / exe:V2.0.0(16) / manager:V1.1.0(8) / signer:V2.0.0(2) /
 			editor:beta
 			V0.1.1(2) / package:V1.0.1(2/已被合并)</h3>
@@ -159,85 +346,128 @@
 		<h3 class="update-title">公告栏</h3>
 		<h4 class="update-title">最新公告</h4>
 
-		<div class="notice-item">
+		<div class="notice-item is-collab">
 			<div class="notice-header" role="button" tabindex="0" aria-expanded="false">
 				<div class="notice-heading">
-					V3.0.0系列上线公告
-					<span class="notice-date">2026/10/11</span>
+					Shiori × 十二生肖斗兽棋 联动决定
+					<span class="notice-date">2026/11/18</span>
 				</div>
 				<span class="notice-arrow" aria-hidden="true">▾</span>
 			</div>
 			<div class="notice-body">
 				<div class="notice-content">
-					<p>相隔了近两个月的一次大版本联合更新V3.0.0系列上线。
-					</p>
-				<p style="text-align: right;">Shiori 系列开发者：bilibili 月が綺麗ですね_&nbsp;&nbsp;&nbsp;敬上</p>
-						<p style="text-align: right;">2026年10月11日</p>
-				</div>
-			</div>
-		</div>
-
-		<h4 class="update-title">历史公告</h4>
-
-		<div class="notice-item">
-			<div class="notice-header" role="button" tabindex="0" aria-expanded="false">
-				<div class="notice-heading">
-					重要测试、功能预告公告
-					<span class="notice-date">2026/10/3</span>
-				</div>
-				<span class="notice-arrow" aria-hidden="true">▾</span>
-			</div>
-			<div class="notice-body">
-				<div class="notice-content">
-					<p>这是一条测试公告：本教学网页目前处于新版本的先行测试阶段，站内所有新内容尚未正式上线与发布。<br>
-						网页中目前可能存在一些错误，请多多包涵。<br>
-预告中的主要功能请浏览<a href="html/Important_Update.html" target="_blank">重要联合更新日志</a>。<br>
-需说明的是，预告内容仅供参考，实际正式上线时功能可能会更加丰富（本页面已列举的功能均已实现完毕），目前正处于最后的测试阶段，后续仍可能追加新功能。<br>
-目前网页的状态大部分为引擎核心V3.0.0状态的内容，V2.2.0前部分内容仍适用。
-					</p>
-				<p style="text-align: right;">Shiori 系列开发者：bilibili 月が綺麗ですね_&nbsp;&nbsp;&nbsp;敬上</p>
-						<p style="text-align: right;">2026年10月3日</p>
-				</div>
-			</div>
-		</div>
-
-		<div class="notice-item">
-			<div class="notice-header" role="button" tabindex="0" aria-expanded="false">
-				<div class="notice-heading">
-					暂停更新公告
-					<span class="notice-date">2026/8/22</span>
-				</div>
-				<span class="notice-arrow" aria-hidden="true">▾</span>
-			</div>
-			<div class="notice-body">
-				<div class="notice-content">
+					<p>Shiori 引擎与《十二生肖斗兽棋》达成双向联动，两条内容线同时公开。</p>
 					<ul>
-						<li>即日起，由于以下原因Shiori全系列产品将暂停更新：</li>
-						<ol>
-							<li>由于本人在过去七个月内高强度的将生态内7个组件（包括维护这个网页）并行开发了数十个版本，感觉身心疲惫且灵感枯竭，这段时间是完全全职开发，经常熬夜到凌晨修bug加功能。后续也要和生活对线。因此需要一定的时间进行修整
-							</li>
-							<li>其次，本人将会在接下来的日子里去更深入的学习kirikiri体系，并尝试接触NScripter、renpy等其他引擎（在发布此公告前已经成功解密与封包某款被加密魔改的NScripter游戏），等我有了灵感之后再恢复高强度的更新
-							</li>
-							<li>并非完全停止日后的开发，只是暂停更新，你依旧可以通过已有的联系方式，如GitHub
-								issue、wakudemo等方式向我留言，我会视反馈的问题的严重性给予相对应的补丁</li>
-							<li>c++启动器也将同步搁置（实际上已经基本开发完毕，只是还有一些bug没修）</li>
-						</ol>
-						<p>这不是一个终点，而是正在筹备一个新的开始。</p>
-						<p>如有不便，敬请谅解</p>
-						<p style="text-align: right;">Shiori 系列开发者：bilibili 月が綺麗ですね_&nbsp;&nbsp;&nbsp;敬上</p>
-						<p style="text-align: right;">2026年8月22日</p>
-						<p>在宣布暂停更新后的系统补丁版本：<br>
-							（Engine）V2.2.0（2026/9/4） —— 历史遗留问题——好感度系统补全；f./sf./tf.变量系统添加（中型更新）<br>
-							（Engine）V2.1.10（2026/8/29） —— 系统补丁更新（小型更新）</p>
+						<li><strong>斗兽棋进入引擎</strong>：红方猪的娘化形象正式确认为引擎看板娘——事实上引擎的 Logo 与
+							<code>.ico</code> 图标一直就是她，此前未在公开页面写明出处，本次补齐；同时斗兽棋的官方剧情后续将由 Shiori
+							引擎承载与展示（剧情本身尚未撰写，本次先确定载体与规格），全套二次元娘化形象也将作为引擎模板剧情的官方立绘库。</li>
+						<li><strong>引擎进入斗兽棋</strong>：游戏在完成程序化改造后，发行包借助引擎闭源组件的封装链路完成加密与完整性校验，不再依赖第三方桌游模拟器，双击即可运行。</li>
 					</ul>
+					<p>详细的双向说明、看板娘设定与十三只动物的娘化立绘，请浏览 <a href="html/collab_zodiac.html">联动专题页</a>；
+						品牌图标的出处说明已同步补充至 <a href="html/icon.html">图标页</a>。</p>
+					<p style="text-align: right;">Shiori 系列开发者：bilibili 月が綺麗ですね_&nbsp;&nbsp;&nbsp;敬上</p>
+					<p style="text-align: right;">2026年11月18日</p>
 				</div>
 			</div>
 		</div>
-		
-		
+
+		<div class="notice-history">
+			<button type="button" class="notice-history-toggle" id="noticeHistoryToggle" aria-expanded="false"
+				aria-controls="noticeHistoryBody">
+				<span class="nh-label">
+					<span class="nh-title">查看历史公告</span>
+					<span class="nh-count">3 条</span>
+				</span>
+				<span class="notice-arrow" aria-hidden="true">▾</span>
+			</button>
+
+			<div class="notice-history-body" id="noticeHistoryBody">
+				<div class="notice-item">
+					<div class="notice-header" role="button" tabindex="0" aria-expanded="false">
+						<div class="notice-heading">
+							V3.0.0系列上线公告
+							<span class="notice-date">2026/10/11</span>
+						</div>
+						<span class="notice-arrow" aria-hidden="true">▾</span>
+					</div>
+					<div class="notice-body">
+						<div class="notice-content">
+							<p>相隔了近两个月的一次大版本联合更新V3.0.0系列上线。
+							</p>
+							<p style="text-align: right;">Shiori 系列开发者：bilibili 月が綺麗ですね_&nbsp;&nbsp;&nbsp;敬上</p>
+							<p style="text-align: right;">2026年10月11日</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="notice-item">
+					<div class="notice-header" role="button" tabindex="0" aria-expanded="false">
+						<div class="notice-heading">
+							重要测试、功能预告公告
+							<span class="notice-date">2026/10/3</span>
+						</div>
+						<span class="notice-arrow" aria-hidden="true">▾</span>
+					</div>
+					<div class="notice-body">
+						<div class="notice-content">
+							<p>这是一条测试公告：本教学网页目前处于新版本的先行测试阶段，站内所有新内容尚未正式上线与发布。<br>
+								网页中目前可能存在一些错误，请多多包涵。<br>
+								预告中的主要功能请浏览<a href="html/Important_Update.html" target="_blank">重要联合更新日志</a>。<br>
+								需说明的是，预告内容仅供参考，实际正式上线时功能可能会更加丰富（本页面已列举的功能均已实现完毕），目前正处于最后的测试阶段，后续仍可能追加新功能。<br>
+								目前网页的状态大部分为引擎核心V3.0.0状态的内容，V2.2.0前部分内容仍适用。
+							</p>
+							<p style="text-align: right;">Shiori 系列开发者：bilibili 月が綺麗ですね_&nbsp;&nbsp;&nbsp;敬上</p>
+							<p style="text-align: right;">2026年10月3日</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="notice-item">
+					<div class="notice-header" role="button" tabindex="0" aria-expanded="false">
+						<div class="notice-heading">
+							暂停更新公告
+							<span class="notice-date">2026/8/22</span>
+						</div>
+						<span class="notice-arrow" aria-hidden="true">▾</span>
+					</div>
+					<div class="notice-body">
+						<div class="notice-content">
+							<ul>
+								<li>即日起，由于以下原因Shiori全系列产品将暂停更新：</li>
+								<ol>
+									<li>由于本人在过去七个月内高强度的将生态内7个组件（包括维护这个网页）并行开发了数十个版本，感觉身心疲惫且灵感枯竭，这段时间是完全全职开发，经常熬夜到凌晨修bug加功能。后续也要和生活对线。因此需要一定的时间进行修整
+									</li>
+									<li>其次，本人将会在接下来的日子里去更深入的学习kirikiri体系，并尝试接触NScripter、renpy等其他引擎（在发布此公告前已经成功解密与封包某款被加密魔改的NScripter游戏），等我有了灵感之后再恢复高强度的更新
+									</li>
+									<li>并非完全停止日后的开发，只是暂停更新，你依旧可以通过已有的联系方式，如GitHub
+										issue、wakudemo等方式向我留言，我会视反馈的问题的严重性给予相对应的补丁</li>
+									<li>c++启动器也将同步搁置（实际上已经基本开发完毕，只是还有一些bug没修）</li>
+								</ol>
+								<p>这不是一个终点，而是正在筹备一个新的开始。</p>
+								<p>如有不便，敬请谅解</p>
+								<p style="text-align: right;">Shiori 系列开发者：bilibili 月が綺麗ですね_&nbsp;&nbsp;&nbsp;敬上</p>
+								<p style="text-align: right;">2026年8月22日</p>
+								<p>在宣布暂停更新后的系统补丁版本：<br>
+									（Engine）V2.2.0（2026/9/4） —— 历史遗留问题——好感度系统补全；f./sf./tf.变量系统添加（中型更新）<br>
+									（Engine）V2.1.10（2026/8/29） —— 系统补丁更新（小型更新）</p>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<div class="category-container">
+		<!-- ===== 联动企划 ===== -->
+		<div class="collab-entry">
+			<div>
+				<span class="ce-tag">COLLABORATION 2026</span>
+				<h3>Shiori × 十二生肖斗兽棋 联动决定</h3>
+			</div>
+			<a class="ce-btn" href="html/collab_zodiac.html" target="_blank">查看联动专题</a>
+		</div>
+
 		<!-- ===== 产品 ===== -->
 		<div class="category-section">
 			<div class="section-header">
@@ -274,6 +504,14 @@
 						<div class="card-content">
 							<h3 class="card-title">Shiori 品牌图标与 Logo</h3>
 							<span class="btn-primary">查看与下载</span>
+						</div>
+					</div>
+				</a>
+				<a href="html/collab_zodiac.html" class="category-link" target="_blank">
+					<div class="feature-card">
+						<div class="card-content">
+							<h3 class="card-title">Shiori × 斗兽棋<br>联动专题</h3>
+							<span class="btn-primary">查看联动</span>
 						</div>
 					</div>
 				</a>
@@ -645,8 +883,6 @@
 		(function () {
 			var board = document.querySelector('.notice-board');
 			if (!board) return;
-			var items = Array.prototype.slice.call(board.querySelectorAll('.notice-item'));
-			if (!items.length) return;
 
 			function getBody(item) { return item.querySelector('.notice-body'); }
 			function getHeader(item) { return item.querySelector('.notice-header'); }
@@ -664,35 +900,89 @@
 				body.style.maxHeight = body.scrollHeight + 'px';
 			}
 
-			function toggle(item) {
-				var isOpen = item.classList.contains('is-open');
-				items.forEach(collapse);          // 收起其他（含自身）
-				if (!isOpen) expand(item);        // 点击已展开的那条 => 全部收起
+			/* 一组公告共用一个互斥手风琴：展开一条时收起同组其他条 */
+			function makeAccordion(items, openFirst) {
+				items.forEach(function (item) {
+					collapse(item);
+					var header = getHeader(item);
+
+					function toggle() {
+						var isOpen = item.classList.contains('is-open');
+						items.forEach(collapse);
+						if (!isOpen) expand(item);
+					}
+
+					header.addEventListener('click', toggle);
+					header.addEventListener('keydown', function (e) {
+						if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+							e.preventDefault();
+							toggle();
+						}
+					});
+				});
+				if (openFirst && items[0]) expand(items[0]);
 			}
 
-			items.forEach(function (item) {
-				collapse(item);
-				var header = getHeader(item);
-				header.addEventListener('click', function () { toggle(item); });
-				header.addEventListener('keydown', function (e) {
-					if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
-						e.preventDefault();
-						toggle(item);
-					}
-				});
+			/* 最新公告（不在历史分组内的）与历史公告各自独立成组 */
+			var latestItems = [];
+			var historyItems = [];
+			Array.prototype.forEach.call(board.querySelectorAll('.notice-item'), function (item) {
+				var inHistory = item.parentElement && item.parentElement.classList.contains('notice-history-body');
+				(inHistory ? historyItems : latestItems).push(item);
 			});
 
-			// 默认展开最顶上的一条
-			expand(items[0]);
+			makeAccordion(latestItems, true);   // 最新公告默认展开
+			makeAccordion(historyItems, false); // 历史公告默认全部收起
 
-			// 窗口尺寸变化导致内容换行时，重算展开项高度，避免被截断
+			/* ---- 一级折叠：整块历史公告 ---- */
+			var toggleBtn = document.getElementById('noticeHistoryToggle');
+			var groupBody = document.getElementById('noticeHistoryBody');
+			if (!toggleBtn || !groupBody) return;
+
+			function isGroupOpen() { return groupBody.classList.contains('is-open'); }
+
+			/* 展开时高度设为内容实际高度，动画结束后改为 none，
+			   这样组内任意一条再展开都不会被父级高度截断 */
+			groupBody.addEventListener('transitionend', function (e) {
+				if (e.target !== groupBody) return;
+				if (isGroupOpen()) groupBody.style.maxHeight = 'none';
+			});
+
+			function openGroup() {
+				groupBody.classList.add('is-open');
+				toggleBtn.setAttribute('aria-expanded', 'true');
+				groupBody.style.maxHeight = groupBody.scrollHeight + 'px';
+				/* 兜底：transitionend 未触发时也要解除高度限制 */
+				setTimeout(function () {
+					if (isGroupOpen()) groupBody.style.maxHeight = 'none';
+				}, 460);
+			}
+
+			function closeGroup() {
+				/* 从 none 收回时必须先落到一个具体高度，否则不会有过渡 */
+				groupBody.style.maxHeight = groupBody.scrollHeight + 'px';
+				groupBody.classList.remove('is-open');
+				toggleBtn.setAttribute('aria-expanded', 'false');
+				void groupBody.offsetHeight;
+				groupBody.style.maxHeight = '0px';
+			}
+
+			toggleBtn.addEventListener('click', function () {
+				isGroupOpen() ? closeGroup() : openGroup();
+			});
+
+			/* 窗口尺寸变化：展开中的条目重新量高，避免换行后被截断 */
 			window.addEventListener('resize', function () {
-				items.forEach(function (item) {
+				var all = latestItems.concat(historyItems);
+				all.forEach(function (item) {
 					if (item.classList.contains('is-open')) {
 						var body = getBody(item);
 						body.style.maxHeight = body.scrollHeight + 'px';
 					}
 				});
+				if (isGroupOpen() && groupBody.style.maxHeight !== 'none') {
+					groupBody.style.maxHeight = groupBody.scrollHeight + 'px';
+				}
 			});
 		})();
 	</script>
